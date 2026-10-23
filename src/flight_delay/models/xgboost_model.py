@@ -21,7 +21,7 @@ def build_xgboost(
         "eval_metric": params.get("eval_metric", "aucpr"),
         "early_stopping_rounds": int(params.get("early_stopping_rounds", 30)),
         "random_state": int(params.get("random_state", 42)),
-        "n_jobs": -1,
+        "n_jobs": int(params.get("n_jobs", 2)),
         "tree_method": "hist",
     }
 

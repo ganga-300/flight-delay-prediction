@@ -30,3 +30,16 @@ def test_ece_is_zero_for_perfect_calibration():
     )
 
     assert ece == pytest.approx(0.0)
+
+
+def test_recall_at_precision_returns_zero_when_target_unreachable():
+    """Return zero recall and infinity when no threshold meets the target."""
+    y_true = np.array([1, 0, 1, 0])
+    y_prob = np.array([0.8, 0.9, 0.6, 0.7])
+
+    recall, threshold = recall_at_precision(
+        y_true, y_prob, min_precision=1.0
+    )
+
+    assert recall == pytest.approx(0.0)
+    assert np.isinf(threshold)

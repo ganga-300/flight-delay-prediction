@@ -38,9 +38,9 @@ def add_calendar_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     out = df.copy()
     date = out["date"]
-    out["dow"] = date.dt.dayofweek.astype("int8")  # 0 = Monday
+    out["dow"] = date.dt.day_of_week.astype("int8")  # 0 = Monday
     out["month"] = date.dt.month.astype("int8")
-    out["day_of_year"] = date.dt.dayofyear.astype("int16")
+    out["day_of_year"] = date.dt.day_of_year.astype("int16")
     out["is_weekend"] = (out["dow"] >= 5).astype("int8")
 
     # Pad the range so holidays just outside the data (e.g. 1 Jan of the next year) count.
