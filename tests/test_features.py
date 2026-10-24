@@ -386,3 +386,42 @@ def test_missing_arrival_fallback_uses_new_york_calendar_date():
         outcome_known_date(row).iloc[0]
         == pd.Timestamp("2013-01-02")
     )
+
+
+def test_outcome_known_on_date_is_excluded_from_that_dates_history():
+    rows = pd.DataFrame({
+        "carrier": ["UA", "UA", "UA"],
+        "origin": ["EWR", "EWR", "EWR"],
+        "dest": ["BOS", "BOS", "BOS"],
+        "date": pd.to_datetime([
+            "2013-01-01", "2013-01-02", "2013-01-03"
+        ]),
+        "sched_dep_dt": pd.to_datetime([
+            "2013-01-01 08:00",
+            "2013-01-02 08:00",
+            "2013-01-03 08:00",
+        ]),
+        "dep_delay": [0.0, 0.0, 0.0],
+        "air_time": [60.0, 60.0, 60.0],
+        "arr_time": [100.0, 100.0, 100.0],
+        "is_delayed": [1, 0, 0],
+    })
+
+    known = outcome_known_date(rows)
+    assert known.iloc[0] == pd.Timestamp("2013-01-02")
+
+    result = add_historical_delay_rates(
+        rows,
+        keys=["carrier"],
+        windows_days=[1],
+        include_all_past=True,
+    )
+
+    assert result.loc[0, "hist_global_all_n"] == 0
+    assert result.loc[0, "hist_carrier_1d_n"] == 0
+    # The outcome becomes known on Jan 2, so it is excluded on Jan 2
+    # and included in all-past history on Jan 3.
+    assert result.loc[1, "hist_global_all_n"] == 0
+    assert result.loc[1, "hist_carrier_1d_n"] == 0
+    assert result.loc[2, "hist_global_all_n"] == 1
+    assert result.loc[2, "hist_carrier_1d_n"] == 1
