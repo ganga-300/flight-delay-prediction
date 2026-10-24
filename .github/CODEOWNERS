@@ -1,0 +1,36 @@
+# Changes to these paths need approval from the project owner before they can be merged
+# (docs/decision_log.md, D-108). Enforced when the branch protection rule for ml-restart has
+# "Require review from Code Owners" switched on.
+#
+# Free to change without owner review: src/flight_delay/models/, src/flight_delay/evaluation/,
+# scripts/train.py, notebooks/04_model_results.ipynb and new test files for model code.
+
+# Guards themselves
+/.github/                                   @ganga-300
+/tests/conftest.py                          @ganga-300
+/tests/test_guards.py                       @ganga-300
+/tests/test_holdout_seal.py                 @ganga-300
+/tests/test_experiments.py                  @ganga-300
+/tests/test_features.py                     @ganga-300
+/tests/test_leakage.py                      @ganga-300
+/tests/test_split.py                        @ganga-300
+
+# Frozen data and feature pipeline
+/configs/                                   @ganga-300
+/data/                                      @ganga-300
+/src/flight_delay/config.py                 @ganga-300
+/src/flight_delay/data/                     @ganga-300
+/src/flight_delay/features/                 @ganga-300
+/src/flight_delay/experiments.py            @ganga-300
+/scripts/seal_holdout.py                    @ganga-300
+/scripts/build_features.py                  @ganga-300
+/notebooks/01_data_quality.ipynb            @ganga-300
+/notebooks/02_eda.ipynb                     @ganga-300
+/notebooks/03_feature_engineering.ipynb     @ganga-300
+
+# Decisions, run evidence and the one-time test evaluation
+/docs/decision_log.md                       @ganga-300
+/docs/leakage_policy.md                     @ganga-300
+/experiments/runs/                          @ganga-300
+/scripts/evaluate.py                        @ganga-300
+/reports/results/                           @ganga-300

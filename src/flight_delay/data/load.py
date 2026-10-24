@@ -1,4 +1,4 @@
-"""Load the raw Kaggle *Flights* (nycflights13, 2013) CSV with an explicit schema.
+"""Load the raw Kaggle *Flights* (NYC departures, 2013) CSV with an explicit schema.
 
 The raw file has 21 columns. Times are integers in local ``HHMM`` format; the actual
 times / delays are missing for cancelled flights, so they are read as nullable floats.
