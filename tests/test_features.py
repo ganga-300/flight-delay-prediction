@@ -282,7 +282,12 @@ def test_time_index_like_columns_are_not_features():
     month_like = {"month", "day_of_year", "month_sin", "month_cos", "doy_sin", "doy_cos"}
     assert not month_like & feats  # unseen months in valid/test (chronological split)
     assert not [c for c in feats if c.endswith("_all_n")]
-    assert {"dow_sin", "is_holiday", "sched_block_min"} <= feats
+    assert {"dow_sin", "is_holiday"} <= feats
+    enabled_groups = cfg.get("features", {}).get("enabled_numeric_groups")
+    if enabled_groups is None or "schedule" in enabled_groups or "schedule_route" in enabled_groups:
+        assert "sched_block_min" in feats
+    else:
+        assert "sched_block_min" not in feats
 
     # Expanded features are allowed only when their groups are enabled.
     groups = feature_groups(cfg)

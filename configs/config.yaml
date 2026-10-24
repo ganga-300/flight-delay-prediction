@@ -24,9 +24,7 @@ split:
   - '2013-12-31'
 features:
   enabled_numeric_groups:
-    - calendar
-    - schedule_route
-    - historical
+  - calendar
   history_windows_days:
   - 1
   - 7
