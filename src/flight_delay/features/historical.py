@@ -42,14 +42,32 @@ TARGET = "is_delayed"
 def outcome_known_date(df: pd.DataFrame) -> pd.Series:
     """New York calendar date on which each flight's arrival outcome is assumed to be known."""
     known = actual_arrival_ny(df) + REPORTING_BUFFER
-    estimate = (
+    # Estimate the outcome-known time in UTC so flights from other
+    # time zones are assigned to the correct New York calendar date.
+    from flight_delay.features.timebase import localize_to_utc
+
+    estimated_departure_local = (
         df["sched_dep_dt"]
         + pd.to_timedelta(df["dep_delay"], unit="m")
+    )
+    estimated_departure_utc = localize_to_utc(
+        estimated_departure_local, df["origin"]
+    )
+    estimate_utc = (
+        estimated_departure_utc
         + pd.to_timedelta(df["air_time"], unit="m")
         + FALLBACK_BUFFER
     )
-    known = known.where(known.notna(), estimate)
-    known = known.where(known.notna(), df["date"] + pd.Timedelta(days=2))  # no departure record
+    estimate_ny = (
+        estimate_utc.dt.tz_convert("America/New_York")
+        .dt.tz_localize(None)
+        .dt.normalize()
+    )
+
+    known = known.where(known.notna(), estimate_ny)
+    known = known.where(
+        known.notna(), df["date"] + pd.Timedelta(days=2)
+    )  # no usable arrival or departure-time estimate
     return known.dt.normalize()
 
 

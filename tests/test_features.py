@@ -259,3 +259,83 @@ def test_time_index_like_columns_are_not_features():
     assert not [c for c in feats if c.endswith("_all_n")]
     assert {"dow_sin", "is_holiday", "hist_carrier_all_rate", "hist_route_7d_n"} <= feats
     assert "sched_block_min" in feats and "sched_clock_duration_min" not in feats
+
+
+def test_missing_arrival_time_uses_conservative_fallback():
+    from flight_delay.features.historical import outcome_known_date
+
+    row = pd.DataFrame({
+        "origin": ["EWR"],
+        "dest": ["BOS"],
+        "date": pd.to_datetime(["2013-01-01"]),
+        "sched_dep_dt": pd.to_datetime(["2013-01-01 23:00"]),
+        "dep_delay": [60.0],
+        "air_time": [60.0],
+        "arr_time": [float("nan")],
+    })
+
+    # 23:00 + 60 min delay + 60 min air time + 240 min buffer = 06:00 next day.
+    assert outcome_known_date(row).iloc[0] == pd.Timestamp("2013-01-02")
+
+
+def test_unknown_airport_timezone_uses_conservative_date_fallback():
+    from flight_delay.features.historical import outcome_known_date
+
+    row = pd.DataFrame({
+        "origin": ["XXX"],
+        "dest": ["YYY"],
+        "date": pd.to_datetime(["2013-01-01"]),
+        "sched_dep_dt": pd.to_datetime(["2013-01-01 23:00"]),
+        "dep_delay": [60.0],
+        "air_time": [60.0],
+        "arr_time": [float("nan")],
+    })
+
+    # Without an airport timezone, use the conservative date + 2 days.
+    assert outcome_known_date(row).iloc[0] == pd.Timestamp("2013-01-03")
+
+
+
+
+@pytest.mark.parametrize(
+    ("window", "expected_count"),
+    [(1, 1), (7, 2), (28, 3)],
+)
+def test_history_windows_use_exact_prior_calendar_dates(window, expected_count):
+    """Windows include D-w through D-1 and exclude the prediction date D."""
+    from flight_delay.features.historical import _past_window_sums
+
+    daily = pd.DataFrame(
+        {"count": [1, 1, 1]},
+        index=pd.to_datetime([
+            "2013-01-01",
+            "2013-01-02",
+            "2013-01-08",
+        ]),
+    )
+    dates = pd.date_range("2013-01-01", "2013-01-30", freq="D")
+    result = _past_window_sums(daily, dates, window)
+
+    assert result.loc[pd.Timestamp("2013-01-09"), "count"] == expected_count
+
+
+def test_missing_arrival_fallback_uses_new_york_calendar_date():
+    from flight_delay.features.historical import outcome_known_date
+
+    row = pd.DataFrame({
+        "origin": ["LAX"],
+        "dest": ["JFK"],
+        "date": pd.to_datetime(["2013-01-01"]),
+        "sched_dep_dt": pd.to_datetime(["2013-01-01 23:00"]),
+        "dep_delay": [0.0],
+        "air_time": [60.0],
+        "arr_time": [float("nan")],
+    })
+
+    # LAX departure: Jan 1, 23:00 PST = Jan 2, 07:00 UTC.
+    # Add 60 min air time and 240 min buffer:
+    # Jan 2, 12:00 UTC = Jan 2, 07:00 EST.
+    assert (
+        outcome_known_date(row).iloc[0]
+        == pd.Timestamp("2013-01-02")
+    )
