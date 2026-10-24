@@ -123,11 +123,46 @@ have been seen.
 
 ---
 
+## Phase 2 — Exploratory analysis on the training period
+
+### D-101 · EDA re-run on Jan–Aug only
+- **Decision:** Every EDA statistic that informs feature design uses the training period only
+  (2013-01-01 to 2013-08-31, 217,727 labelled flights, 26.4% delayed). Validation and test
+  outcomes are not used. This replaces the earlier full-year EDA.
+- **Where:** `notebooks/02_eda.ipynb`. It loads through `load_dev_raw` and filters to the
+  `split.train` dates. It adds two training-only checks the earlier version lacked: congestion
+  within the same departure hour (§10) and holiday proximity (§11). Findings, and a comparison
+  with the full-year numbers, are in the notebook's final cell.
+- **Evidence by feature group:**
+
+| Feature group | Jan–Aug evidence | Verdict |
+|---|---|---|
+| Hour: `sched_dep_hour_frac`, `dep_hour_sin/cos`, `dep_bucket` | Rate rises from 10.8% (05:00) to 40.5% (21:00) | **Supported** |
+| Weekday: `dow`, `dow_sin/cos`, `is_weekend` | Thu 31.0%, Sat 18.5%, Sun 23.0% | **Supported** |
+| Categoricals: carrier, origin, dest, route | EV 35.3% vs AA 20.3%; EWR 28.5% vs LGA 24.4%; destinations 20.4–41.4% | **Supported** |
+| Crosses: `carrier_origin` (and route-level) | 9E EWR 19.1% vs JFK 29.5%; ORD JFK 33.9% vs LGA 22.9% | **Supported** |
+| Crosses: `origin_dep_bucket`, `carrier_dep_bucket` | Not examined directly | **Not examined** |
+| History, 1-day window | Daily rate lag-1 autocorrelation 0.356 | **Supported** |
+| History, 7- and 28-day windows | Lag-2 0.041, lag-7 0.021 (full year showed 0.13 / 0.11). Remaining rationale: monthly level shifts within Jan–Aug (22.7–32.2%) and per-key base-rate differences | **Weak / indirect** |
+| Congestion (4 features) | Overall flat (ρ 0.014), confounded with hour. Within the same hour, busier slots more delayed in 15 of 18 hours (weighted ρ 0.05; evening +14 to +18 points) | **Weak** |
+| Schedule: distance, block time, etc. | Distance weak and non-monotonic (23.0–29.7% across deciles) | **Weak** |
+| Holiday proximity (3 features) | Five holidays in the period; holiday dates 18.0% vs 27.6% far from holidays; non-monotonic between | **Inconclusive** |
+| Month / day-of-year identity | Already excluded (validation and test months are unseen in training). Within Jan–Aug, monthly rates shift between 22.7% and 32.2% | Exclusion consistent |
+
+- **What changed relative to the full-year EDA:** Only the multi-day persistence result. Lags 2
+  and 7 were positive with all twelve months included and are near zero on Jan–Aug. Every other
+  pattern holds with similar magnitude.
+- **Use of these results:** The verdicts are inputs to D-102. Any feature group kept without
+  training-data support must have a written prior reason (D-103), and none is to be added,
+  dropped or tuned on validation or test scores.
+- **Status:** Fixed. Date: 2026-10-25.
+
+---
+
 ## Pending decisions (to be logged in order)
 
 | ID | Phase | Decision | Evidence allowed |
 |---|---|---|---|
-| D-101 | 2 | Re-check each EDA pattern behind a feature (hour, weekday, carrier × airport, day-to-day delay clustering, congestion) | Train (Jan–Aug) only |
 | D-102 | 3 | Keep, adjust or remove each feature group based on D-101 | Train only |
 | D-103 | 3 | Reasons for history windows (1/7/28), prior strength (20), category cutoff (50), departure buckets | Prior reasoning; no tuning |
 | D-104 | 3 | 240-min fallback, re-derived from Jan–Aug taxi times | Train only |
