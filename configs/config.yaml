@@ -33,6 +33,7 @@ features:
   - 28
   history_include_all_past: true
   history_prior_strength: 20
+  history_reporting_buffer_minutes: 30
   categorical_min_count: 50
   cyclic:
   - hour

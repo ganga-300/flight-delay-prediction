@@ -425,3 +425,41 @@ def test_outcome_known_on_date_is_excluded_from_that_dates_history():
     assert result.loc[1, "hist_carrier_1d_n"] == 0
     assert result.loc[2, "hist_global_all_n"] == 1
     assert result.loc[2, "hist_carrier_1d_n"] == 1
+
+
+def test_midnight_reporting_buffer_excludes_outcome_until_next_day():
+    rows = pd.DataFrame({
+        "carrier": ["UA", "UA", "UA"],
+        "origin": ["EWR", "EWR", "EWR"],
+        "dest": ["BOS", "BOS", "BOS"],
+        "date": pd.to_datetime([
+            "2013-01-01",
+            "2013-01-02",
+            "2013-01-03",
+        ]),
+        "sched_dep_dt": pd.to_datetime([
+            "2013-01-01 20:00",
+            "2013-01-02 08:00",
+            "2013-01-03 08:00",
+        ]),
+        "dep_delay": [0.0, 0.0, 0.0],
+        "air_time": [60.0, 60.0, 60.0],
+        "arr_time": [2340.0, 930.0, 930.0],
+        "is_delayed": [1, 0, 0],
+    })
+
+    known = outcome_known_date(rows)
+    assert known.iloc[0] == pd.Timestamp("2013-01-02")
+
+    result = add_historical_delay_rates(
+        rows,
+        keys=["carrier"],
+        windows_days=[1],
+        include_all_past=True,
+    )
+
+    # The outcome is excluded from history on its known date.
+    assert result.loc[1, "hist_carrier_1d_n"] == 0
+
+    # By Jan 3, both Jan 1 and Jan 2 outcomes are known.
+    assert result.loc[2, "hist_carrier_1d_n"] == 2

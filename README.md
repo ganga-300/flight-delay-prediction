@@ -90,3 +90,29 @@ and an offline what-if rescheduling analysis. Not part of this scaffold.
 ## Author
 
 Ganga Raghuwanshi — Newton School of Technology, Rishihood University
+
+## Reporting-buffer sensitivity analysis
+
+Historical features were evaluated with reporting buffers of 0, 30, 60 and 120 minutes. These are sensitivity experiments, not proof that any buffer reflects actual data availability.
+
+### Logistic Regression
+
+| Buffer | Test PR-AUC | Test ROC-AUC | Brier | ECE | Precision | Recall |
+|---:|---:|---:|---:|---:|---:|---:|
+| 0 min | 0.39166 | 0.66001 | 0.18805 | 0.08787 | 0.5501 | 0.04331 |
+| 30 min | 0.38992 | 0.65873 | 0.18852 | 0.08936 | 0.5291 | 0.05349 |
+| 60 min | 0.38870 | 0.65739 | 0.18917 | 0.09166 | 0.5395 | 0.04998 |
+| 120 min | 0.38674 | 0.65499 | 0.18995 | 0.09385 | 0.5183 | 0.05887 |
+
+### XGBoost
+
+| Buffer | Test PR-AUC | Test ROC-AUC | Brier | ECE | Validation threshold meets 60% precision? |
+|---:|---:|---:|---:|---:|---|
+| 0 min | 0.38381 | 0.64804 | 0.19102 | 0.09619 | Yes |
+| 30 min | 0.38518 | 0.64999 | 0.19067 | 0.09591 | No |
+| 60 min | 0.38206 | 0.64682 | 0.19105 | 0.09590 | No |
+| 120 min | 0.38128 | 0.64542 | 0.19170 | 0.09801 | No |
+
+The 30-minute XGBoost run achieved the highest test PR-AUC and ROC-AUC among these configurations, but the differences were small. Only the 0-minute run found a validation threshold meeting the 60% precision target. Since the test set was evaluated across these configurations, these comparisons are exploratory and should not be used for further test-set tuning.
+
+The reporting buffer is an assumption about historical outcome availability. Its operational validity depends on the actual data source and reporting latency, which have not been independently verified.

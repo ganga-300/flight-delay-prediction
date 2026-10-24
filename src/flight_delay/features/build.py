@@ -142,6 +142,7 @@ def build_feature_table(raw: pd.DataFrame, config: dict) -> pd.DataFrame:
         windows_days=fcfg.get("history_windows_days", [1, 7, 28]),
         include_all_past=fcfg.get("history_include_all_past", True),
         prior_strength=fcfg.get("history_prior_strength", 20.0),
+        reporting_buffer_minutes=fcfg.get("history_reporting_buffer_minutes", 30),
     )
     df["split"] = assign_split(df["date"], config["split"])
 

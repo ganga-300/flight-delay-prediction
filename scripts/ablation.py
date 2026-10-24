@@ -27,13 +27,14 @@ from flight_delay.models.logistic import build_logistic_pipeline
 from flight_delay.models.xgboost_model import build_xgboost
 
 
+
 EXPERIMENTS = {
-    # Existing experiments: preserve for comparison.
+    # Existing experiments
     "baseline": ["calendar", "schedule_route", "categorical"],
     "no_schedule_route": ["calendar", "categorical"],
     "no_calendar": ["schedule_route", "categorical"],
 
-    # New experiments: measure the incremental value of feature groups.
+    # Historical feature contribution
     "baseline_plus_historical": [
         "calendar", "schedule_route", "categorical", "historical"
     ],
@@ -45,6 +46,7 @@ EXPERIMENTS = {
         "historical", "congestion"
     ],
 }
+
 
 
 def select_features(spec, groups):

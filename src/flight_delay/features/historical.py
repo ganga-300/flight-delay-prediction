@@ -39,9 +39,16 @@ FALLBACK_BUFFER = pd.Timedelta(minutes=240)
 TARGET = "is_delayed"
 
 
-def outcome_known_date(df: pd.DataFrame) -> pd.Series:
-    """New York calendar date on which each flight's arrival outcome is assumed to be known."""
-    known = actual_arrival_ny(df) + REPORTING_BUFFER
+def outcome_known_date(
+    df: pd.DataFrame,
+    reporting_buffer_minutes: float = 30,
+) -> pd.Series:
+    """New York date when arrival outcome is assumed known after a reporting delay."""
+    if reporting_buffer_minutes < 0:
+        raise ValueError("reporting_buffer_minutes must be non-negative")
+
+    reporting_buffer = pd.Timedelta(minutes=reporting_buffer_minutes)
+    known = actual_arrival_ny(df) + reporting_buffer
     # Estimate the outcome-known time in UTC so flights from other
     # time zones are assigned to the correct New York calendar date.
     from flight_delay.features.timebase import localize_to_utc
@@ -92,6 +99,7 @@ def add_historical_delay_rates(
     include_all_past: bool = True,
     prior_strength: float = 20.0,
     history: pd.DataFrame | None = None,
+    reporting_buffer_minutes: float = 30,
 ) -> pd.DataFrame:
     """Add past-only delay counts and smoothed rates per key and window.
 
@@ -104,7 +112,10 @@ def add_historical_delay_rates(
     """
     history = df if history is None else history
     hist = history[history[TARGET].notna()].copy()
-    hist["_known"] = outcome_known_date(hist)
+    hist["_known"] = outcome_known_date(
+        hist,
+        reporting_buffer_minutes=reporting_buffer_minutes,
+    )
     hist["_y"] = hist[TARGET].astype(float)
 
     start = min(df["date"].min(), hist["date"].min())

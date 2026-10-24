@@ -1,0 +1,57 @@
+decision_time:
+  mode: d_minus_1
+evaluation:
+  calibration_bins: 10
+  operational_precision: 0.6
+features:
+  categorical_min_count: 50
+  cyclic:
+  - hour
+  - day_of_week
+  enabled_numeric_groups:
+  - calendar
+  - schedule_route
+  - historical
+  history_include_all_past: true
+  history_prior_strength: 20
+  history_reporting_buffer_minutes: 30
+  history_windows_days:
+  - 1
+  - 7
+  - 28
+models:
+  logreg:
+    C: 1.0
+    class_weight: balanced
+    max_iter: 1000
+  xgboost:
+    colsample_bytree: 0.8
+    early_stopping_rounds: 30
+    eval_metric: aucpr
+    learning_rate: 0.05
+    max_depth: 4
+    n_estimators: 200
+    n_jobs: 2
+    subsample: 0.8
+paths:
+  figures: reports/figures
+  interim: data/interim
+  models: models/reporting_buffer/buffer_30m
+  processed: data/processed_reporting_buffer/buffer_30m
+  raw: data/raw/flights.csv
+  results: reports/results/reporting_buffer_sensitivity
+seed: 42
+split:
+  test:
+  - '2013-11-01'
+  - '2013-12-31'
+  train:
+  - '2013-01-01'
+  - '2013-08-31'
+  valid:
+  - '2013-09-01'
+  - '2013-10-31'
+target:
+  cancelled_policy: exclude
+  column: arr_delay
+  threshold_minutes: 15
