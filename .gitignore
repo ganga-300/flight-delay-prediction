@@ -64,3 +64,9 @@ kaggle.json
 Thumbs.db
 .vscode/
 .idea/
+
+# Local backup files
+*.bak
+*.backup
+*.pre_history_backup
+*.pre_temporal.bak
