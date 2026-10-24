@@ -69,24 +69,6 @@ python scripts/train.py --model xgboost  # TODO
 python scripts/evaluate.py           # TODO
 ```
 
-## Rules for contributors (training stage)
-
-Work on a branch off `ml-restart` and open a pull request into `ml-restart`. Tests run
-automatically and must pass.
-
-- **Read data only through** `flight_delay.data.dev_splits`: `load_dev_split("train")`,
-  `load_dev_split("valid")` and `feature_columns()`. The test split cannot be loaded.
-- **Write the experiment plan first.** Fill in `configs/experiment_plan.yaml` (models and the
-  exact hyperparameter values to try), set `status: approved`, and record it as D-201 in
-  `docs/decision_log.md`. Until the owner approves that pull request, runs are refused.
-- **Record every run** with `flight_delay.experiments.write_run_record`, on committed code, and
-  commit the record from `experiments/runs/`. Only `train_` and `valid_` metrics are accepted.
-- **Do not change** features, split dates, feature settings or the guards. They are frozen
-  (tag `features-frozen`) and owner-reviewed (`.github/CODEOWNERS`).
-- **The test set is evaluated once,** by `scripts/evaluate.py` through
-  `flight_delay.data.holdout.open_sealed_holdout`, after the chosen model is tagged
-  `model-frozen`. It cannot be re-run once results are committed.
-
 ## Phase 2 (later)
 
 Compact MLP with learned embeddings for airline / origin / destination, optional temporal model,

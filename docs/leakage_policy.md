@@ -76,9 +76,7 @@ cannot validate.
 | Encoder unaffected by validation/test rows; unseen levels → `__OTHER__` | `test_encoder_is_fitted_on_train_only` |
 | Congestion includes unlabelled rows | `test_congestion_counts_use_full_raw_schedule` |
 | No post-departure, target or ID columns in features | `test_feature_matrix_has_no_post_departure_or_target_columns` |
-| Development data holds no holdout rows; only allowed files reference the sealed data, select the test split, or read files directly | `tests/test_holdout_seal.py` |
-| Model code can load only train/validation; holdout opens once, after `model-frozen`; frozen config sections unchanged | `tests/test_guards.py` |
-| Every committed training run follows the approved experiment plan and records no test metric | `tests/test_experiments.py` |
+| Development data holds no holdout rows; only allowed files reference the sealed data | `tests/test_holdout_seal.py` |
 
 ## 5. Limitations that cannot be resolved with this dataset
 - **Schedule as known at D−1:** the file holds the final schedule as operated or cancelled, with

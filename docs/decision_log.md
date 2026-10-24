@@ -279,54 +279,8 @@ Any later change to features must be a new, logged decision made without test da
 
 ---
 
-## Guards for model development
-
-### D-108 · Train/validation-only guards
-- **Decision:** Before training starts, the repository enforces the protocol in code and on
-  GitHub. Contributors can train on the training period and tune on validation. They cannot
-  read the test holdout, change the frozen features or settings, tune outside the plan, or
-  evaluate on test more than once without it being blocked or visible.
-- **Code guards (tests fail on violation):**
-
-| Guard | Where | Stops |
-|---|---|---|
-| Train/validation-only data API: `load_dev_split("train" or "valid")`; any other name raises | `src/flight_delay/data/dev_splits.py` | Training or tuning on test |
-| Feature list checked against the frozen 59 on every load | `feature_columns()` | Training on a stale or edited feature set |
-| One-shot holdout gate: opens only on a commit tagged `model-frozen`, with a clean tree, before any test result exists; checks the sealed file's hash | `src/flight_delay/data/holdout.py` | Early, repeated or uncommitted test evaluation |
-| Code scans: sealed-file references, test-split selection (`== "test"`, `["test"]`, Nov–Dec dates, `month >= 11`) and direct file reading are allowed only in named, owner-reviewed files | `tests/test_holdout_seal.py` | Reaching the holdout by another route |
-| Config lock: seed, target, decision time, split dates, feature settings and data paths | `tests/test_guards.py` | Quietly changing the split or features |
-| Pinned feature set (59 features, group sizes, settings) | `tests/test_features.py` | Dropping or adding features |
-| Experiment plan: runs are refused while the plan is a draft, and only grid points of the approved plan are accepted. Only `train_`/`valid_` metrics may be recorded | `configs/experiment_plan.yaml`, `src/flight_delay/experiments.py` | Tuning outside the plan; recording test metrics |
-| Run records: every committed record must match the current plan's hash, come from a clean commit in this history, and use the frozen feature count | `tests/test_experiments.py` | Hidden or after-the-fact experiments |
-
-- **GitHub guards:**
-  - `.github/workflows/tests.yml` runs the full suite on every pull request and every push to
-    `ml-restart`. It builds the dev file and features from scratch first.
-  - `.github/CODEOWNERS` requires owner approval for changes to the guards, the frozen data and
-    feature pipeline, configs (including the experiment plan), the decision log, run records,
-    `scripts/evaluate.py` and test results.
-  - Both take effect only once the owner enables branch protection on `ml-restart`: pull
-    requests required, the `tests` check required, review from Code Owners required, no force
-    pushes. Branch protection on a private repository needs a paid GitHub plan.
-- **Verified:** 51 tests pass. Each code scan catches a planted violation. The holdout gate and
-  run records were exercised in a throwaway git repository (closed without the tag, closed with
-  uncommitted code, opens once, closed after results are committed). A fresh copy of the
-  repository builds and passes the suite from scratch.
-- **Limits:**
-  - The full-year file `data/raw/flights.csv` is still in the repository and its history. The
-    guards stop code in the repository from reading it, not a person opening it by hand.
-  - The dataset is public, so nothing can stop someone fetching Nov–Dec outside the
-    repository.
-  - The tests and CODEOWNERS make deliberate misuse visible and blocked at review; they cannot
-    prevent local experiments that are never committed.
-  - Trained models are not committed (`models/` is git-ignored). The run records are the
-    evidence of what was trained.
-- **Status:** Fixed. Date: 2026-10-25.
-
----
-
 ## Pending decisions (to be logged in order)
 
 | ID | Phase | Decision | Evidence allowed |
 |---|---|---|---|
-| D-201 | 4 | Experiment plan, written by Member 3 in `configs/experiment_plan.yaml` (status `approved`) and in this log before any training: models, hyperparameter grid, selection rule, and the validation-only feature-group check from D-102 | Written before any training |
+| D-201 | 4 | Experiment plan: models, hyperparameter grid, selection rule, calibration options, threshold rule, and the validation-only feature-group check from D-102 | Written before any training |

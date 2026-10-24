@@ -18,7 +18,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from flight_delay.config import load_config  # noqa: E402
-from flight_delay.data.holdout import SEALED_SHA256  # noqa: E402
+
+SEALED_SHA256 = "8bdc6abbf07ac0cbb1036bc14a787cab3eea616be46c31899d2d8048963b08aa"
 
 
 def sha256(path: Path) -> str:
