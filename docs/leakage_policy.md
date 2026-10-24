@@ -52,6 +52,10 @@ Same-day realised information (for example, morning delays on D) is not used.
    and validation only.
 9. **Durations use a common time basis.** `sched_block_min` converts origin- and destination-local
    scheduled times to UTC with static airport time zones (`features/airport_timezones.py`).
+10. **The test holdout is sealed during development.** EDA, feature work, training and model
+    selection read only the Jan–Oct file (`paths.raw`), loaded through `load_dev_raw`, which
+    rejects any row after 2013-10-31. The full-year file (`paths.raw_sealed`) is read once, by the
+    final test evaluation after the model is frozen (`docs/decision_log.md`, D-002).
 
 ## 4. Verification
 | Check | Where |
@@ -65,6 +69,7 @@ Same-day realised information (for example, morning delays on D) is not used.
 | Encoder unaffected by validation/test rows; unseen levels → `__OTHER__` | `test_encoder_is_fitted_on_train_only` |
 | Congestion includes unlabelled rows | `test_congestion_counts_use_full_raw_schedule` |
 | No post-departure, target or ID columns in features | `test_feature_matrix_has_no_post_departure_or_target_columns` |
+| Development data holds no holdout rows; only allowed files reference the sealed data | `tests/test_holdout_seal.py` |
 
 ## 5. Limitations that cannot be resolved with this dataset
 - **Schedule as known at D−1:** the file holds the final schedule as operated or cancelled, with

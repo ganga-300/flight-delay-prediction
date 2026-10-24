@@ -9,11 +9,17 @@
 
 ## Getting the data
 
-`data/raw/flights.csv` is committed, so a fresh clone already has it. Rebuild everything derived:
+`data/raw/flights.csv` is committed, so a fresh clone already has it. It holds all of 2013,
+including the **sealed Nov–Dec test holdout** (`docs/decision_log.md`, D-002). Development code
+never reads it directly. Rebuild everything derived:
 
 ```bash
-python scripts/build_features.py   # writes data/processed/{train,valid,test}.parquet, encoder.json, feature_spec.json
+python scripts/seal_holdout.py     # writes data/interim/flights_dev.csv (Jan–Oct only) and prints both hashes
+python scripts/build_features.py   # writes data/processed/{train,valid}.parquet, encoder.json, feature_spec.json
 ```
+
+The dev file must have SHA-256
+`8f206680eda4dc42098dbd4e9a6ec6f89f468afc41cbb913fd528fa4fc0018df` (281,373 rows).
 
 Do **not** regenerate `flights.csv` with `scripts/export_dataset.py`. That script builds a different file
 (ids start at 1, different source), which changes the hash and the row ids used throughout the pipeline.

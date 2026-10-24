@@ -77,3 +77,20 @@ def load_raw(path: str | Path, parse_dates: bool = True) -> pd.DataFrame:
         )
         df["time_hour"] = pd.to_datetime(df["time_hour"])
     return df
+
+
+def load_dev_raw(cfg: dict, root: str | Path | None = None) -> pd.DataFrame:
+    """Load the development raw file (``paths.raw``) and check it holds no holdout rows.
+
+    Use this everywhere except the final test evaluation. It raises if any row is dated after the
+    validation period, so the sealed Nov-Dec data cannot reach development code by mistake.
+    """
+    from flight_delay.config import REPO_ROOT
+    from flight_delay.data.split import assert_no_holdout
+
+    path = Path(root or REPO_ROOT) / cfg["paths"]["raw"]
+    if not path.exists():
+        raise FileNotFoundError(f"{path} not found. Create it with: python scripts/seal_holdout.py")
+    df = load_raw(path)
+    assert_no_holdout(df["date"], cfg["split"])
+    return df

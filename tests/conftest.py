@@ -8,7 +8,8 @@ import pytest
 
 from flight_delay.config import REPO_ROOT, load_config
 
-RAW_CSV = REPO_ROOT / "data" / "raw" / "flights.csv"
+# Real-data tests read the development file (Jan-Oct). The Nov-Dec holdout stays sealed.
+RAW_CSV = REPO_ROOT / load_config()["paths"]["raw"]
 
 
 @pytest.fixture
@@ -96,7 +97,7 @@ def synthetic_config() -> dict:
 @pytest.fixture(scope="session")
 def real_raw() -> pd.DataFrame:
     if not Path(RAW_CSV).exists():
-        pytest.skip("raw dataset not present in data/raw/")
-    from flight_delay.data.load import load_raw
+        pytest.skip("development data missing: run python scripts/seal_holdout.py")
+    from flight_delay.data.load import load_dev_raw
 
-    return load_raw(RAW_CSV)
+    return load_dev_raw(load_config())

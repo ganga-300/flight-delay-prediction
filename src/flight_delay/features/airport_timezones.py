@@ -1,7 +1,8 @@
 """IANA time zone for every airport in the dataset (static reference data, known in advance).
 
 Source: ``airportsdata`` package, version 20250909 (IATA table), filtered to the 107 airport
-codes that appear in data/raw/flights.csv. Vendored so the pipeline has no runtime dependency
+codes in the full 2013 raw file. Only the origin/dest codes of the published schedule were used
+(schedule data, known in advance), not outcomes. Vendored so the pipeline has no runtime dependency
 and stays reproducible. Validated in notebooks/03_feature_engineering.ipynb: with these zones,
 actual gate-to-gate time minus air time is never negative, whereas local clock differences give
 negative taxi times for about 40% of flights.

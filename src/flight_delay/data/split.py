@@ -30,6 +30,20 @@ def assign_split(dates: pd.Series, ranges: dict[str, list[str] | tuple[str, str]
     return out
 
 
+def assert_no_holdout(dates: pd.Series, ranges: dict[str, list[str] | tuple[str, str]]) -> None:
+    """Raise if any date falls after the validation period, i.e. in the sealed test holdout.
+
+    Development code (EDA, features, training, model selection) must never see test-period rows.
+    """
+    valid_end = pd.Timestamp(ranges["valid"][1])
+    late = dates > valid_end
+    if late.any():
+        raise ValueError(
+            f"{int(late.sum()):,} rows are dated after {valid_end.date()} (sealed test holdout). "
+            "Development code must read paths.raw (Jan-Oct), not the sealed full-year file."
+        )
+
+
 def chronological_split(
     df: pd.DataFrame, date_col: str, ranges: dict[str, list[str] | tuple[str, str]]
 ) -> dict[str, pd.DataFrame]:

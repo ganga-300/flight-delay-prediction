@@ -2,7 +2,12 @@
 seed: 42
 
 paths:
-  raw: data/raw/flights.csv          # TODO: confirm filename after download
+  # Development data: Jan-Oct only, created by scripts/seal_holdout.py. Every notebook, test and
+  # build reads this file. The Nov-Dec test period is not in it.
+  raw: data/interim/flights_dev.csv
+  # Full 2013 file including the Nov-Dec holdout. SEALED: read only by scripts/seal_holdout.py
+  # and, once, by the final test evaluation (docs/decision_log.md, D-002).
+  raw_sealed: data/raw/flights.csv
   interim: data/interim
   processed: data/processed
   models: models
@@ -36,6 +41,8 @@ evaluation:
   calibration_bins: 10
 
 models:
+  # Placeholder values from the original scaffold. Not a decision: the hyperparameter search space
+  # is fixed in the experiment plan before any training (docs/decision_log.md).
   logreg:
     C: 1.0
     class_weight: balanced

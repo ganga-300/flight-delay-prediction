@@ -208,7 +208,7 @@ def test_real_data_history_never_uses_same_or_later_dates(real_raw):
     audit = add_historical_delay_rates(lab, ["carrier"], [1])
     # On each date the global past count must equal flights known strictly before that date.
     known = outcome_known_date(lab)
-    for d in pd.to_datetime(["2013-01-02", "2013-05-01", "2013-12-31"]):
+    for d in pd.to_datetime(["2013-01-02", "2013-05-01", "2013-10-31"]):
         expected = int((known < d).sum())
         got = audit.loc[audit["date"] == d, "hist_global_all_n"].unique()
         assert got.tolist() == [expected]

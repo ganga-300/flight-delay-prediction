@@ -26,7 +26,12 @@ def test_split_rejects_overlap_and_disorder():
 def test_config_split_matches_existing_dates(real_raw):
     from flight_delay.config import load_config
 
-    s = assign_split(real_raw["date"], load_config()["split"])
+    cfg = load_config()
+    s = assign_split(real_raw["date"], cfg["split"])
     assert s.notna().all()
     assert real_raw.loc[s == "train", "date"].max() == pd.Timestamp("2013-08-31")
-    assert real_raw.loc[s == "test", "date"].min() == pd.Timestamp("2013-11-01")
+    assert real_raw.loc[s == "valid", "date"].min() == pd.Timestamp("2013-09-01")
+    assert real_raw.loc[s == "valid", "date"].max() == pd.Timestamp("2013-10-31")
+    # The development data holds no test rows; the test period itself is still configured.
+    assert not (s == "test").any()
+    assert cfg["split"]["test"] == ["2013-11-01", "2013-12-31"]

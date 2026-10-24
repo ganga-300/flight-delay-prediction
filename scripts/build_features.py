@@ -1,7 +1,9 @@
 """raw -> congestion (full schedule) -> target -> features -> chronological split -> encode.
 
-Writes to ``paths.processed`` (git-ignored):
-  train.parquet, valid.parquet, test.parquet  encoded feature matrices + id, date, target
+Reads the development file ``paths.raw`` (Jan-Oct) through ``load_dev_raw``, which refuses any
+row from the sealed Nov-Dec holdout. Writes to ``paths.processed`` (git-ignored):
+  train.parquet, valid.parquet                encoded feature matrices + id, date, target
+                                              (no test split file while the holdout is sealed)
   encoder.json                                FeatureEncoder fitted on train only
   feature_spec.json                           feature groups, target, config snapshot, data hash
 """
@@ -16,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from flight_delay.config import load_config  # noqa: E402
-from flight_delay.data.load import load_raw  # noqa: E402
+from flight_delay.data.load import load_dev_raw  # noqa: E402
 from flight_delay.data.schema import TARGET_COLUMN  # noqa: E402
 from flight_delay.features.build import (  # noqa: E402
     build_feature_table,
@@ -35,10 +37,20 @@ def main() -> None:
     out_dir = ROOT / cfg["paths"]["processed"]
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    table = build_feature_table(load_raw(raw_path), cfg)
+    table = build_feature_table(load_dev_raw(cfg, ROOT), cfg)
     splits, encoder = encode_splits(table, cfg)
     for name, frame in splits.items():
-        frame.drop(columns="split").to_parquet(out_dir / f"{name}.parquet", index=False)
+        path = out_dir / f"{name}.parquet"
+        if frame.empty:
+            # The test split is empty during development (holdout sealed). Remove any file left by
+            # an earlier full-year build so nothing downstream can read stale holdout rows.
+            if path.exists():
+                path.unlink()
+                print(f"{name:5s}: empty (holdout sealed) | removed stale {path.relative_to(ROOT)}")
+            else:
+                print(f"{name:5s}: empty (holdout sealed)")
+            continue
+        frame.drop(columns="split").to_parquet(path, index=False)
         print(f"{name:5s}: {len(frame):7,d} rows | positive rate {frame[TARGET_COLUMN].mean():.4f}")
     encoder.save(out_dir / "encoder.json")
 
