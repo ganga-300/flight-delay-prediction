@@ -159,12 +159,91 @@ have been seen.
 
 ---
 
+## Phase 3 — Feature set and fixed settings
+
+`notebooks/03_feature_engineering.ipynb` was re-run on the development data. Its outcome-based
+audits (taxi times, cancellations, label timing) now use the training period only; audit A3 still
+compares train with validation by design. No Nov–Dec value appears in any output.
+
+### D-102 · Keep all 59 features
+- **Decision:** Keep every feature group: calendar (10), schedule/route (6), categorical (10),
+  congestion (4) and historical (29). `test_feature_set_is_pinned` fixes the set, so any later
+  change fails until this log and the test are updated together.
+- **Options considered:**
+  1. Keep all 59 features, with a written reason for each group kept on weak evidence.
+  2. Drop the groups D-101 rated weak, inconclusive or not examined.
+- **Reasons for option 1:**
+  - D-101 measures one feature at a time. Weak single-feature association does not show a
+    feature is useless alongside others (congestion is flat overall but positive within the
+    same hour).
+  - The 7- and 28-day history windows are the model's main way to follow level shifts. Month
+    identity is excluded (audit A3). Validation has a much lower delay rate than training
+    (15.7% vs 26.4%), and the 28-day origin rate tracks that drop (0.24 → 0.13–0.18).
+  - Both planned models cope with uninformative features: L2-regularised Logistic Regression and
+    XGBoost.
+  - Dropping is not reversible without the choice looking result-driven. Keeping all 59 and
+    testing the weak groups on validation under a plan written in advance is.
+- **Reasons per group kept on weak or no direct evidence:**
+
+| Group | Reason it is kept |
+|---|---|
+| 7- and 28-day history | Follow per-key and seasonal level shifts (monthly rates 22.7–32.2% within Jan–Aug) without month identity |
+| Congestion | Within the same hour, busier slots are more delayed in 15 of 18 hours (D-101); schedule-only, known at D−1 |
+| Distance and schedule numerics | Schedule-only and known at D−1; `sched_block_min` validated (0% negative taxi times) |
+| Holiday proximity | Holiday travel peaks are a standard aviation effect; only five holidays in training, so the data cannot settle it |
+| Origin × departure-bucket, carrier × departure-bucket | Let an additive Logistic Regression represent hour effects that differ by airport and carrier |
+
+- **Follow-up:** D-201 (experiment plan) will specify a validation-only feature-group check,
+  written before any training. It must not be decided on test.
+- **Status:** Fixed. Date: 2026-10-25.
+
+### D-103 · Fixed feature settings
+These values are not tuned on any model result. The evidence below is from the training period
+(Jan–Aug).
+
+| Setting | Value | Reason | Training-period evidence |
+|---|---|---|---|
+| History windows | 1, 7, 28 days | 1 day = the previous day. 7 and 28 are whole weeks, so each window contains every weekday equally and the weekday mix cannot bias the rate. 28 days ≈ one month, matching the scale of monthly level shifts | Lag-1 autocorrelation 0.356; monthly rates 22.7–32.2% |
+| Prior strength *m* | 20 | Shrinks sparse keys toward the global past rate: a key needs 20 known flights before its own rate gets half the weight | Route 1-day windows have median n = 9 (89% below 20); carrier and origin rarely below 20 |
+| Category minimum | 50 training rows | Below about 50 rows, a level's delay rate is too uncertain (95% half-width about ±12 points at the 26.4% base rate) | Collapsed levels cover at most 0.45% of training rows per column |
+| Departure buckets | 0, 5, 9, 14, 18, 22 h | Conventional time-of-day boundaries (night, early morning, midday, afternoon, evening) | Rates rise across buckets: early morning 14.0%, midday 21.1%, afternoon 32.8%, evening 38.0%; night 37.4% (n = 2,482) |
+
+- **Status:** Fixed. Date: 2026-10-25.
+
+### D-104 · 240-minute fallback buffer
+- **Decision:** Keep 240 minutes.
+- **Evidence (training period only):** the longest taxi time (actual gate-to-gate minus air time,
+  on a UTC basis) is 210 minutes. 240 exceeds it, so a fallback estimate cannot place an outcome
+  before the flight could have arrived. This replaces the earlier justification, which used the
+  full-year maximum (235 min).
+- **Practical effect:** None in this data. Every labelled flight's arrival can be placed, so the
+  fallback is used on 0 rows.
+- **Status:** Fixed. Date: 2026-10-25.
+
+### D-105 · 30-minute reporting buffer
+- **Decision:** A past flight's outcome becomes usable 30 minutes after its actual arrival.
+- **Status:** **Assumption.** The dataset has no information on reporting latency. The value
+  assumes a near-real-time flight-status feed. It is not compared across values by model score.
+  Public BTS files are released monthly, so a system relying on them could not compute these
+  windows. Report this as a limitation.
+- **Date:** 2026-10-25.
+
+### D-106 · Data-quality notebook on development data
+- **Decision:** `notebooks/01_data_quality.ipynb` runs on the development file (Jan–Oct) through
+  `load_dev_raw`. Its saved outputs previously included full-year statistics, among them the
+  test-period delay rate and Nov–Dec cancellation rates. These are replaced. The split-balance
+  table shows train and validation only.
+- **Scope:** The notebook checks data quality (schema, missing values, duplicates, invalid values,
+  label construction). It informs no feature or model choice. Using validation-period rows here
+  is therefore allowed; the test holdout is not read.
+- **Result:** All quality conclusions hold on Jan–Oct: 0 error-level violations, 0 duplicates,
+  and `tailnum` is missing only for cancelled flights.
+- **Status:** Fixed. Date: 2026-10-25.
+
+---
+
 ## Pending decisions (to be logged in order)
 
 | ID | Phase | Decision | Evidence allowed |
 |---|---|---|---|
-| D-102 | 3 | Keep, adjust or remove each feature group based on D-101 | Train only |
-| D-103 | 3 | Reasons for history windows (1/7/28), prior strength (20), category cutoff (50), departure buckets | Prior reasoning; no tuning |
-| D-104 | 3 | 240-min fallback, re-derived from Jan–Aug taxi times | Train only |
-| D-105 | 3 | 30-min reporting buffer, stated as an assumption | Prior reasoning; no comparison by score |
-| D-201 | 4 | Experiment plan: models, hyperparameter grid, selection rule, calibration options, threshold rule | Written before any training |
+| D-201 | 4 | Experiment plan: models, hyperparameter grid, selection rule, calibration options, threshold rule, and the validation-only feature-group check from D-102 | Written before any training |

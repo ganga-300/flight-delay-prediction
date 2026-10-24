@@ -259,3 +259,25 @@ def test_time_index_like_columns_are_not_features():
     assert not [c for c in feats if c.endswith("_all_n")]
     assert {"dow_sin", "is_holiday", "hist_carrier_all_rate", "hist_route_7d_n"} <= feats
     assert "sched_block_min" in feats and "sched_clock_duration_min" not in feats
+
+
+def test_feature_set_is_pinned():
+    """The model feature set is fixed by D-102 (docs/decision_log.md). Changing it must be a
+    logged decision, so any addition or removal fails here until the log and this test agree."""
+    from flight_delay.config import load_config
+    from flight_delay.features.build import feature_groups
+
+    cfg = load_config()
+    sizes = {g: len(c) for g, c in feature_groups(cfg).items()}
+    assert sizes == {
+        "calendar": 10,
+        "schedule_route": 6,
+        "categorical": 10,
+        "congestion": 4,
+        "historical": 29,
+    }
+    feats = numeric_features(cfg) + CATEGORICAL
+    assert len(feats) == len(set(feats)) == 59
+    assert cfg["features"]["history_windows_days"] == [1, 7, 28]
+    assert cfg["features"]["history_prior_strength"] == 20
+    assert cfg["features"]["categorical_min_count"] == 50
