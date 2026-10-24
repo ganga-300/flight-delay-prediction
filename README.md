@@ -5,7 +5,9 @@
 
 ## Status
 
-Phase 1 scaffold. Modules contain stubs and TODOs; no model is implemented yet.
+Data preparation, EDA and feature engineering are complete (59 leakage-safe features). Model,
+metric and calibration modules are not implemented yet. The Nov–Dec test holdout is sealed during
+development; every decision is recorded in `docs/decision_log.md`.
 
 | Phase 1 criterion | Where it lives |
 |---|---|
@@ -21,15 +23,16 @@ Phase 1 scaffold. Modules contain stubs and TODOs; no model is implemented yet.
 
 ## Problem definition
 
-- **Target:** `is_delayed = 1` if arrival delay ≥ 15 min (BTS on-time convention), else 0. Cancelled/diverted flights: TODO decide (exclude vs. treat as delayed) and document.
-- **Decision time:** TODO fix in `configs/config.yaml` (default suggestion: end of day D-1). Every feature must be computable at that moment — see `docs/leakage_policy.md`.
-- **Split:** chronological by date (train → validation → test). No random shuffling.
+- **Target:** `is_delayed = 1` if arrival delay ≥ 15 min (BTS on-time convention), else 0. Cancelled flights and flights without an arrival record are excluded (D-010, D-011).
+- **Decision time:** end of day D−1 (`decision_time.mode: d_minus_1`). Every feature must be computable at that moment — see `docs/leakage_policy.md` (D-012).
+- **Split:** chronological by date — train Jan–Aug, validation Sep–Oct, test Nov–Dec 2013 (D-013). No random shuffling. The test period is sealed: development code reads a Jan–Oct file only (D-002).
 - **Metrics:** PR AUC (primary, class-imbalanced), ROC AUC, recall at a chosen operational precision, Brier score, ECE and reliability diagrams.
 
 ## Dataset
 
 Kaggle *Flights* dataset (2013 US flights departing NYC). Larger extension: BTS Airline On-Time Performance.
-Raw data is **not** committed. See `data/README.md` for download instructions.
+The raw file `data/raw/flights.csv` is committed; see `data/README.md` for provenance, hashes and the
+sealing step that creates the Jan–Oct development file.
 
 ## Repository layout
 
@@ -59,8 +62,8 @@ pytest
 ## Pipeline (planned)
 
 ```bash
-python scripts/download_data.py      # TODO
-python scripts/build_features.py     # TODO
+python scripts/seal_holdout.py       # Jan–Oct development file; Nov–Dec stays sealed
+python scripts/build_features.py     # 59 features -> data/processed/{train,valid}.parquet
 python scripts/train.py --model logreg   # TODO
 python scripts/train.py --model xgboost  # TODO
 python scripts/evaluate.py           # TODO

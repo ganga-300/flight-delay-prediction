@@ -240,6 +240,22 @@ These values are not tuned on any model result. The evidence below is from the t
   and `tailnum` is missing only for cancelled flights.
 - **Status:** Fixed. Date: 2026-10-25.
 
+### D-107 · Documentation free of test-period statistics
+- **Decision:** No document states a statistic computed on Nov–Dec data.
+- **Changes:**
+  - `docs/data_dictionary.md`: every count and rate is recomputed on the Jan–Oct development
+    file. The test-period delay rate (previously stated) is removed.
+  - `docs/feature_dictionary.md` and `docs/leakage_policy.md`: two exclusion reasons that cited
+    test values are restated without them. Cumulative counts and day-of-year grow with the date,
+    so any later period is out of range by construction. Audit numbers are replaced with
+    training-period values: taxi maximum 210 min (was 235), 19 early labels (was 23), 25.6% of
+    slots with a later-cancelled flight (was 22.7%).
+  - `README.md`: problem definition and data pipeline updated; training lines unchanged.
+- **Code hygiene:** `features/calendar.py` uses `day_of_week` / `day_of_year` instead of the
+  deprecated pandas names. A rebuild produced identical train and validation matrices and a
+  byte-identical encoder and feature spec.
+- **Status:** Fixed. Date: 2026-10-25.
+
 ---
 
 ## Pending decisions (to be logged in order)

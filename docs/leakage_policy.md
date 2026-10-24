@@ -29,9 +29,10 @@ Same-day realised information (for example, morning delays on D) is not used.
    midnight on D−1 therefore counts only from D+1. `dep_delay`, `air_time` and `arr_time` are
    used only to *time* past labels, never as features of the flight being predicted. The current
    flight and every flight on date D are therefore excluded from their own history. The
-   earlier estimate (departure + delay + air time + 120 min) ignored taxi times of up to 235 min
-   and counted 23 labels a day early; it is now only a fallback for airports without a time
-   zone, with a 240-min buffer.
+   earlier estimate (departure + delay + air time + 120 min) ignored taxi times, which reach
+   210 min in the training period, and counted 19 training-period labels a day early. It is now
+   only a fallback for airports without a time zone, with a 240-min buffer that exceeds the
+   longest training-period taxi time (D-104). The fallback is used on 0 rows in this data.
 3. **Insufficient or unseen history** shrinks toward the global past rate:
    `(k + m·p0) / (n + m)`, where `m = history_prior_strength`. On the very first date (no past data),
    rates are NaN and are imputed with the train median.
@@ -45,7 +46,8 @@ Same-day realised information (for example, morning delays on D) is not used.
 6. **The split is chronological.** It uses the inclusive date ranges in `configs/config.yaml`,
    assigned by `data/split.py`, which rejects overlapping or out-of-order ranges.
 7. **Features that act as time indices are excluded.** These are raw day-of-year and cumulative
-   history counts: their test values fall outside the training range.
+   history counts: they grow steadily with the date, so any later period falls outside the
+   training range by construction.
 8. **No month-identity features.** Raw and cyclic month/day-of-year encodings are excluded
    because training (Jan–Aug) never contains the validation/test months. Seasonality comes
    only from past-only history windows. Evidence is in notebook 03, audit A3, which uses train
@@ -75,13 +77,13 @@ Same-day realised information (for example, morning delays on D) is not used.
 - **Schedule as known at D−1:** the file holds the final schedule as operated or cancelled, with
   no publication or amendment timestamps. Late schedule changes, and flights missing from the
   file, cannot be detected.
-- **Congestion includes cancellations that may have been announced before D−1** (22.7% of
-  origin-hour slots contain a later-cancelled flight; 51–58% of flights were cancelled on
-  2013-02-08/09). Announcement times are not in the data. Counts reflect the originally
+- **Congestion includes cancellations that may have been announced before D−1** (25.6% of
+  training-period origin-hour slots contain a later-cancelled flight; 51–58% of flights were
+  cancelled on 2013-02-08/09). Announcement times are not in the data. Counts reflect the originally
   scheduled flights and never reveal a flight's own outcome.
 - **Real-time outcome availability is assumed:** history windows require flight outcomes within
   about 30 min of arrival (an operational flight-status feed). Public BTS files are released
   monthly with a lag and could not support 1/7/28-day windows. The 30-min buffer is an
   assumption.
 - **Time zones are external reference data** (`airportsdata` 20250909, vendored), validated
-  against this dataset but not part of it.
+  against the training period (no negative taxi times) but not part of the dataset.

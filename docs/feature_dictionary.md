@@ -5,6 +5,11 @@ Every feature for a flight on date D uses only the published schedule and outcom
 before D (see `docs/leakage_policy.md`). Categorical features are collapsed by
 `FeatureEncoder`, fitted on train only: levels with fewer than 50 training rows, and unseen levels, become `__OTHER__`.
 
+The set of 59 features is fixed and pinned by `test_feature_set_is_pinned`. Why each group is
+included, and why the windows (1/7/28 days), prior strength (20), category minimum (50) and
+departure-bucket edges have their values, is recorded in `docs/decision_log.md` (D-101 to D-105),
+using training-period evidence only.
+
 ## Calendar / time (10)
 
 | Feature | Description |
@@ -96,6 +101,6 @@ before D (see `docs/leakage_policy.md`). Categorical features are collapsed by
 | `dep_time`, `dep_delay`, `arr_time`, `arr_delay`, `air_time` | Post-departure (used only for the target and for timing past outcomes) |
 | `tailnum` | Aircraft swaps; missing only for cancelled flights |
 | `id`, `flight`, `name`, `year`, `time_hour` | Identifier, very high cardinality, redundant, or constant |
-| `day_of_year`, `hist_*_all_n` | Act as time indices; every test value lies outside the training range |
-| `month`, `month_sin/cos`, `doy_sin/cos` | Training covers Jan–Aug only, so every validation/test month is unseen (100% of validation rows out of range for `month`, `month_sin`, `doy_sin`); see notebook 03 audit A3 |
+| `day_of_year`, `hist_*_all_n` | Act as time indices: they grow steadily with the date, so every later period lies outside the training range by construction |
+| `month`, `month_sin/cos`, `doy_sin/cos` | Training covers Jan–Aug only, so every later month is unseen (100% of validation rows out of range for `month`, `month_sin`, `doy_sin`); see notebook 03 audit A3 |
 | `sched_clock_duration_min` | Local clock difference mixes block time with the destination time-zone offset; replaced by `sched_block_min` |
