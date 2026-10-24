@@ -2,7 +2,7 @@
 seed: 42
 
 paths:
-  raw: data/raw/flights.csv          # TODO: confirm filename after download
+  raw: data/raw/flights.csv
   interim: data/interim
   processed: data/processed
   models: models
@@ -12,7 +12,7 @@ paths:
 target:
   column: arr_delay
   threshold_minutes: 15              # BTS on-time convention
-  cancelled_policy: exclude          # TODO: exclude | delayed — justify in report
+  cancelled_policy: exclude
 
 decision_time:
   # Features for a flight on date D use only the published schedule and outcomes known by the
@@ -32,7 +32,7 @@ features:
   cyclic: [hour, day_of_week]          # month/day-of-year excluded: unseen months in valid/test
 
 evaluation:
-  operational_precision: 0.60        # TODO: justify; report recall at this precision
+  operational_precision: 0.60        # Minimum precision target; recall is reported separately.
   calibration_bins: 10
 
 models:
@@ -41,9 +41,10 @@ models:
     class_weight: balanced
     max_iter: 1000
   xgboost:
-    n_estimators: 500
+    n_estimators: 200
     learning_rate: 0.05
-    max_depth: 6
+    max_depth: 4
     subsample: 0.8
     colsample_bytree: 0.8
     eval_metric: aucpr
+    n_jobs: 2

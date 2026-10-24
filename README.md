@@ -5,7 +5,7 @@
 
 ## Status
 
-Phase 1 scaffold. Modules contain stubs and TODOs; no model is implemented yet.
+An end-to-end flight delay prediction project with trained Logistic Regression and XGBoost models, probability calibration, evaluation reports, and automated tests.
 
 | Phase 1 criterion | Where it lives |
 |---|---|
@@ -21,8 +21,8 @@ Phase 1 scaffold. Modules contain stubs and TODOs; no model is implemented yet.
 
 ## Problem definition
 
-- **Target:** `is_delayed = 1` if arrival delay ≥ 15 min (BTS on-time convention), else 0. Cancelled/diverted flights: TODO decide (exclude vs. treat as delayed) and document.
-- **Decision time:** TODO fix in `configs/config.yaml` (default suggestion: end of day D-1). Every feature must be computable at that moment — see `docs/leakage_policy.md`.
+- **Target:** `is_delayed = 1` if arrival delay ≥ 15 min (BTS on-time convention), else 0. Cancelled flights are excluded from the modelling dataset.
+- **Decision time:** D-1 (the day before departure), as configured in `configs/config.yaml`. Every feature must be computable at that moment — see `docs/leakage_policy.md`.
 - **Split:** chronological by date (train → validation → test). No random shuffling.
 - **Metrics:** PR AUC (primary, class-imbalanced), ROC AUC, recall at a chosen operational precision, Brier score, ECE and reliability diagrams.
 
@@ -56,15 +56,31 @@ pip install -e .
 pytest
 ```
 
-## Pipeline (planned)
+## Current workflow
+
+Activate the virtual environment and run the test suite:
 
 ```bash
-python scripts/download_data.py      # TODO
-python scripts/build_features.py     # TODO
-python scripts/train.py --model logreg   # TODO
-python scripts/train.py --model xgboost  # TODO
-python scripts/evaluate.py           # TODO
+source .venv/bin/activate
+pytest -q
 ```
+
+### Evaluation results
+
+Held-out test-set results:
+
+| Model | PR-AUC | ROC-AUC |
+|---|---:|---:|
+| Logistic Regression | 0.3962 | 0.6619 |
+| XGBoost | 0.3887 | 0.6540 |
+
+Logistic Regression performs slightly better on both reported metrics. PR-AUC is useful for evaluating performance when the classes are imbalanced.
+
+Detailed reports are available in `reports/results/`, including test metrics, threshold analysis, calibration comparisons, feature ablation, and monthly test metrics.
+
+### Important limitation
+
+The delay rate differs between the validation and test periods. This temporal distribution shift can affect threshold selection and generalisation. Thresholds selected on validation data should be evaluated carefully before operational use.
 
 ## Phase 2 (later)
 
