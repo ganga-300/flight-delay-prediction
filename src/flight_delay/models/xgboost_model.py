@@ -19,7 +19,11 @@ def build_xgboost(
         "subsample": float(params.get("subsample", 0.8)),
         "colsample_bytree": float(params.get("colsample_bytree", 0.8)),
         "eval_metric": params.get("eval_metric", "aucpr"),
-        "early_stopping_rounds": int(params.get("early_stopping_rounds", 30)),
+        "early_stopping_rounds": (
+            int(params["early_stopping_rounds"])
+            if params.get("early_stopping_rounds") is not None
+            else None
+        ),
         "random_state": int(params.get("random_state", 42)),
         "n_jobs": int(params.get("n_jobs", 2)),
         "tree_method": "hist",

@@ -188,3 +188,17 @@ def test_assert_no_leakage_rejects_duplicate_features():
 
     with pytest.raises(ValueError, match="Duplicate feature columns"):
         assert_no_leakage(["carrier", "carrier"])
+
+
+def test_build_feature_table_rejects_unsupported_decision_time(
+    synthetic_raw, synthetic_config
+):
+    from flight_delay.features.build import build_feature_table
+
+    config = {
+        **synthetic_config,
+        "decision_time": {"mode": "unsupported_mode"},
+    }
+
+    with pytest.raises(ValueError, match="Unsupported decision_time.mode"):
+        build_feature_table(synthetic_raw, config)

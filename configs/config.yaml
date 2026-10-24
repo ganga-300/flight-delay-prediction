@@ -1,6 +1,4 @@
-# Central experiment configuration. All paths relative to repo root.
 seed: 42
-
 paths:
   raw: data/raw/flights.csv
   interim: data/interim
@@ -8,33 +6,40 @@ paths:
   models: models
   figures: reports/figures
   results: reports/results
-
 target:
   column: arr_delay
-  threshold_minutes: 15              # BTS on-time convention
+  threshold_minutes: 15
   cancelled_policy: exclude
-
 decision_time:
-  # Features for a flight on date D use only the published schedule and outcomes known by the
-  # end of day D-1 (see docs/leakage_policy.md). Alternative considered: "sched_dep_minus_2h".
   mode: d_minus_1
-
-split:                               # chronological, inclusive date ranges (TODO: confirm)
-  train: ["2013-01-01", "2013-08-31"]
-  valid: ["2013-09-01", "2013-10-31"]
-  test:  ["2013-11-01", "2013-12-31"]
-
+split:
+  train:
+  - '2013-01-01'
+  - '2013-08-31'
+  valid:
+  - '2013-09-01'
+  - '2013-10-31'
+  test:
+  - '2013-11-01'
+  - '2013-12-31'
 features:
-  history_windows_days: [1, 7, 28]   # rolling past-only windows ending at D-1 (1 = previous day)
-  history_include_all_past: true     # also an expanding all-past window
-  history_prior_strength: 20         # m in (k + m*p0) / (n + m) smoothing toward global past rate
-  categorical_min_count: 50          # train rows needed to keep a category level (else __OTHER__)
-  cyclic: [hour, day_of_week]          # month/day-of-year excluded: unseen months in valid/test
-
+  enabled_numeric_groups:
+    - calendar
+    - schedule_route
+    - historical
+  history_windows_days:
+  - 1
+  - 7
+  - 28
+  history_include_all_past: true
+  history_prior_strength: 20
+  categorical_min_count: 50
+  cyclic:
+  - hour
+  - day_of_week
 evaluation:
-  operational_precision: 0.60        # Minimum precision target; recall is reported separately.
+  operational_precision: 0.6
   calibration_bins: 10
-
 models:
   logreg:
     C: 1.0
@@ -48,3 +53,4 @@ models:
     colsample_bytree: 0.8
     eval_metric: aucpr
     n_jobs: 2
+    early_stopping_rounds: 30

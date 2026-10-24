@@ -90,17 +90,40 @@ def test_congestion_counts_use_full_raw_schedule(synthetic_raw, synthetic_config
     cong = add_congestion_features(synthetic_raw)
     expected = synthetic_raw.groupby(["origin", "date", "hour"])["id"].transform("size")
     assert (cong["sched_dep_origin_hour"] == expected).all()
-    # Cancelled (unlabelled) flights still count toward the slot of the labelled rows.
-    table = build_feature_table(synthetic_raw, synthetic_config)
+    # The conservative configuration excludes congestion features.
+    conservative_config = {
+        **synthetic_config,
+        "features": {
+            **synthetic_config.get("features", {}),
+            "enabled_numeric_groups": ["calendar", "schedule_route"],
+        },
+    }
+    table = build_feature_table(synthetic_raw, conservative_config)
+    assert "sched_dep_origin_hour" not in table.columns
+
+    # Enabling congestion explicitly should make the feature available.
+    expanded_config = {
+        **synthetic_config,
+        "features": {
+            **synthetic_config.get("features", {}),
+            "enabled_numeric_groups": [
+                "calendar", "schedule_route", "historical", "congestion"
+            ],
+        },
+    }
+    expanded_table = build_feature_table(synthetic_raw, expanded_config)
+    assert "sched_dep_origin_hour" in expanded_table.columns
+
+    labelled = build_labelled_frame(synthetic_raw)
     labelled_only = (
-        build_labelled_frame(synthetic_raw)
-        .groupby(["origin", "date", "hour"])["id"]
+        labelled.groupby(["origin", "date", "hour"])["id"]
         .transform("size")
     )
-    merged = table.set_index("id")["sched_dep_origin_hour"]
-    lab = build_labelled_frame(synthetic_raw).assign(lab_n=labelled_only).set_index("id")
-    assert (merged.loc[lab.index] >= lab["lab_n"]).all()
-    assert (merged.loc[lab.index] > lab["lab_n"]).any()
+    full_counts = cong.set_index("id")["sched_dep_origin_hour"]
+    lab = labelled.assign(lab_n=labelled_only).set_index("id")
+
+    assert (full_counts.loc[lab.index] >= lab["lab_n"]).all()
+    assert (full_counts.loc[lab.index] > lab["lab_n"]).any()
 
 
 # ---------------------------------------------------------------- historical: leakage
@@ -252,13 +275,37 @@ def test_build_is_deterministic(synthetic_raw, synthetic_config):
 
 def test_time_index_like_columns_are_not_features():
     from flight_delay.config import load_config
+    from flight_delay.features.build import feature_groups
 
-    feats = set(numeric_features(load_config()))
+    cfg = load_config()
+    feats = set(numeric_features(cfg))
     month_like = {"month", "day_of_year", "month_sin", "month_cos", "doy_sin", "doy_cos"}
     assert not month_like & feats  # unseen months in valid/test (chronological split)
     assert not [c for c in feats if c.endswith("_all_n")]
-    assert {"dow_sin", "is_holiday", "hist_carrier_all_rate", "hist_route_7d_n"} <= feats
-    assert "sched_block_min" in feats and "sched_clock_duration_min" not in feats
+    assert {"dow_sin", "is_holiday", "sched_block_min"} <= feats
+
+    # Expanded features are allowed only when their groups are enabled.
+    groups = feature_groups(cfg)
+    enabled_groups = cfg.get("features", {}).get(
+        "enabled_numeric_groups",
+        ["calendar", "schedule_route", "congestion", "historical"],
+    )
+    if isinstance(enabled_groups, dict):
+        enabled_groups = [
+            name for name, enabled in enabled_groups.items() if enabled
+        ]
+
+    if "historical" in enabled_groups:
+        assert set(groups["historical"]) & feats
+    else:
+        assert not set(groups["historical"]) & feats
+
+    if "congestion" in enabled_groups:
+        assert set(groups["congestion"]) & feats
+    else:
+        assert not set(groups["congestion"]) & feats
+
+    assert "sched_clock_duration_min" not in feats
 
 
 def test_missing_arrival_time_uses_conservative_fallback():

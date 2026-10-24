@@ -99,8 +99,21 @@ def feature_groups(config: dict) -> dict[str, list[str]]:
 
 
 def numeric_features(config: dict) -> list[str]:
+    """Return numeric features enabled by configuration."""
     g = feature_groups(config)
-    return g["calendar"] + g["schedule_route"] + g["congestion"] + g["historical"]
+    fcfg = config.get("features", {})
+
+    enabled_groups = fcfg.get(
+        "enabled_numeric_groups",
+        ["calendar", "schedule_route", "congestion", "historical"],
+    )
+
+    allowed_groups = {"calendar", "schedule_route", "congestion", "historical"}
+    unknown = set(enabled_groups) - allowed_groups
+    if unknown:
+        raise ValueError(f"Unknown numeric feature groups: {sorted(unknown)}")
+
+    return [column for group in enabled_groups for column in g[group]]
 
 
 def build_feature_table(raw: pd.DataFrame, config: dict) -> pd.DataFrame:
@@ -109,6 +122,13 @@ def build_feature_table(raw: pd.DataFrame, config: dict) -> pd.DataFrame:
     Every value for a flight on date D depends only on the published schedule and on outcomes
     known before D. No learned transformation is applied here.
     """
+    decision_time = config.get("decision_time", {}).get("mode")
+    if decision_time != "d_minus_1":
+        raise ValueError(
+            f"Unsupported decision_time.mode: {decision_time!r}. "
+            "Only 'd_minus_1' is currently supported."
+        )
+
     tcfg, fcfg = config["target"], config.get("features", {})
     df = add_congestion_features(raw)  # step 1: full raw schedule
     df = build_labelled_frame(df, tcfg["threshold_minutes"], tcfg["cancelled_policy"])  # step 2

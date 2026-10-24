@@ -1,0 +1,42 @@
+[
+  {
+    "model": "logreg",
+    "calibration": "sigmoid",
+    "test_pr_auc": 0.38992139694548433,
+    "test_roc_auc": 0.6587262712497344,
+    "test_recall_at_validation_threshold": 0.05349204072852431,
+    "test_precision_at_validation_threshold": 0.5290780141843971,
+    "test_true_positives": 746,
+    "test_false_positives": 664,
+    "test_true_negatives": 39381,
+    "test_false_negatives": 13200,
+    "test_predicted_positive_count": 1410,
+    "validation_threshold": 0.37570795550525826,
+    "target_precision": 0.6,
+    "threshold_status": "Threshold selected on validation; test precision evaluated independently",
+    "test_brier": 0.18852178661017546,
+    "test_ece": 0.08936139256382132,
+    "rows_test": 53991,
+    "positive_rate_test": 0.2583023096442
+  },
+  {
+    "model": "xgboost",
+    "calibration": "sigmoid",
+    "test_pr_auc": 0.38517701202316107,
+    "test_roc_auc": 0.6499877253391813,
+    "test_recall_at_validation_threshold": null,
+    "test_precision_at_validation_threshold": null,
+    "test_true_positives": null,
+    "test_false_positives": null,
+    "test_true_negatives": null,
+    "test_false_negatives": null,
+    "test_predicted_positive_count": null,
+    "validation_threshold": null,
+    "target_precision": 0.6,
+    "threshold_status": "No threshold met the target precision on validation",
+    "test_brier": 0.1906682251782988,
+    "test_ece": 0.09590800269790835,
+    "rows_test": 53991,
+    "positive_rate_test": 0.2583023096442
+  }
+]
