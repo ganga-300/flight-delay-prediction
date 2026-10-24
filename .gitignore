@@ -29,6 +29,8 @@ data/external/*
 *.csv
 *.parquet
 *.zip
+# Raw dataset is versioned so the pipeline runs from a fresh clone (42.9 MB, < GitHub's 50 MB warning).
+!data/raw/flights.csv
 
 # --- Model artifacts ---
 models/*
