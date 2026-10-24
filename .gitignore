@@ -70,3 +70,4 @@ Thumbs.db
 *.backup
 *.pre_history_backup
 *.pre_temporal.bak
+configs/config.yaml.pre_history_ablation_backup
