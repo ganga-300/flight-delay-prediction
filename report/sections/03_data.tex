@@ -1,3 +1,18 @@
 \section{Dataset and Data Quality}
-% TODO: Source, size, coverage, cleaning, cancelled-flight policy, class balance, key EDA figures.
-TODO.
+The project uses a US flight dataset covering flights departing from
+the New York City area, as described in the project documentation.
+The prediction label is positive when arrival delay is at least
+15 minutes. Cancelled flights are excluded.
+
+The processed chronological partitions contain 217,727 training
+rows, 55,628 validation rows, and 53,991 test rows. The positive
+class rates are 26.37\%, 15.70\%, and 25.83\%, respectively.
+The difference in positive rates indicates that the partitions have
+different target distributions, making chronological evaluation
+important.
+
+The final test partition contains 53,991 observations. All reported
+test metrics in this report refer to this partition and the current
+saved evaluation results. Dataset provenance, coverage, and cleaning
+details should be interpreted according to the accompanying project
+data documentation.

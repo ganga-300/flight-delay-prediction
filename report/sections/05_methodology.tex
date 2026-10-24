@@ -1,3 +1,23 @@
 \section{Methodology}
-% TODO: Logistic Regression and XGBoost formulations; calibration (Platt/isotonic); metric definitions.
-TODO.
+Two classification baselines are evaluated: Logistic Regression and
+XGBoost. Logistic Regression provides a linear baseline, while
+XGBoost models nonlinear relationships and feature interactions.
+
+The pipeline uses chronological training, validation, and test
+partitions. Model selection and operating-threshold selection are
+performed without using the test partition as a tuning set.
+The saved evaluation identifies sigmoid calibration for both models.
+
+Performance is measured using Precision--Recall Area Under the Curve
+(PR-AUC) and Receiver Operating Characteristic Area Under the Curve
+(ROC-AUC). Probability quality is assessed using the Brier score and
+Expected Calibration Error (ECE). Lower Brier and ECE values indicate
+better probabilistic accuracy and calibration under their respective
+definitions.
+
+The operating policy targets at least 60\% precision, with the
+threshold selected on validation data. If no validation threshold
+meets this target, threshold-dependent test metrics are unavailable;
+they must not be reported as zero. For Logistic Regression, test
+precision and recall are computed independently at the selected
+validation threshold.

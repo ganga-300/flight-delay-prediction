@@ -1,3 +1,22 @@
 \section{Conclusion and Future Work}
-% TODO: Findings, limitations, Phase 2 (embedding MLP, rescheduling analysis).
-TODO.
+This project implements and evaluates a pre-departure flight-delay
+classification pipeline using Logistic Regression and XGBoost.
+On the current test partition, XGBoost has slightly higher PR-AUC
+and ROC-AUC and slightly lower Brier score and ECE than Logistic
+Regression. However, neither ranking metrics nor calibration metrics
+alone determine whether a model meets an operational decision target.
+
+The threshold analysis highlights an important limitation. Logistic
+Regression's validation-selected operating point produces very low
+test recall, while XGBoost has no validation threshold satisfying
+the 60\% precision requirement. A practical system would need further
+work on the operating objective, class-imbalance handling, and
+validation methodology before deployment.
+
+Future work should verify feature availability against the actual
+data source, evaluate temporal stability on additional untouched
+periods, improve calibration and threshold selection, and document
+the provenance and latency of historical aggregates. Further model
+families and rescheduling or decision-support analyses may be
+explored only after these evaluation and data-availability questions
+are addressed.

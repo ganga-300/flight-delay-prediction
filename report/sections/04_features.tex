@@ -1,3 +1,20 @@
 \section{Feature Engineering}
-% TODO: Decision time, leakage policy, schedule/route/carrier/congestion/calendar/historical features, cyclic encoding.
-TODO.
+The system is designed around a pre-departure prediction decision
+time. Features must be available at that time; direct post-departure
+outcomes and fields that reveal the target must not be used as model
+inputs.
+
+The feature pipeline builds calendar, schedule, route, historical,
+and congestion-related feature groups, then applies an explicit
+feature allow-list before model training. The current configuration
+enables the calendar numeric group alongside categorical inputs.
+Consequently, the results reported here should not be interpreted as
+a full evaluation of every engineered feature group.
+
+Historical aggregates require special care: an observation is usable
+only when its outcome would have become available before the
+prediction time. A reporting buffer represents an assumption about
+this availability, not proof of actual production data latency.
+Similarly, schedule-level counts require verification that the
+relevant schedule information is available at prediction time.
+These operational assumptions remain limitations.

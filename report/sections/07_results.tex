@@ -1,3 +1,49 @@
 \section{Results and Discussion}
-% TODO: Results table (PR AUC, ROC AUC, recall@precision, Brier, ECE), PR/ROC/reliability plots, feature importance, error analysis.
-TODO.
+Table~\ref{tab:main-results} reports the current held-out test
+metrics. XGBoost achieves a PR-AUC of 0.35409 and ROC-AUC of 0.62383,
+slightly above Logistic Regression at 0.34915 and 0.61926. XGBoost
+also has lower Brier score and ECE in this run. These differences
+are modest and do not establish that the model will generalize
+equally well to other periods or operational settings.
+
+\begin{table}[htbp]
+\centering
+\caption{Current test-set results}
+\label{tab:main-results}
+\begin{tabular}{lrr}
+\toprule
+Metric & Logistic Regression & XGBoost \\
+\midrule
+PR-AUC $\uparrow$ & 0.34915 & 0.35409 \\
+ROC-AUC $\uparrow$ & 0.61926 & 0.62383 \\
+Brier score $\downarrow$ & 0.20013 & 0.19888 \\
+ECE $\downarrow$ & 0.11950 & 0.11716 \\
+Test precision at selected threshold & 0.50495 & N/A \\
+Test recall at selected threshold & 0.00731 & N/A \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+For Logistic Regression, the validation-selected threshold is
+0.28551. On the test set it yields 102 true positives and 100 false
+positives, with 13,844 false negatives and 39,945 true negatives.
+Only 202 test observations are predicted positive. Although observed
+precision is approximately 50.50\%, recall is approximately 0.73\%,
+so this operating point identifies very few delayed flights.
+
+For XGBoost, no validation threshold met the target precision of
+60\%. Its threshold-dependent test metrics are therefore unavailable.
+This is a failure to find a qualifying operating point under the
+specified policy, not evidence of zero recall or zero precision.
+
+The test-set positive rate is 25.83\%. Both models have moderate
+ranking performance and calibration errors that leave room for
+improvement. Threshold selection, calibration, and the cost of false
+positives versus false negatives require further study.
+
+Earlier reporting-buffer sensitivity experiments showed small
+differences across buffer settings. Because the test set was evaluated
+across those configurations, those comparisons are exploratory and
+must not be used for further test-set tuning. The reporting buffer
+is an assumption about historical outcome availability; its
+operational validity has not been independently verified.

@@ -1,3 +1,21 @@
 \section{Experimental Setup}
-% TODO: Chronological split, hyperparameter search, threshold selection on validation, reproducibility.
-TODO.
+The processed dataset is divided chronologically into training,
+validation, and test partitions. The current run uses 217,727 training
+rows, 55,628 validation rows, and 53,991 test rows. This temporal
+design better reflects evaluation on later observations than a
+random split, although it does not by itself eliminate every
+availability or distribution-shift concern.
+
+For XGBoost, the saved training log records selection of 117 trees,
+with January--July used for initial training and August for
+early-stopping evaluation. The final training set then includes
+January--August, while September is used for calibration and October
+for threshold selection. These recorded stages are reported as part
+of the experiment configuration.
+
+The current test results are read from
+\texttt{reports/results/test\_metrics.json}. The test partition is
+not an appropriate resource for repeated model or reporting-buffer
+tuning. Separate historical buffer-sensitivity results are therefore
+treated as exploratory analyses rather than evidence for selecting
+a final configuration.

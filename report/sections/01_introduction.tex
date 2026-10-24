@@ -1,3 +1,17 @@
 \section{Introduction}
-% TODO: Motivation, problem statement (pre-departure prediction of arrival delay $\geq$ 15 min), contributions.
-TODO.
+Airline delays affect passenger experience, airline operations, and
+network reliability. Predicting arrival delays before departure can
+help passengers and operators make better-informed decisions. This
+project studies binary classification of flight delays using a
+pre-departure decision setting.
+
+The prediction target is an arrival delay of at least 15 minutes.
+Cancelled flights are excluded from this classification task. The
+study evaluates Logistic Regression and XGBoost using chronological
+data splits, probability calibration, ranking metrics, and a
+validation-based operating-threshold policy.
+
+The primary contribution is a reproducible baseline pipeline with
+explicit feature-selection and leakage safeguards. The results also
+illustrate that ranking performance alone does not guarantee a
+useful threshold under a strict precision requirement.
