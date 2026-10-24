@@ -18,6 +18,11 @@ Every rule below is enforced in code and covered by tests (`tests/test_features.
 
 Same-day realised information (for example, morning delays on D) is not used.
 
+Why this cutoff (`docs/decision_log.md`, D-012): predictions support next-day operational
+planning, and end of D−1 is the latest point at which every feature can be computed for a whole
+day's schedule in one batch. A later cutoff would need same-day realtime data this dataset
+cannot validate.
+
 ## 3. Rules
 1. **No post-departure columns as features.** `dep_time`, `dep_delay`, `arr_time`, `arr_delay`,
    and `air_time` (`features/leakage.py`) never enter the feature matrix. `tailnum` and `id` are

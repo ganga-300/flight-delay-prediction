@@ -95,9 +95,18 @@ have been seen.
 - **Decision:** End of day D−1 (`decision_time.mode: d_minus_1`). Features for a flight on date D
   may use the published schedule and outcomes known before D.
 - **Option considered:** `sched_dep_minus_2h` (recorded in the original config).
-- **Reason recorded in the repo:** README suggests D−1 as the default. **Open:** write the
-  operational reason (who uses a D−1 prediction, and for what) before the report.
-- **Status:** Fixed (choice); reason Open.
+- **Reason:**
+  - *Use:* predictions support next-day operational planning (crew, spare aircraft and gate
+    buffers), which happens the evening before.
+  - *Data:* end of D−1 is the latest cutoff at which every feature can be computed for a whole
+    day's schedule in one batch. All of D's scheduled flights are published, and outcomes up to
+    D−1 are known.
+  - *Why not later:* a cutoff such as 2 hours before departure would need same-day realtime data
+    that this dataset cannot validate.
+- **Link to later decisions:** Planners act on every flagged flight, so false alarms have a
+  cost. This is the context for the operating precision target (D-015), which is decided with
+  the experiment plan.
+- **Status:** Fixed. Reason recorded 2026-10-25.
 
 ### D-013 · Chronological split
 - **Decision:** train 2013-01-01–08-31, validation 09-01–10-31, test 11-01–12-31. No shuffling.
@@ -255,6 +264,18 @@ These values are not tuned on any model result. The evidence below is from the t
   deprecated pandas names. A rebuild produced identical train and validation matrices and a
   byte-identical encoder and feature spec.
 - **Status:** Fixed. Date: 2026-10-25.
+
+---
+
+## Feature engineering frozen
+
+Feature engineering ends here. Tag `features-frozen` marks the commit. At that point:
+- the feature set is 59 features, pinned by `test_feature_set_is_pinned`;
+- every feature decision (D-101 to D-107) rests on training-period evidence or a written reason;
+- the Nov–Dec holdout has not been read since D-002;
+- no model has been trained, and no model, metric or calibration code exists on this branch.
+
+Any later change to features must be a new, logged decision made without test data.
 
 ---
 
