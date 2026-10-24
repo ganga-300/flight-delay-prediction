@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from flight_delay.config import load_config
+from flight_delay.features.leakage import assert_no_leakage
 from flight_delay.evaluation.metrics import (
     brier,
     expected_calibration_error,
@@ -57,6 +58,7 @@ def main():
 
     target = spec.get("target", "is_delayed")
     features = spec["numeric"] + spec["categorical"]
+    assert_no_leakage(features)
 
     X_test = test[features]
     y_test = test[target].astype(int)

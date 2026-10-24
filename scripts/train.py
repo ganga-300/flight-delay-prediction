@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from flight_delay.config import load_config
+from flight_delay.features.leakage import assert_no_leakage
 from flight_delay.data.schema import TARGET_COLUMN
 from flight_delay.evaluation.metrics import recall_at_precision
 from flight_delay.models.calibration import calibrate
@@ -45,6 +46,7 @@ def main():
     numeric = spec["numeric"]
     categorical = spec["categorical"]
     features = numeric + categorical
+    assert_no_leakage(features)
 
     for name, frame in [("train", train), ("valid", valid)]:
         missing = set(features + [target]) - set(frame.columns)
