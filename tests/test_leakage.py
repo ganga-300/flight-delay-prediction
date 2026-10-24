@@ -158,3 +158,33 @@ def test_real_no_scheduled_departure_in_dst_gap_or_overlap(real_raw):
             tz, ambiguous="NaT", nonexistent="NaT"
         )
         assert not loc.isna().any(), tz
+
+
+@pytest.mark.parametrize(
+    "column",
+    [
+        "dep_time",
+        "dep_delay",
+        "arr_time",
+        "arr_delay",
+        "air_time",
+        "id",
+        "date",
+        "split",
+        "is_delayed",
+        "flight_status",
+        "tailnum",
+    ],
+)
+def test_assert_no_leakage_rejects_all_forbidden_feature_columns(column):
+    with pytest.raises(ValueError, match="Forbidden columns"):
+        from flight_delay.features.leakage import assert_no_leakage
+
+        assert_no_leakage(["carrier", column])
+
+
+def test_assert_no_leakage_rejects_duplicate_features():
+    from flight_delay.features.leakage import assert_no_leakage
+
+    with pytest.raises(ValueError, match="Duplicate feature columns"):
+        assert_no_leakage(["carrier", "carrier"])
