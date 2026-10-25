@@ -1,0 +1,81 @@
+{
+  "protocol": "D-201",
+  "model": "xgboost",
+  "all_runs": [
+    {
+      "model": "xgboost",
+      "run": 1,
+      "parameters": {
+        "max_depth": 3,
+        "learning_rate": 0.03,
+        "scale_pos_weight": 1.0,
+        "n_estimators": 1000,
+        "early_stopping_rounds": 50
+      },
+      "pr_auc": 0.39494367836250854,
+      "roc_auc": 0.6732242829127036,
+      "best_iteration": 93,
+      "effective_trees": 94
+    },
+    {
+      "model": "xgboost",
+      "run": 2,
+      "parameters": {
+        "max_depth": 3,
+        "learning_rate": 0.1,
+        "scale_pos_weight": 1.0,
+        "n_estimators": 1000,
+        "early_stopping_rounds": 50
+      },
+      "pr_auc": 0.39282187965087934,
+      "roc_auc": 0.6719189460406052,
+      "best_iteration": 28,
+      "effective_trees": 29
+    },
+    {
+      "model": "xgboost",
+      "run": 3,
+      "parameters": {
+        "max_depth": 5,
+        "learning_rate": 0.03,
+        "scale_pos_weight": 1.0,
+        "n_estimators": 1000,
+        "early_stopping_rounds": 50
+      },
+      "pr_auc": 0.3931725823298281,
+      "roc_auc": 0.6716836591859624,
+      "best_iteration": 24,
+      "effective_trees": 25
+    },
+    {
+      "model": "xgboost",
+      "run": 4,
+      "parameters": {
+        "max_depth": 5,
+        "learning_rate": 0.1,
+        "scale_pos_weight": 1.0,
+        "n_estimators": 1000,
+        "early_stopping_rounds": 50
+      },
+      "pr_auc": 0.396029408078285,
+      "roc_auc": 0.6770365891745069,
+      "best_iteration": 15,
+      "effective_trees": 16
+    }
+  ],
+  "best_august_candidate": {
+    "model": "xgboost",
+    "run": 4,
+    "parameters": {
+      "max_depth": 5,
+      "learning_rate": 0.1,
+      "scale_pos_weight": 1.0,
+      "n_estimators": 1000,
+      "early_stopping_rounds": 50
+    },
+    "pr_auc": 0.396029408078285,
+    "roc_auc": 0.6770365891745069,
+    "best_iteration": 15,
+    "effective_trees": 16
+  }
+}

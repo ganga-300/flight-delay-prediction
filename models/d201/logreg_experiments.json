@@ -1,0 +1,105 @@
+{
+  "protocol": "D-201",
+  "model": "logreg",
+  "all_runs": [
+    {
+      "model": "logreg",
+      "run": 1,
+      "parameters": {
+        "C": 0.01,
+        "class_weight": null,
+        "max_iter": 2000
+      },
+      "pr_auc": 0.3998447149942007,
+      "roc_auc": 0.6741596271387511
+    },
+    {
+      "model": "logreg",
+      "run": 2,
+      "parameters": {
+        "C": 0.01,
+        "class_weight": "balanced",
+        "max_iter": 2000
+      },
+      "pr_auc": 0.4007107891465205,
+      "roc_auc": 0.6755928396402702
+    },
+    {
+      "model": "logreg",
+      "run": 3,
+      "parameters": {
+        "C": 0.1,
+        "class_weight": null,
+        "max_iter": 2000
+      },
+      "pr_auc": 0.4002801829236522,
+      "roc_auc": 0.673869232776674
+    },
+    {
+      "model": "logreg",
+      "run": 4,
+      "parameters": {
+        "C": 0.1,
+        "class_weight": "balanced",
+        "max_iter": 2000
+      },
+      "pr_auc": 0.4005962226089137,
+      "roc_auc": 0.6749300107269731
+    },
+    {
+      "model": "logreg",
+      "run": 5,
+      "parameters": {
+        "C": 1.0,
+        "class_weight": null,
+        "max_iter": 2000
+      },
+      "pr_auc": 0.3999657102464942,
+      "roc_auc": 0.6732971684026288
+    },
+    {
+      "model": "logreg",
+      "run": 6,
+      "parameters": {
+        "C": 1.0,
+        "class_weight": "balanced",
+        "max_iter": 2000
+      },
+      "pr_auc": 0.40053573360183625,
+      "roc_auc": 0.6745013960557682
+    },
+    {
+      "model": "logreg",
+      "run": 7,
+      "parameters": {
+        "C": 10.0,
+        "class_weight": null,
+        "max_iter": 2000
+      },
+      "pr_auc": 0.3999787445728123,
+      "roc_auc": 0.67326822416486
+    },
+    {
+      "model": "logreg",
+      "run": 8,
+      "parameters": {
+        "C": 10.0,
+        "class_weight": "balanced",
+        "max_iter": 2000
+      },
+      "pr_auc": 0.4003457926507098,
+      "roc_auc": 0.6743204472965172
+    }
+  ],
+  "best_august_candidate": {
+    "model": "logreg",
+    "run": 2,
+    "parameters": {
+      "C": 0.01,
+      "class_weight": "balanced",
+      "max_iter": 2000
+    },
+    "pr_auc": 0.4007107891465205,
+    "roc_auc": 0.6755928396402702
+  }
+}

@@ -25,7 +25,6 @@ def build_logistic_pipeline(
     )
 
     classifier = LogisticRegression(
-        penalty="l2",
         C=params.get("C", 1.0),
         class_weight=params.get("class_weight"),
         max_iter=params.get("max_iter", 2000),

@@ -1,0 +1,12 @@
+{
+  "selected_model": "logreg",
+  "parameters": {
+    "C": 0.01,
+    "class_weight": "balanced",
+    "max_iter": 2000
+  },
+  "training_period": "2013-01-01 to 2013-08-31",
+  "selection_period": "2013-08-01 to 2013-08-31",
+  "preprocessing_refitted": true,
+  "holdout_accessed": false
+}

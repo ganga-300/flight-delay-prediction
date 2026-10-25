@@ -1,0 +1,192 @@
+{
+  "selected_model": "logreg",
+  "selection_metric": "August PR-AUC",
+  "candidate_results": [
+    {
+      "protocol": "D-201",
+      "model": "logreg",
+      "all_runs": [
+        {
+          "model": "logreg",
+          "run": 1,
+          "parameters": {
+            "C": 0.01,
+            "class_weight": null,
+            "max_iter": 2000
+          },
+          "pr_auc": 0.3998447149942007,
+          "roc_auc": 0.6741596271387511
+        },
+        {
+          "model": "logreg",
+          "run": 2,
+          "parameters": {
+            "C": 0.01,
+            "class_weight": "balanced",
+            "max_iter": 2000
+          },
+          "pr_auc": 0.4007107891465205,
+          "roc_auc": 0.6755928396402702
+        },
+        {
+          "model": "logreg",
+          "run": 3,
+          "parameters": {
+            "C": 0.1,
+            "class_weight": null,
+            "max_iter": 2000
+          },
+          "pr_auc": 0.4002801829236522,
+          "roc_auc": 0.673869232776674
+        },
+        {
+          "model": "logreg",
+          "run": 4,
+          "parameters": {
+            "C": 0.1,
+            "class_weight": "balanced",
+            "max_iter": 2000
+          },
+          "pr_auc": 0.4005962226089137,
+          "roc_auc": 0.6749300107269731
+        },
+        {
+          "model": "logreg",
+          "run": 5,
+          "parameters": {
+            "C": 1.0,
+            "class_weight": null,
+            "max_iter": 2000
+          },
+          "pr_auc": 0.3999657102464942,
+          "roc_auc": 0.6732971684026288
+        },
+        {
+          "model": "logreg",
+          "run": 6,
+          "parameters": {
+            "C": 1.0,
+            "class_weight": "balanced",
+            "max_iter": 2000
+          },
+          "pr_auc": 0.40053573360183625,
+          "roc_auc": 0.6745013960557682
+        },
+        {
+          "model": "logreg",
+          "run": 7,
+          "parameters": {
+            "C": 10.0,
+            "class_weight": null,
+            "max_iter": 2000
+          },
+          "pr_auc": 0.3999787445728123,
+          "roc_auc": 0.67326822416486
+        },
+        {
+          "model": "logreg",
+          "run": 8,
+          "parameters": {
+            "C": 10.0,
+            "class_weight": "balanced",
+            "max_iter": 2000
+          },
+          "pr_auc": 0.4003457926507098,
+          "roc_auc": 0.6743204472965172
+        }
+      ],
+      "best_august_candidate": {
+        "model": "logreg",
+        "run": 2,
+        "parameters": {
+          "C": 0.01,
+          "class_weight": "balanced",
+          "max_iter": 2000
+        },
+        "pr_auc": 0.4007107891465205,
+        "roc_auc": 0.6755928396402702
+      }
+    },
+    {
+      "protocol": "D-201",
+      "model": "xgboost",
+      "all_runs": [
+        {
+          "model": "xgboost",
+          "run": 1,
+          "parameters": {
+            "max_depth": 3,
+            "learning_rate": 0.03,
+            "scale_pos_weight": 1.0,
+            "n_estimators": 1000,
+            "early_stopping_rounds": 50
+          },
+          "pr_auc": 0.39494367836250854,
+          "roc_auc": 0.6732242829127036,
+          "best_iteration": 93,
+          "effective_trees": 94
+        },
+        {
+          "model": "xgboost",
+          "run": 2,
+          "parameters": {
+            "max_depth": 3,
+            "learning_rate": 0.1,
+            "scale_pos_weight": 1.0,
+            "n_estimators": 1000,
+            "early_stopping_rounds": 50
+          },
+          "pr_auc": 0.39282187965087934,
+          "roc_auc": 0.6719189460406052,
+          "best_iteration": 28,
+          "effective_trees": 29
+        },
+        {
+          "model": "xgboost",
+          "run": 3,
+          "parameters": {
+            "max_depth": 5,
+            "learning_rate": 0.03,
+            "scale_pos_weight": 1.0,
+            "n_estimators": 1000,
+            "early_stopping_rounds": 50
+          },
+          "pr_auc": 0.3931725823298281,
+          "roc_auc": 0.6716836591859624,
+          "best_iteration": 24,
+          "effective_trees": 25
+        },
+        {
+          "model": "xgboost",
+          "run": 4,
+          "parameters": {
+            "max_depth": 5,
+            "learning_rate": 0.1,
+            "scale_pos_weight": 1.0,
+            "n_estimators": 1000,
+            "early_stopping_rounds": 50
+          },
+          "pr_auc": 0.396029408078285,
+          "roc_auc": 0.6770365891745069,
+          "best_iteration": 15,
+          "effective_trees": 16
+        }
+      ],
+      "best_august_candidate": {
+        "model": "xgboost",
+        "run": 4,
+        "parameters": {
+          "max_depth": 5,
+          "learning_rate": 0.1,
+          "scale_pos_weight": 1.0,
+          "n_estimators": 1000,
+          "early_stopping_rounds": 50
+        },
+        "pr_auc": 0.396029408078285,
+        "roc_auc": 0.6770365891745069,
+        "best_iteration": 15,
+        "effective_trees": 16
+      }
+    }
+  ]
+}
