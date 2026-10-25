@@ -286,7 +286,6 @@ Any later change to features must be a new, logged decision made without test da
 
 | ID | Phase | Decision | Evidence allowed |
 |---|---|---|---|
-| D-204 | 5 | Calibration, threshold and rescheduling results under D-203 | September (calibration), October (threshold, rescheduling) |
 | D-205 | 5 | Single test evaluation under D-203, after `model-frozen` | November–December, once |
 
 ---
@@ -475,3 +474,41 @@ reliability diagram, and at the threshold: precision, recall and flights flagged
 - Delay rates differ between months (training 26.4%, validation 15.7%), so a threshold chosen
   on October may transfer poorly to later months.
 - The 60% precision target is an assumption (D-015).
+
+### D-204 · Calibration, threshold and rescheduling results
+- **Status:** Completed under D-203 (plan commit `968067b`). Date: 2026-10-25.
+- **Script:** `scripts/calibrate_threshold.py`, run once. It refuses to overwrite its outputs.
+- **Data:** September (27,010 flights) for calibration; October (28,618 flights) for the
+  threshold. No January–August or November–December data used.
+- **Outputs:** `models/d203/calibrated_model.joblib` (sigmoid on the unchanged D-202 model),
+  `models/d203/operating_point.json`, `reports/results/d203_calibration.csv`,
+  `reports/figures/d203_reliability_september.png`, `reports/figures/d203_reliability_october.png`.
+
+**Calibration (sigmoid, fitted on September)**
+
+| Period | Probabilities | PR-AUC | ROC-AUC | Brier | ECE (10 bins) | Mean probability | Delay rate |
+|---|---|---|---|---|---|---|---|
+| September (in-sample) | raw | 0.2457 | 0.6689 | 0.1790 | 0.2402 | 0.3774 | 0.1372 |
+| September (in-sample) | sigmoid | 0.2457 | 0.6689 | 0.1129 | 0.0095 | 0.1372 | 0.1372 |
+| October (out-of-sample) | raw | 0.3248 | 0.6861 | 0.1917 | 0.2270 | 0.4026 | 0.1756 |
+| October (out-of-sample) | sigmoid | 0.3248 | 0.6861 | 0.1360 | 0.0274 | 0.1483 | 0.1756 |
+| October (comparison only) | isotonic | 0.3160 | 0.6856 | 0.1371 | 0.0293 | 0.1469 | 0.1756 |
+
+- Raw probabilities are far too high (October mean 0.40 vs a 0.18 delay rate), as expected from
+  `class_weight="balanced"`. Sigmoid calibration cuts October ECE from 0.227 to 0.027 and Brier
+  from 0.192 to 0.136. It does not change the ranking (PR-AUC and ROC-AUC unchanged).
+
+**Threshold (October, precision ≥ 0.60): infeasible**
+- No threshold reaches 0.60 precision on October. As D-203 requires, the target is not lowered
+  and no threshold is set.
+- Diagnostic only, not a decision: the highest October precision with at least 20 delayed
+  flights flagged is 0.513 (158 flights flagged, recall 0.016). The highest calibrated
+  probability of any October flight is 0.525.
+
+**Rescheduling rule:** not applied, because there is no feasible threshold.
+
+**Consequences for the test evaluation (D-205)**
+- The calibrated model and the infeasible operating point are frozen as recorded here.
+- Test metrics: PR-AUC, ROC-AUC, Brier score, ECE (10 bins) and a reliability diagram for raw and
+  calibrated probabilities.
+- Threshold-based test metrics and the rescheduling rule are reported as not available.
