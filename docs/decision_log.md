@@ -290,7 +290,7 @@ Any later change to features must be a new, logged decision made without test da
 
 ### D-201 · Pre-registered modelling protocol
 
-**Status:** Revised per team review, before real model training.
+**Status:** Approved on 2026-10-25, as written in commit bf7a51c.
 
 **Chronological data protocol**
 
