@@ -38,6 +38,7 @@ def synthetic_splits():
 
 def test_end_to_end_workflow():
     splits, numeric, categorical = synthetic_splits()
+    splits = {"fit": splits["fit"], "tune": splits["tune"]}
 
     result = run_modeling_workflow(
         splits, numeric, categorical
@@ -46,13 +47,14 @@ def test_end_to_end_workflow():
     assert len(result["logistic"]["results"]) == 8
     assert len(result["xgboost"]["results"]) == 4
     assert result["selection"]["model_name"] in ("logreg", "xgboost")
-    assert result["calibrated_model"] is not None
-    assert "feasible" in result["operating_point"]
+    assert "calibrated_model" not in result
+    assert "operating_point" not in result
 
 
 def test_rejects_missing_period():
     splits, numeric, categorical = synthetic_splits()
-    del splits["threshold"]
+    splits = {"fit": splits["fit"], "tune": splits["tune"]}
+    del splits["tune"]
 
     with pytest.raises(ValueError):
         run_modeling_workflow(splits, numeric, categorical)
@@ -60,6 +62,7 @@ def test_rejects_missing_period():
 
 def test_rejects_missing_feature():
     splits, numeric, categorical = synthetic_splits()
+    splits = {"fit": splits["fit"], "tune": splits["tune"]}
     splits["fit"] = splits["fit"].drop(columns=["num_0"])
 
     with pytest.raises(ValueError):
