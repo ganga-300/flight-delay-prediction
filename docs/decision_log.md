@@ -397,3 +397,5 @@ Status: Completed after D-201 candidate training.
 - Permutation importance: 2000 August examples, seed 42, 2 repeats.
 - No calibration or operating-threshold selection in this workflow.
 - November–December sealed holdout not accessed.
+- Training environment: Python 3.11.17, scikit-learn 1.9.1, XGBoost 3.2.0.
+- The feature-group diagnostic from the first D-201 draft was dropped in the revised plan and was not run.
