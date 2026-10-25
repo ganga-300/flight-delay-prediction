@@ -284,3 +284,152 @@ Any later change to features must be a new, logged decision made without test da
 | ID | Phase | Decision | Evidence allowed |
 |---|---|---|---|
 | D-201 | 4 | Experiment plan: models, hyperparameter grid, selection rule, calibration options, threshold rule, and the validation-only feature-group check from D-102 | Written before any training |
+
+---
+
+## Phase 4 — ML experiment plan
+
+### D-201 · Pre-registered modelling protocol
+
+- **Status:** Proposed — team review required before training.
+- **Date:** 2026-10-25.
+- **Models:** Logistic Regression (L2) and XGBoost.
+- **Features:** All 59 frozen features. No additions or removals based on model results.
+- **Inputs:** Only the 49 numeric and 10 categorical features. `id`, `date`, and `is_delayed` are excluded from model inputs.
+- **Random seed:** 42.
+
+**Chronological protocol:**
+- January–July: fit candidate models.
+- August: hyperparameter selection by average precision (PR-AUC); XGBoost early stopping.
+- September: fit sigmoid probability calibration.
+- October: select the operating threshold and report diagnostic metrics.
+- November–December: sealed final holdout, evaluated once by Member 4 after model freeze.
+
+**Preprocessing:**
+- Candidate-model preprocessing must be fitted only on January–July.
+- August, September and October must use transformations fitted on earlier data.
+- The existing Jan–Aug-fitted processed encoder cannot be reused unchanged for January–July tuning where its learned parameters could leak August information.
+- Keep the frozen 59 feature definitions unchanged.
+
+**Logistic Regression grid:**
+- C: [0.01, 0.1, 1.0, 10.0]
+- class_weight: [None, balanced]
+- penalty: L2
+- max_iter: 2000
+- Numeric columns: StandardScaler.
+- Categorical columns: OneHotEncoder(handle_unknown="ignore").
+
+**XGBoost grid:**
+- max_depth: [3, 5]
+- learning_rate: [0.03, 0.10]
+- n_estimators: 1000 maximum
+- early_stopping_rounds: 50
+- subsample: 0.8
+- colsample_bytree: 0.8
+- objective: binary:logistic
+- eval_metric: aucpr
+- random_state: 42
+- Categorical handling: native XGBoost categorical support, with enable_categorical=True and hist tree method.
+
+**Model selection:**
+- Choose each model family's configuration using August average precision.
+- Ties: prefer lower complexity, then deterministic grid order.
+- Compare the selected model families using August PR-AUC.
+- Do not select a model using November–December results.
+
+**Calibration:**
+- Fit sigmoid calibration using September only.
+- Preserve uncalibrated probabilities as a diagnostic comparison.
+- Evaluate calibration using Brier score and 10-bin ECE.
+- Calibration does not change the model selection rule.
+
+**Operating threshold:**
+- Treat precision >= 0.60 as a provisional operational assumption, not a verified business cost estimate.
+- Using October only, choose the threshold with maximum recall subject to precision >= 0.60.
+- If no threshold is feasible, report that explicitly rather than lowering the target.
+- Freeze the chosen threshold before sealed holdout evaluation.
+
+**Feature-group diagnostic:**
+- Compare the frozen full-feature baseline against prespecified groups removed one at a time: congestion, holiday proximity, schedule numerics, 7/28-day history and categorical interaction features.
+- Run these checks only on development data, using August PR-AUC.
+- Report sensitivity without changing the frozen feature set based on the results.
+
+**Limitations:**
+- August is used for tuning, so its model-selection score is optimistic.
+- October is used for threshold selection, so its operating metrics are not an independent test estimate.
+- Final unbiased evaluation is reserved for the sealed November–December holdout.
+
+
+---
+
+## Phase 4 — ML experiment plan
+
+### D-201 · Pre-registered modelling protocol
+
+- **Status:** Proposed — team review required before training.
+- **Date:** 2026-10-25.
+- **Models:** Logistic Regression (L2) and XGBoost.
+- **Features:** All 59 frozen features. No additions or removals based on model results.
+- **Inputs:** Only the 49 numeric and 10 categorical features. `id`, `date`, and `is_delayed` are excluded from model inputs.
+- **Random seed:** 42.
+
+**Chronological protocol:**
+- January–July: fit candidate models.
+- August: hyperparameter selection by average precision (PR-AUC); XGBoost early stopping.
+- September: fit sigmoid probability calibration.
+- October: select the operating threshold and report diagnostic metrics.
+- November–December: sealed final holdout, evaluated once by Member 4 after model freeze.
+
+**Preprocessing:**
+- Candidate-model preprocessing must be fitted only on January–July.
+- August, September and October must use transformations fitted on earlier data.
+- The existing Jan–Aug-fitted processed encoder cannot be reused unchanged for January–July tuning where its learned parameters could leak August information.
+- Keep the frozen 59 feature definitions unchanged.
+
+**Logistic Regression grid:**
+- C: [0.01, 0.1, 1.0, 10.0]
+- class_weight: [None, balanced]
+- penalty: L2
+- max_iter: 2000
+- Numeric columns: StandardScaler.
+- Categorical columns: OneHotEncoder(handle_unknown="ignore").
+
+**XGBoost grid:**
+- max_depth: [3, 5]
+- learning_rate: [0.03, 0.10]
+- n_estimators: 1000 maximum
+- early_stopping_rounds: 50
+- subsample: 0.8
+- colsample_bytree: 0.8
+- objective: binary:logistic
+- eval_metric: aucpr
+- random_state: 42
+- Categorical handling: native XGBoost categorical support, with enable_categorical=True and hist tree method.
+
+**Model selection:**
+- Choose each model family's configuration using August average precision.
+- Ties: prefer lower complexity, then deterministic grid order.
+- Compare the selected model families using August PR-AUC.
+- Do not select a model using November–December results.
+
+**Calibration:**
+- Fit sigmoid calibration using September only.
+- Preserve uncalibrated probabilities as a diagnostic comparison.
+- Evaluate calibration using Brier score and 10-bin ECE.
+- Calibration does not change the model selection rule.
+
+**Operating threshold:**
+- Treat precision >= 0.60 as a provisional operational assumption, not a verified business cost estimate.
+- Using October only, choose the threshold with maximum recall subject to precision >= 0.60.
+- If no threshold is feasible, report that explicitly rather than lowering the target.
+- Freeze the chosen threshold before sealed holdout evaluation.
+
+**Feature-group diagnostic:**
+- Compare the frozen full-feature baseline against prespecified groups removed one at a time: congestion, holiday proximity, schedule numerics, 7/28-day history and categorical interaction features.
+- Run these checks only on development data, using August PR-AUC.
+- Report sensitivity without changing the frozen feature set based on the results.
+
+**Limitations:**
+- August is used for tuning, so its model-selection score is optimistic.
+- October is used for threshold selection, so its operating metrics are not an independent test estimate.
+- Final unbiased evaluation is reserved for the sealed November–December holdout.
