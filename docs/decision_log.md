@@ -286,7 +286,6 @@ Any later change to features must be a new, logged decision made without test da
 
 | ID | Phase | Decision | Evidence allowed |
 |---|---|---|---|
-| D-205 | 5 | Single test evaluation under D-203, after `model-frozen` | November–December, once |
 
 ---
 
@@ -512,3 +511,45 @@ reliability diagram, and at the threshold: precision, recall and flights flagged
 - Test metrics: PR-AUC, ROC-AUC, Brier score, ECE (10 bins) and a reliability diagram for raw and
   calibrated probabilities.
 - Threshold-based test metrics and the rescheduling rule are reported as not available.
+
+### D-205 · Single test evaluation (November–December)
+- **Status:** Completed once, 2026-10-25. Final; nothing is changed or re-run after this result.
+- **Run:** `scripts/evaluate.py` (commit `041334b`), against the frozen state tagged
+  `model-frozen` (commit `e559e20`). The script checked that the frozen model, encoder,
+  calibrated model and operating point were byte-identical to the tagged versions, that no test
+  results existed, and that the full-year file matched its D-002 hash.
+- **Data:** 53,991 labelled flights, 2013-11-01 to 2013-12-31. Features were built over the whole
+  year (past-only history), then only test rows were scored. Nothing was fitted.
+- **Outputs:** `reports/results/test_metrics.json`, `reports/results/test_metrics.csv`,
+  `reports/figures/test_reliability.png`.
+
+**Results (exactly as produced)**
+
+| Probabilities | Flights | Delay rate | Mean probability | PR-AUC | ROC-AUC | Brier | ECE (10 bins) |
+|---|---|---|---|---|---|---|---|
+| raw | 53,991 | 0.2583 | 0.4614 | 0.3979 | 0.6640 | 0.2264 | 0.2039 |
+| sigmoid (frozen) | 53,991 | 0.2583 | 0.1817 | 0.3979 | 0.6640 | 0.1852 | 0.0768 |
+
+- **Threshold metrics:** not available. No threshold reached 0.60 precision on October (D-204).
+- **Rescheduling rule:** not applied, for the same reason.
+
+**Reading of the results**
+- **Ranking:** PR-AUC 0.398 against a 0.258 delay rate, about 1.5 times a random ranking.
+  ROC-AUC 0.664. These are in line with validation (PR-AUC 1.8 times its delay rate on
+  September–October, ROC-AUC 0.67–0.69), so the model generalised to the test period without a
+  collapse.
+- **Calibration:** the frozen sigmoid calibration cuts ECE from 0.204 to 0.077 and Brier from
+  0.226 to 0.185. Calibrated probabilities are too low on average (0.18 against a 0.26 delay
+  rate), because calibration was fitted on September, the calmest month (13.7% delayed). The
+  shift between validation and test delay rates, recorded as a limitation since D-013, is the
+  cause.
+- **Operating target:** the 60% precision target (D-015) is not reachable with the information
+  available at the end of D−1 in this dataset.
+
+**Limitations to report**
+- The dataset (provided by the course) has no weather or same-day information at decision time,
+  which limits how confident any flight-level prediction can be.
+- Validation (September–October) is calmer than the test period, so probabilities calibrated on
+  it under-predict in November–December.
+- An earlier iteration of this project evaluated on the Nov–Dec holdout (D-000). Every model,
+  feature, calibration and threshold decision reported here was made again without those results.

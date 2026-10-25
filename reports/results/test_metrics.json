@@ -1,0 +1,32 @@
+{
+  "protocol": "D-203",
+  "frozen_commit": "e559e20a98c3d86bc3dd98296016edcc3b6309e9",
+  "test_period": [
+    "2013-11-01",
+    "2013-12-31"
+  ],
+  "metrics": [
+    {
+      "probabilities": "raw",
+      "flights": 53991,
+      "delay_rate": 0.2583023096442,
+      "mean_probability": 0.4613905088845015,
+      "pr_auc": 0.3978953360248507,
+      "roc_auc": 0.6640456257827111,
+      "brier": 0.22638203888977085,
+      "ece_10": 0.20394145802076216
+    },
+    {
+      "probabilities": "sigmoid (frozen)",
+      "flights": 53991,
+      "delay_rate": 0.2583023096442,
+      "mean_probability": 0.18167196619703171,
+      "pr_auc": 0.3978953360248507,
+      "roc_auc": 0.6640456257827111,
+      "brier": 0.18523544788786234,
+      "ece_10": 0.07679385062870565
+    }
+  ],
+  "at_threshold": "not available: no feasible threshold at 0.60 precision (D-204)",
+  "rescheduling_rule": "not applied: no feasible threshold (D-204)"
+}
