@@ -6,7 +6,7 @@ pyarrow>=14.0         # parquet I/O
 pyyaml>=6.0
 
 # Modelling
-scikit-learn>=1.4
+scikit-learn>=1.6
 xgboost>=2.0
 
 # Visualisation
