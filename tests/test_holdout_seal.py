@@ -11,7 +11,7 @@ from flight_delay.data.split import assert_no_holdout
 
 # Files allowed to name the sealed full-year file. The final test evaluation script is added here
 # when it is written, and is run once.
-SEALED_READERS = {"scripts/seal_holdout.py"}
+SEALED_READERS = {"scripts/seal_holdout.py", "scripts/evaluate.py"}
 
 
 def test_development_config_does_not_read_the_sealed_file():
