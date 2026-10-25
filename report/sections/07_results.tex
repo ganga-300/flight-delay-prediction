@@ -13,6 +13,7 @@ ranks delayed flights about 1.6 times better than random (Fig.~\ref{fig:pr}).
 \centering
 \caption{Candidate models, trained January--July, scored on August}
 \label{tab:august}
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{llcc}
 \toprule
 Model & Setting & PR-AUC & ROC-AUC \\
@@ -22,7 +23,7 @@ LR (range, 8 runs) & --- & 0.3998--0.4007 & 0.6733--0.6756 \\
 XGBoost (best) & depth 5, lr 0.1 & 0.3960 & 0.6770 \\
 XGBoost (range, 4 runs) & --- & 0.3928--0.3960 & 0.6717--0.6770 \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{table}
 
 \begin{figure}[htbp]
