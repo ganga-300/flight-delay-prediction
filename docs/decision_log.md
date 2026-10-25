@@ -127,8 +127,11 @@ have been seen.
 ### D-015 · Operating precision target
 - **Current value:** `evaluation.operational_precision: 0.60`.
 - **Origin:** Scaffold value marked "TODO: justify". No recorded reason.
-- **Status:** **Open.** Before Phase 4, record either a cost-based reason (cost of a false alarm vs
-  a missed delay) or label it an assumption. It must not be changed based on model results.
+- **Reason:** At least 60% of flagged flights should truly be delayed, because operations
+  planners act on every flag (D-012) and false alarms waste schedule buffers.
+- **Status:** **Assumption.** The value 60% is not derived from real cost data; no costs of false
+  alarms or missed delays are available. It is fixed before any calibration or threshold result
+  and is not changed based on model results. Recorded 2026-10-25.
 
 ---
 
@@ -283,6 +286,8 @@ Any later change to features must be a new, logged decision made without test da
 
 | ID | Phase | Decision | Evidence allowed |
 |---|---|---|---|
+| D-204 | 5 | Calibration, threshold and rescheduling results under D-203 | September (calibration), October (threshold, rescheduling) |
+| D-205 | 5 | Single test evaluation under D-203, after `model-frozen` | November–December, once |
 
 ---
 
@@ -399,3 +404,74 @@ Status: Completed after D-201 candidate training.
 - November–December sealed holdout not accessed.
 - Training environment: Python 3.11.17, scikit-learn 1.9.1, XGBoost 3.2.0.
 - The feature-group diagnostic from the first D-201 draft was dropped in the revised plan and was not run.
+
+---
+
+## Phase 5 — Evaluation, calibration and rescheduling
+
+### D-203 · Evaluation plan
+- **Status:** Written before any calibration, threshold or test result. Date: 2026-10-25.
+- **Owner:** Ganga Raghuwanshi, carrying out the Member 4 role.
+- **Model:** `models/d201/final_model.joblib` (D-202 Logistic Regression, trained on
+  January–August), used unchanged. No retraining, no feature or hyperparameter change.
+- **Inputs:** `data/processed/valid.parquet`. Its encoder is identical to
+  `models/d201/final_encoder.json` (checked in the D-202 review), so its 59 feature columns are
+  already encoded for the final model. Column order follows `data/processed/feature_spec.json`
+  (`numeric`, then `categorical`).
+
+**Data periods (one job each)**
+
+| Period | Use |
+|---|---|
+| 2013-09-01 to 2013-09-30 | Fit the probability calibration |
+| 2013-10-01 to 2013-10-31 | Choose the threshold; apply the rescheduling rule |
+| 2013-11-01 to 2013-12-31 | Single test evaluation, after `model-frozen` |
+| January–August | Not used (already used by D-201/D-202) |
+
+**Calibration**
+- Method: **sigmoid**, fitted on September only with `models.calibration.calibrate`. The
+  underlying model is frozen, and one calibrator is fitted on all September rows
+  (`tests/test_evaluation_checks.py`).
+- Isotonic is also fitted on September and reported for comparison only. It is never selected.
+- Needed because the final model uses `class_weight="balanced"`, which pushes raw probabilities
+  upward.
+- Reported: Brier score, ECE (10 equal-width bins) and a reliability diagram, for raw and
+  calibrated probabilities. October is the out-of-sample check for the calibrator; September is
+  reported as in-sample reference.
+
+**Threshold**
+- On October calibrated probabilities, `models.operating_point.choose_threshold` with
+  `min_precision = 0.60` (D-015): the highest recall with precision at least 0.60; ties go to
+  higher precision, then higher threshold. A flight is flagged when its probability is at or
+  above the threshold.
+- If no threshold reaches 0.60 precision, the result is recorded as **infeasible**. The target
+  is not lowered, no threshold is chosen, and threshold-based test metrics are reported as not
+  available.
+
+**Rescheduling rule (offline what-if)**
+- Flag-and-buffer: flights whose calibrated delay probability is at or above the October
+  threshold are flagged for an extra schedule buffer.
+- Reported: number and share of flights flagged, share of flagged flights actually delayed
+  (precision), and share of delayed flights flagged (recall).
+- The data cannot show what a buffer would have changed, so no buffer size or delay reduction
+  is estimated.
+
+**Metrics** (October, then the test period): PR-AUC, ROC-AUC, Brier score, ECE (10 bins),
+reliability diagram, and at the threshold: precision, recall and flights flagged.
+
+**Test evaluation (once)**
+1. D-204 is committed and the owner tags that commit `model-frozen`.
+2. `scripts/evaluate.py` loads the full-year file with `load_raw`, builds features for the
+   whole year (so test flights get their correct history), keeps `split == "test"` rows, encodes
+   them with `models/d201/final_encoder.json`, and applies the calibrated model, threshold and
+   rescheduling rule from D-204.
+3. In the same commit, `scripts/evaluate.py` is added to `SEALED_READERS` in
+   `tests/test_holdout_seal.py`.
+4. The script is run once. Results are committed immediately as D-205, exactly as produced.
+   Nothing is changed or re-run afterwards.
+
+**Limitations**
+- October chooses the threshold, so October operating metrics are optimistic.
+- Delay rates differ between months (training 26.4%, validation 15.7%), so a threshold chosen
+  on October may transfer poorly to later months.
+- The 60% precision target is an assumption (D-015).
