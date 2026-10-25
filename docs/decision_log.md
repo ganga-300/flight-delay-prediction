@@ -375,3 +375,25 @@ Any later change to features must be a new, logged decision made without test da
   and January–August retraining details under D-202.
 - Save the final retrained model and preprocessing artifacts.
 - Keep the November–December holdout sealed.
+
+## D-202 — Final model selection
+
+Status: Completed after D-201 candidate training.
+
+- Selection dataset: August 2013.
+- Candidate fitting dataset: January–July 2013.
+- Selection metric: highest August average precision (PR-AUC).
+- Winning model: Logistic Regression.
+- Logistic Regression PR-AUC: 0.400711.
+- Logistic Regression ROC-AUC: 0.675593.
+- Best XGBoost PR-AUC: 0.396029.
+- Best XGBoost ROC-AUC: 0.677037.
+- Selected hyperparameters: `{"C": 0.01, "class_weight": "balanced", "max_iter": 2000}`.
+- Final model retrained on January–August 2013.
+- FeatureEncoder and model preprocessing refitted on January–August.
+- August metrics are from January–July-fitted candidates, not the final refit.
+- Fixed feature set: 49 numeric + 10 categorical.
+- XGBoost gain and permutation importance are reporting-only.
+- Permutation importance: 2000 August examples, seed 42, 2 repeats.
+- No calibration or operating-threshold selection in this workflow.
+- November–December sealed holdout not accessed.

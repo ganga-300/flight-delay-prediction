@@ -59,7 +59,7 @@ def evaluate(model, X, y):
     }
 
 
-def train(cfg, model_name, output_dir):
+def train(cfg, model_name, output_dir, *, finalize=True):
     raw = load_dev_raw(cfg, ROOT)
     table = build_feature_table(raw, cfg)
     fit, tune = split_data(table)
@@ -142,6 +142,19 @@ def train(cfg, model_name, output_dir):
             best_score = metrics["pr_auc"]
             best = record
 
+    if not finalize:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        report = {
+            "protocol": "D-201",
+            "model": model_name,
+            "all_runs": records,
+            "best_august_candidate": best,
+        }
+        (output_dir / f"{model_name}_experiments.json").write_text(
+            json.dumps(report, indent=2)
+        )
+        return report
+
     # Final fit includes August. Its August score is NOT a validation score.
     final_data = pd.concat([fit, tune], ignore_index=True)
     final_encoder = make_encoder(cfg, final_data, numeric)
@@ -190,7 +203,7 @@ def train(cfg, model_name, output_dir):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", default=str(ROOT / "configs/config.yaml"))
-    parser.add_argument("--model", choices=["logreg", "xgboost"], required=True)
+    parser.add_argument("--model", choices=["logreg", "xgboost", "all"], required=True)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument(
         "--execute",
@@ -224,7 +237,83 @@ def main():
     if output.exists() and any(output.glob(f"{args.model}_*")):
         parser.error("Existing model artifacts found; refusing overwrite")
 
-    train(cfg, args.model, output)
+    if args.model == "all":
+        reports = [
+            train(cfg, name, output, finalize=False)
+            for name in ("logreg", "xgboost")
+        ]
+
+        def rank(report):
+            best = report["best_august_candidate"]
+            return (
+                -best["pr_auc"],
+                0 if report["model"] == "logreg" else 1,
+                best["run"],
+            )
+
+        winner = min(reports, key=rank)
+        selected = winner["model"]
+
+        (output / "selection.json").write_text(
+            json.dumps({
+                "selected_model": selected,
+                "selection_metric": "August PR-AUC",
+                "candidate_results": reports,
+            }, indent=2)
+        )
+
+        print("WINNER:", selected)
+        print("BEST AUGUST PR-AUC:",
+              winner["best_august_candidate"]["pr_auc"])
+
+        # Final refit must use the already-selected parameters.
+        # Do not rerun tuning here.
+        final_params = winner["best_august_candidate"]["parameters"].copy()
+
+        raw = load_dev_raw(cfg, ROOT)
+        table = build_feature_table(raw, cfg)
+        fit, tune = split_data(table)
+        final_data = pd.concat([fit, tune], ignore_index=True)
+
+        numeric = list(numeric_features(cfg))
+        categorical = list(CATEGORICAL)
+        features = numeric + categorical
+
+        encoder = make_encoder(cfg, final_data, numeric)
+        X_final = encoder.transform(final_data)[features]
+        y_final = final_data["is_delayed"]
+
+        if selected == "xgboost":
+            final_params["n_estimators"] = (
+                winner["best_august_candidate"]["effective_trees"]
+            )
+            final_params["early_stopping_rounds"] = None
+            model = build_xgboost(final_params)
+        else:
+            model = build_logistic_pipeline(
+                numeric, categorical, final_params
+            )
+
+        model.fit(X_final, y_final)
+
+        save_model(model, output / "final_model.joblib")
+        encoder.save(output / "final_encoder.json")
+
+        (output / "final_training.json").write_text(
+            json.dumps({
+                "selected_model": selected,
+                "parameters": final_params,
+                "training_period": "2013-01-01 to 2013-08-31",
+                "selection_period": "2013-08-01 to 2013-08-31",
+                "preprocessing_refitted": True,
+                "holdout_accessed": False,
+            }, indent=2)
+        )
+
+        print("FINAL RETRAINING: COMPLETE")
+        print("FINAL MODEL SAVED:", output / "final_model.joblib")
+    else:
+        train(cfg, args.model, output)
 
 
 if __name__ == "__main__":
