@@ -6,7 +6,6 @@ from flight_delay.data.split import assert_no_holdout
 from flight_delay.features.build import CATEGORICAL, numeric_features
 from flight_delay.features.encoding import FeatureEncoder
 
-
 PERIODS = {
     "fit": ("2013-01-01", "2013-07-31"),
     "tune": ("2013-08-01", "2013-08-31"),
