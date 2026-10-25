@@ -1,22 +1,148 @@
-% TODO: add every source cited in docs/literature_review.md
+% Every entry was verified against a publisher, DOI (Crossref/OpenAlex), arXiv, PMLR, PLOS,
+% institutional repository or BTS page on 25 October 2026. See docs/literature_review.md.
 
-@inproceedings{guo2017calibration,
-  author    = {Guo, Chuan and Pleiss, Geoff and Sun, Yu and Weinberger, Kilian Q.},
-  title     = {On Calibration of Modern Neural Networks},
-  booktitle = {Proceedings of the 34th International Conference on Machine Learning (ICML)},
-  year      = {2017}
+% --- Flight delay prediction ---
+@article{carvalho2021relevance,
+  author  = {Carvalho, Leonardo and Sternberg, Alice and Maia Gon{\c{c}}alves, Leandro and Cruz, Ana Beatriz and Soares, Jorge A. and Brand{\~a}o, Diego and Carvalho, Diego and Ogasawara, Eduardo},
+  title   = {On the relevance of data science for flight delay research: a systematic review},
+  journal = {Transport Reviews},
+  volume  = {41},
+  number  = {4},
+  pages   = {499--528},
+  year    = {2021},
+  doi     = {10.1080/01441647.2020.1861123}
 }
 
+@article{rebollo2014characterization,
+  author  = {Rebollo, Juan Jose and Balakrishnan, Hamsa},
+  title   = {Characterization and prediction of air traffic delays},
+  journal = {Transportation Research Part C: Emerging Technologies},
+  volume  = {44},
+  pages   = {231--241},
+  year    = {2014},
+  doi     = {10.1016/j.trc.2014.04.007}
+}
+
+@article{gui2020flight,
+  author  = {Gui, Guan and Liu, Fan and Sun, Jinlong and Yang, Jie and Zhou, Ziqi and Zhao, Dongxu},
+  title   = {Flight Delay Prediction Based on Aviation Big Data and Machine Learning},
+  journal = {IEEE Transactions on Vehicular Technology},
+  volume  = {69},
+  number  = {1},
+  pages   = {140--150},
+  year    = {2020},
+  doi     = {10.1109/TVT.2019.2954094}
+}
+
+@article{yi2021flight,
+  author  = {Yi, Jia and Zhang, Honghai and Liu, Hao and Zhong, Gang and Li, Guiyi},
+  title   = {Flight Delay Classification Prediction Based on Stacking Algorithm},
+  journal = {Journal of Advanced Transportation},
+  volume  = {2021},
+  pages   = {1--10},
+  year    = {2021},
+  doi     = {10.1155/2021/4292778}
+}
+
+@inproceedings{choi2016prediction,
+  author    = {Choi, Sun and Kim, Young Jin and Brice{\~n}o, Simon and Mavris, Dimitri},
+  title     = {Prediction of weather-induced airline delays based on machine learning algorithms},
+  booktitle = {2016 IEEE/AIAA 35th Digital Avionics Systems Conference (DASC)},
+  pages     = {1--6},
+  year      = {2016},
+  doi       = {10.1109/DASC.2016.7777956}
+}
+
+% --- Delay propagation ---
+@article{pyrgiotis2013modelling,
+  author  = {Pyrgiotis, Nikolas and Malone, Kerry M. and Odoni, Amedeo},
+  title   = {Modelling delay propagation within an airport network},
+  journal = {Transportation Research Part C: Emerging Technologies},
+  volume  = {27},
+  pages   = {60--75},
+  year    = {2013},
+  doi     = {10.1016/j.trc.2011.05.017}
+}
+
+% --- Methods ---
 @inproceedings{chen2016xgboost,
   author    = {Chen, Tianqi and Guestrin, Carlos},
   title     = {{XGBoost}: A Scalable Tree Boosting System},
   booktitle = {Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining},
-  year      = {2016}
+  pages     = {785--794},
+  year      = {2016},
+  doi       = {10.1145/2939672.2939785}
 }
 
+@inproceedings{niculescu2005predicting,
+  author    = {Niculescu-Mizil, Alexandru and Caruana, Rich},
+  title     = {Predicting good probabilities with supervised learning},
+  booktitle = {Proceedings of the 22nd International Conference on Machine Learning (ICML '05)},
+  pages     = {625--632},
+  year      = {2005},
+  doi       = {10.1145/1102351.1102430}
+}
+
+@inproceedings{guo2017calibration,
+  author    = {Guo, Chuan and Pleiss, Geoff and Sun, Yu and Weinberger, Kilian Q.},
+  title     = {On Calibration of Modern Neural Networks},
+  booktitle = {Proceedings of the 34th International Conference on Machine Learning},
+  series    = {Proceedings of Machine Learning Research},
+  volume    = {70},
+  pages     = {1321--1330},
+  year      = {2017},
+  url       = {https://proceedings.mlr.press/v70/guo17a.html}
+}
+
+@article{saito2015precision,
+  author  = {Saito, Takaya and Rehmsmeier, Marc},
+  title   = {The Precision-Recall Plot Is More Informative than the {ROC} Plot When Evaluating Binary Classifiers on Imbalanced Datasets},
+  journal = {PLoS ONE},
+  volume  = {10},
+  number  = {3},
+  pages   = {e0118432},
+  year    = {2015},
+  doi     = {10.1371/journal.pone.0118432}
+}
+
+@article{brier1950verification,
+  author  = {Brier, Glenn W.},
+  title   = {Verification of Forecasts Expressed in Terms of Probability},
+  journal = {Monthly Weather Review},
+  volume  = {78},
+  number  = {1},
+  pages   = {1--3},
+  year    = {1950},
+  doi     = {10.1175/1520-0493(1950)078<0001:VOFEIT>2.0.CO;2}
+}
+
+% --- Leakage and time-aware evaluation ---
+@article{kaufman2012leakage,
+  author  = {Kaufman, Shachar and Rosset, Saharon and Perlich, Claudia and Stitelman, Ori},
+  title   = {Leakage in data mining: Formulation, detection, and avoidance},
+  journal = {ACM Transactions on Knowledge Discovery from Data},
+  volume  = {6},
+  number  = {4},
+  pages   = {1--21},
+  year    = {2012},
+  doi     = {10.1145/2382577.2382579}
+}
+
+@article{bergmeir2012use,
+  author  = {Bergmeir, Christoph and Ben{\'i}tez, Jos{\'e} M.},
+  title   = {On the use of cross-validation for time series predictor evaluation},
+  journal = {Information Sciences},
+  volume  = {191},
+  pages   = {192--213},
+  year    = {2012},
+  doi     = {10.1016/j.ins.2011.12.028}
+}
+
+% --- On-time definition ---
 @misc{bts_ontime,
-  author       = {{U.S. Bureau of Transportation Statistics}},
-  title        = {Airline On-Time Performance Data},
-  howpublished = {\url{https://www.transtats.bts.gov/}},
-  note         = {TODO: access date}
+  author       = {{Bureau of Transportation Statistics}},
+  title        = {Airline On-Time Performance Data (Data Profile)},
+  howpublished = {TranStats, U.S. Department of Transportation},
+  url          = {https://www.transtats.bts.gov/DatabaseInfo.asp?QO_VQ=EFD},
+  note         = {Accessed 25 October 2026}
 }

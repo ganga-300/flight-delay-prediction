@@ -1,3 +1,43 @@
 \section{Experimental Setup}
-% TODO: Chronological split, hyperparameter search, threshold selection on validation, reproducibility.
-TODO.
+\label{sec:experiments}
+
+\subsection{Pre-registered protocol}
+Every decision was written into a dated decision log and committed \emph{before} the results it
+governs existed. This covers the feature set, the hyperparameter grid, the selection rule, the
+calibration method, the threshold rule and the test procedure. An earlier iteration of this
+project evaluated on the November--December holdout. All models and features reported here were
+re-developed and selected without reference to those results.
+
+\subsection{Hyperparameter search and model selection}
+Both model families were trained on January--July and scored on August:
+\begin{itemize}
+  \item \textbf{Logistic Regression} (L2, up to 2{,}000 iterations): $C \in \{0.01, 0.1, 1, 10\}$
+  $\times$ class weight $\in \{\text{none}, \text{balanced}\}$, 8 runs.
+  \item \textbf{XGBoost} (up to 1{,}000 trees, early stopping after 50 rounds without August
+  improvement, subsample and column sample 0.8, \texttt{scale\_pos\_weight} fixed at 1):
+  depth $\in \{3, 5\}$ $\times$ learning rate $\in \{0.03, 0.1\}$, 4 runs.
+\end{itemize}
+The rule fixed in advance selects the run with the highest August PR-AUC, with ties going to the
+simpler model. The chosen configuration is then retrained once on January--August, with
+preprocessing refitted on the same period; for XGBoost the tree count would be fixed at the
+August-selected value with early stopping off. August scores are therefore tuning scores, not
+performance estimates. The encoder for categorical levels and missing values is refitted on
+January--July for the candidate runs, so August information does not reach them.
+
+\subsection{Calibration, threshold and test procedure}
+Sigmoid calibration is fitted on September (27{,}010 flights) for the retrained model, with the
+model itself frozen. The threshold is chosen on October (28{,}618 flights) by the rule in
+Section~\ref{sec:method}. If no threshold reaches 0.60 precision, the result is recorded as
+infeasible and the target is not lowered. The calibrated model and operating point were then
+committed and tagged. The single test evaluation checks that the frozen files are byte-identical
+to the tagged versions and refuses to run a second time once results exist. It builds features
+over the whole year, so that test flights receive their correct past-only history, and scores
+only November--December.
+
+\subsection{Reproducibility}
+Random seed 42 is used throughout. Training used Python 3.11.17, scikit-learn 1.9.1 and XGBoost
+3.2.0. Every run's hyperparameters and August scores are saved with the trained models, and the
+scripts that produced each result refuse to overwrite their outputs. Logistic Regression results
+reproduce exactly from the logged settings. XGBoost early stopping is sensitive to the library
+version: the best XGBoost run reproduced at 0.393 rather than 0.396 under XGBoost 3.4.1, which does
+not change the selected model.

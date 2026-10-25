@@ -1,3 +1,38 @@
 \section{Introduction}
-% TODO: Motivation, problem statement (pre-departure prediction of arrival delay $\geq$ 15 min), contributions.
-TODO.
+\label{sec:intro}
+
+Flight delays propagate through crew rotations, aircraft turnarounds and gate schedules. Airline
+operations teams plan next-day buffers (spare crew, spare aircraft, gate assignments) the evening
+before, so a calibrated estimate of each flight's delay risk at that point is directly useful. Machine
+learning for flight delays is an active field~\cite{carvalho2021relevance}. We
+study the problem as binary classification: will a scheduled flight arrive at least 15 minutes
+late, the U.S.\ Bureau of Transportation Statistics on-time definition~\cite{bts_ontime}, using
+only information available at the end of the previous day?
+
+The setting has two pitfalls. First, many informative fields (actual departure time, departure
+delay, taxi and air time) are known only after departure, and rolling delay statistics can easily
+include outcomes that were not yet known at prediction time. Either mistake is a form of
+leakage~\cite{kaufman2012leakage} and produces offline scores that no deployed system could reach.
+Second, delays cluster in time, so evaluation must respect temporal order~\cite{bergmeir2012use}.
+Validating on randomly mixed days, or selecting models on the final test set, overstates
+performance.
+
+\textbf{Contributions.}
+\begin{itemize}
+  \item A leakage-safe feature pipeline of 59 schedule, calendar, carrier, airport, congestion and
+  past-only historical features. Outcome timing is resolved in a common time zone, and tests verify
+  that later records never change earlier features.
+  \item A chronological protocol in which each period serves one purpose (fitting, tuning,
+  calibration, threshold selection, testing). It is backed by a decision log written before the
+  results each decision governs, and by a test set sealed before any analysis and evaluated once.
+  \item A comparison of L2 Logistic Regression and XGBoost with probability calibration, reported
+  with ranking (PR-AUC, ROC-AUC) and calibration (Brier, ECE) metrics.
+  \item A transparent account of what a day-ahead, schedule-only model can and cannot achieve:
+  consistent ranking and good calibration, but no 60\%-precision operating point without weather
+  information.
+\end{itemize}
+
+Section~\ref{sec:related} reviews related work, Sections~\ref{sec:data} and~\ref{sec:features}
+describe the data and features, Sections~\ref{sec:method} and~\ref{sec:experiments} the
+methodology and protocol, Section~\ref{sec:results} the results, and Section~\ref{sec:conclusion}
+concludes.

@@ -1,3 +1,111 @@
 \section{Results and Discussion}
-% TODO: Results table (PR AUC, ROC AUC, recall@precision, Brier, ECE), PR/ROC/reliability plots, feature importance, error analysis.
-TODO.
+\label{sec:results}
+
+\subsection{Model selection on August}
+Table~\ref{tab:august} summarises the 12 candidate runs. All Logistic Regression settings scored
+within 0.001 PR-AUC of each other, and the best XGBoost run (depth 5, learning rate 0.1, 16 trees)
+was 0.005 lower. Logistic Regression with $C = 0.01$ and balanced class weights was selected. That
+two very different model families perform almost identically suggests the limit is the information
+in the features rather than model capacity. The August delay rate is 24.6\%, so the selected model
+ranks delayed flights about 1.6 times better than random (Fig.~\ref{fig:pr}).
+
+\begin{table}[htbp]
+\centering
+\caption{Candidate models, trained January--July, scored on August}
+\label{tab:august}
+\begin{tabular}{llcc}
+\toprule
+Model & Setting & PR-AUC & ROC-AUC \\
+\midrule
+LR (selected) & $C{=}0.01$, balanced & \textbf{0.4007} & 0.6756 \\
+LR (range, 8 runs) & --- & 0.3998--0.4007 & 0.6733--0.6756 \\
+XGBoost (best) & depth 5, lr 0.1 & 0.3960 & 0.6770 \\
+XGBoost (range, 4 runs) & --- & 0.3928--0.3960 & 0.6717--0.6770 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{d201_pr_comparison.png}
+\caption{Precision--recall curves on August for the best Logistic Regression and XGBoost
+candidates.}
+\label{fig:pr}
+\end{figure}
+
+\textbf{Feature importance.} For the tuned XGBoost model, the largest gain comes from scheduled
+departure time (\texttt{dep\_hour\_sin}, \texttt{sched\_dep\_hour\_frac}), the previous day's carrier
+delay rate, the carrier--departure-time cross and scheduled origin volume. Permutation importance
+on August ranks the carrier--departure-time cross, the carrier--route cross, origin daily volume and
+departure time highest. Time of day, carrier and recent delays carry most of the signal, matching
+the exploratory analysis. Permutation estimates use 2{,}000 August flights and two repeats, so they
+are indicative only.
+
+\subsection{Calibration and threshold (September and October)}
+The selected model's raw probabilities are far too high (Table~\ref{tab:calib}), as expected from
+balanced class weights. Sigmoid calibration fitted on September reduces October ECE from 0.227 to
+0.027 and Brier score from 0.192 to 0.136, without changing PR-AUC or ROC-AUC. Isotonic calibration
+was slightly worse on October and was not used.
+
+\begin{table}[htbp]
+\centering
+\caption{Calibration (fitted on September; October is out-of-sample)}
+\label{tab:calib}
+\begin{tabular}{llccc}
+\toprule
+Period & Probabilities & Brier & ECE & Mean $p$ / delay rate \\
+\midrule
+Sep & raw & 0.179 & 0.240 & 0.377 / 0.137 \\
+Sep & sigmoid & 0.113 & 0.010 & 0.137 / 0.137 \\
+Oct & raw & 0.192 & 0.227 & 0.403 / 0.176 \\
+Oct & sigmoid & 0.136 & 0.027 & 0.148 / 0.176 \\
+Oct & isotonic (comparison) & 0.137 & 0.029 & 0.147 / 0.176 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+No threshold reached 60\% precision on October, so, as planned, no threshold was set and the
+rescheduling rule was not applied. As a diagnostic only, the highest October precision with at
+least 20 delayed flights flagged was 51.3\% (158 flights flagged, recall 1.6\%), and no October
+flight received a calibrated probability above 0.525.
+
+\subsection{Test results (November--December, evaluated once)}
+Table~\ref{tab:test} reports the single evaluation on the sealed test set. PR-AUC is 0.398 against
+a delay rate of 0.258, about 1.5 times a random ranking, and ROC-AUC is 0.664. These are close to
+the validation values (ROC-AUC 0.67--0.69), so the model generalises to the later period without
+collapse. Calibration reduces ECE from 0.204 to 0.077 and Brier score from 0.226 to 0.185. The
+calibrated probabilities are, however, too low on average (0.182 predicted vs 0.258 observed;
+Fig.~\ref{fig:reliability}), because the calibration was fitted on September, the calmest month
+(13.7\% delayed). Threshold-based metrics are not available, because no operating point met the
+precision target on October.
+
+\begin{table}[htbp]
+\centering
+\caption{Single test evaluation, November--December (53{,}991 flights)}
+\label{tab:test}
+\begin{tabular}{lcccc}
+\toprule
+Probabilities & PR-AUC & ROC-AUC & Brier & ECE \\
+\midrule
+Raw & 0.398 & 0.664 & 0.226 & 0.204 \\
+Calibrated (final) & 0.398 & 0.664 & \textbf{0.185} & \textbf{0.077} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{test_reliability.png}
+\caption{Reliability diagram on the test period. Raw probabilities are too high; calibrated
+probabilities lie above the diagonal, i.e.\ too low, because calibration was fitted on a calmer
+month.}
+\label{fig:reliability}
+\end{figure}
+
+\subsection{Discussion}
+At the end of the previous day, the dataset offers only the schedule and past outcomes. The largest
+drivers of delay, such as weather and same-day propagation, are unavailable. The model therefore
+separates riskier from safer flights consistently, but it is rarely confident about an individual
+flight, which is why a 60\% precision operating point does not exist. The validation period was
+also calmer than both training and test, which affects anything fitted on it, most visibly
+calibration.

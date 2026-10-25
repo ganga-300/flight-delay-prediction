@@ -1,3 +1,28 @@
 \section{Conclusion and Future Work}
-% TODO: Findings, limitations, Phase 2 (embedding MLP, rescheduling analysis).
-TODO.
+\label{sec:conclusion}
+
+This work predicts, at the end of the previous day, whether a New York departure will arrive at
+least 15 minutes late. It uses 59 leakage-safe features built from the published schedule and
+past-only outcomes, Logistic Regression and XGBoost, and a strictly chronological protocol in
+which each period is used for one decision. The test period was sealed before any analysis and
+evaluated once. On it, the selected L2 Logistic Regression achieves PR-AUC 0.398 (delay rate 0.258)
+and ROC-AUC 0.664. Sigmoid calibration reduces the expected calibration error from 0.204 to 0.077.
+
+\textbf{Limitations.}
+\begin{itemize}
+  \item The provided dataset has no weather or same-day operational information, which bounds
+  how confident any flight-level prediction can be.
+  \item The validation months were calmer than training and test, so the calibration fitted on
+  September under-predicts on the test period.
+  \item The 60\% precision target is an assumption, not a measured cost trade-off, and was not
+  reachable. No operating threshold or rescheduling rule could therefore be evaluated.
+  \item History features assume flight outcomes are available within 30 minutes of arrival.
+  \item One year of departures from three airports limits generalisation to other years and
+  airports.
+\end{itemize}
+
+\textbf{Future work.} Adding weather forecasts available at $D-1$ is the most promising
+extension. Recalibrating on recent data, such as a rolling recalibration window, would address the
+seasonal shift in delay rates. With real cost estimates for false alarms and missed delays, the
+operating point and the offline rescheduling rule could be set by expected cost. Phase~2 will
+explore a compact neural model with learned embeddings for airline, origin and destination.

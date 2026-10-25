@@ -1,3 +1,44 @@
 \section{Feature Engineering}
-% TODO: Decision time, leakage policy, schedule/route/carrier/congestion/calendar/historical features, cyclic encoding.
-TODO.
+\label{sec:features}
+
+\subsection{Decision time and leakage policy}
+Predictions are made at the end of day $D-1$ for every flight on day $D$, to support next-day
+operational planning (crew, spare aircraft and gate buffers). A feature may use the published
+schedule, including all of day $D$'s flights, and the outcomes of earlier flights known before
+$D$; nothing realised on day $D$. Later cut-offs (e.g.\ two hours before departure) would need
+same-day real-time data that this dataset cannot validate.
+
+\subsection{Feature set}
+The model uses 59 features (49 numeric, 10 categorical), fixed before any model was trained:
+\begin{itemize}
+  \item \textbf{Calendar (10):} scheduled departure hour, day of week, weekend and U.S.\ federal
+  holiday proximity, with sine/cosine encodings of hour and weekday.
+  \item \textbf{Schedule and route (6):} scheduled departure and arrival minutes, scheduled block
+  time, an overnight-arrival flag, distance and log-distance. Block time is computed on a common
+  UTC basis using each airport's IANA time zone, because local clock differences mix duration with
+  time-zone offsets (they imply negative taxi times for 39.2\% of flights).
+  \item \textbf{Categorical (10):} carrier, origin, destination, route, departure-time bucket and
+  five crosses (carrier with origin, destination, route and bucket; origin with bucket). Levels with
+  fewer than 50 training rows are grouped as \emph{other}.
+  \item \textbf{Congestion (4):} scheduled departures from the same origin in the same hour and day,
+  for the same carrier and day, and the hour's share of the day, counted on the full published
+  schedule.
+  \item \textbf{Historical (29):} past-only delay rates for carrier, route, origin and destination
+  over 1, 7 and 28 days and all prior days, with counts for the windowed rates, shrunk towards the
+  global past rate with prior strength 20.
+\end{itemize}
+Month and day-of-year encodings are excluded: training covers January--August only, so every later
+month would be outside the training range. Seasonal shifts are left to the past-only history
+windows.
+
+\subsection{Preventing temporal leakage}
+A past flight contributes to history only from the New York date on which its outcome was known:
+its actual arrival time, converted to New York time, plus a 30-minute reporting buffer. On the
+training period this rule places no label before its arrival date, whereas a simpler
+departure-plus-air-time estimate would have counted 19 labels a day early. The 30-minute buffer is
+an assumption about outcome availability (a near-real-time status feed), not a measured value.
+Learned transformations (rare-level grouping, median imputation, scaling and one-hot encoding)
+are fitted on training data only. Automated tests check that rebuilding the features with all
+later records removed leaves every earlier feature value unchanged, that no post-departure or
+target-derived column enters the feature matrix, and that the feature set stays at the 59 frozen
+features.

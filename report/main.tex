@@ -17,7 +17,22 @@ ganga.raghuwanshi2024@nst.rishihood.edu.in}}
 \maketitle
 
 \begin{abstract}
-TODO: 150--250 words. Problem, decision time, data, models, key metrics, main finding.
+We predict, at the end of the previous day, whether a flight departing New York City will arrive at
+least 15 minutes late, the U.S.\ Bureau of Transportation Statistics on-time definition. Using
+the 2013 New York departures dataset, we build 59 features from the published schedule and from
+past-only delay outcomes, with explicit safeguards against temporal leakage, and compare
+L2-regularised Logistic Regression with XGBoost. A strictly chronological protocol uses each
+period for exactly one decision: January--July for fitting, August for hyperparameter selection,
+September for probability calibration, October for the decision threshold, and
+November--December for a single, sealed test evaluation. Every decision was recorded before the
+results it governs. The two model families perform almost identically on August, and Logistic
+Regression is selected. On the test set it achieves a PR-AUC of 0.398 against a delay rate of
+0.258 and a ROC-AUC of 0.664, consistent with validation. Sigmoid calibration reduces the expected
+calibration error from 0.204 to 0.077. No threshold reaches the 60\% precision target, which
+reflects the limited information available a day ahead, notably the absence of weather data.
+Calibration fitted on a calm validation month also under-predicts in the busier test period. We
+report these limitations transparently and outline extensions with weather data and rolling
+recalibration.
 \end{abstract}
 
 \begin{IEEEkeywords}

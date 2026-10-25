@@ -1,3 +1,41 @@
 \section{Dataset and Data Quality}
-% TODO: Source, size, coverage, cleaning, cancelled-flight policy, class balance, key EDA figures.
-TODO.
+\label{sec:data}
+
+\subsection{Source and target}
+The dataset, provided for the course, is the Kaggle \emph{Flights} table: all 336{,}776 flights
+departing the three New York City airports (EWR, JFK, LGA) in 2013, with 21 columns of scheduled
+and actual times, carrier, route and distance. The target is $y = 1$ if the arrival delay is at
+least 15 minutes, the U.S.\ Bureau of Transportation Statistics on-time convention~\cite{bts_ontime},
+and $y = 0$ otherwise. Flights without an arrival-delay value (cancelled, or departed with no
+arrival record) are excluded, so the model estimates the probability of a delay given that the
+flight operates and arrives. Cancellations and diversions are a separate prediction problem.
+
+\subsection{Chronological split and sealed test set}
+The data are split by date: training January--August (217{,}727 labelled flights, 26.4\%
+delayed), validation September--October (55{,}628, 15.7\%) and test November--December (53{,}991,
+25.8\%). Before any analysis, the November--December rows were moved out of the development data
+(the full file's SHA-256 was recorded). Every notebook, feature build and training script reads a
+January--October file through a loader that rejects later dates. The test rows were read once, in
+the final evaluation (Section~\ref{sec:results}).
+
+\subsection{Data quality}
+On the January--October development data (281{,}373 rows) there are no duplicate rows, no
+duplicate flight keys and no error-level violations: all clock times are well formed, and
+departure and arrival delays agree with actual minus scheduled times once midnight wrap-around is
+allowed. Missing values are structured rather than random. All actual-time fields are missing
+together for the 6{,}997 cancelled flights (2.5\%), 1{,}021 flights departed without an
+arrival-delay value (0.4\%), and the aircraft tail number is missing only for cancelled flights.
+Because that missingness reveals the outcome, the tail number is not used as a feature. Actual
+departure and arrival times are post-departure information: departure delay alone reaches a
+single-feature ROC-AUC of 0.898 against the target, so these fields are excluded from all
+features.
+
+\subsection{Exploratory analysis on the training period only}
+All exploratory statistics that informed feature design use January--August only. The delay rate
+rises steadily through the day, from 10.8\% for 05:00 departures to 40.5\% at 21:00. Thursday is
+the worst day (31.0\%) and Saturday the best (18.5\%). Carriers differ widely (ExpressJet 35.3\%,
+American 20.3\%), and the airport effect is not uniform across carriers (e.g.\ Endeavor 19.1\% at
+EWR vs 29.5\% at JFK), which motivates carrier--airport interaction features. The daily delay rate
+has a lag-1 autocorrelation of 0.356, but lags 2 and 7 are near zero (0.041 and 0.021): yesterday's
+delays are informative, but persistence beyond that is weak. Monthly delay rates vary between
+22.7\% and 32.2\% within the training period.

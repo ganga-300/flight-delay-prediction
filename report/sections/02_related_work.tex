@@ -1,3 +1,37 @@
 \section{Related Work}
-% TODO: Summarise docs/literature\_review.md; state the gap.
-TODO.
+\label{sec:related}
+
+\textbf{Flight delay prediction.} Machine-learning work on flight delays spans classification and
+regression, tree ensembles and deep models, and many prediction horizons and delay
+thresholds~\cite{carvalho2021relevance}. Rebollo and Balakrishnan~\cite{rebollo2014characterization}
+predict delays 2--24 hours ahead with random forests, using network-wide and link-level delay
+states. Gui \emph{et al.}~\cite{gui2020flight} combine ADS-B trajectories, weather, schedules and
+airport information, and report 90.2\% accuracy for binary classification with a random forest.
+Choi \emph{et al.}~\cite{choi2016prediction} predict weather-induced delays using weather
+forecasts. Yi \emph{et al.}~\cite{yi2021flight} stack several classifiers for a single airport and
+handle class imbalance by oversampling. These studies draw on real-time, weather or trajectory
+information, and they largely report accuracy or ROC-based metrics without assessing whether
+predicted probabilities are calibrated.
+
+\textbf{Delay propagation.} Delays spread through airport networks: Pyrgiotis
+\emph{et al.}~\cite{pyrgiotis2013modelling} model how local congestion propagates and pushes demand
+into the evening. This motivates our time-of-day, scheduled-congestion and past-only historical
+delay features.
+
+\textbf{Methods.} We use gradient-boosted trees~\cite{chen2016xgboost} alongside Logistic
+Regression. Classifier scores are often poorly calibrated, and Platt scaling and isotonic
+regression are standard corrections~\cite{niculescu2005predicting,guo2017calibration}. We report
+the expected calibration error and reliability diagrams~\cite{guo2017calibration} and the Brier
+score~\cite{brier1950verification}. Because delayed flights are the minority class, precision--recall
+analysis is more informative than ROC analysis~\cite{saito2015precision}, so PR-AUC is our primary
+metric.
+
+\textbf{Leakage and time-aware evaluation.} Leakage, meaning the use of information that would not
+be available when predicting, inflates offline results~\cite{kaufman2012leakage}. With temporally
+dependent data, how a model is validated also matters~\cite{bergmeir2012use}. We use a chronological
+hold-out because the model is deployed one day ahead and delay rates shift from month to month.
+
+\textbf{Gap.} We study the stricter day-ahead setting with only the published schedule and
+past-only outcomes, enforce leakage controls with tests, use each time period for a single
+decision, and report calibrated probabilities alongside PR-AUC. This quantifies what such a model
+can and cannot deliver.

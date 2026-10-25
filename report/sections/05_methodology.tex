@@ -1,3 +1,47 @@
 \section{Methodology}
-% TODO: Logistic Regression and XGBoost formulations; calibration (Platt/isotonic); metric definitions.
-TODO.
+\label{sec:method}
+
+\subsection{Models}
+\textbf{Logistic Regression.} The delay probability is $p(\mathbf{x}) = \sigma(\mathbf{w}^\top
+\mathbf{x} + b)$, trained by minimising
+\begin{equation}
+\tfrac{1}{2}\lVert\mathbf{w}\rVert^2 + C\textstyle\sum_i c_{y_i}\,
+\ell(y_i, p_i),
+\end{equation}
+where $\ell$ is the log-loss, $C$ the inverse regularisation strength and $c_y$ optional class
+weights. With balanced weights, $c_y = n/(2n_y)$, the delayed class counts more, which shifts
+predicted probabilities upward. Numeric features are standardised and categorical features
+one-hot encoded.
+
+\textbf{XGBoost.} Gradient-boosted regression trees~\cite{chen2016xgboost} add trees $f_t$ that
+minimise a second-order approximation of the log-loss plus the penalty $\gamma T +
+\frac{1}{2}\lambda\lVert\mathbf{w}\rVert^2$ on leaf count and leaf weights. Tree depth, learning
+rate, row and column subsampling, and early stopping control complexity. Categorical features use
+XGBoost's native categorical splits.
+
+\subsection{Metrics}
+The primary metric is PR-AUC (average precision), $\text{AP} = \sum_n (R_n - R_{n-1})P_n$, because
+delayed flights are the minority class~\cite{saito2015precision} and a random ranking scores the
+delay rate. ROC-AUC is reported alongside. Probability quality is measured by the Brier
+score~\cite{brier1950verification}, $\frac{1}{N}\sum_i (p_i - y_i)^2$, and the expected calibration
+error over $M = 10$ equal-width
+bins~\cite{guo2017calibration},
+\begin{equation}
+\text{ECE} = \textstyle\sum_{m=1}^{M} \frac{|B_m|}{N}\,\big|\overline{y}_{B_m} -
+\overline{p}_{B_m}\big|,
+\end{equation}
+with reliability diagrams.
+
+\subsection{Calibration and decision threshold}
+Sigmoid (Platt) calibration fits $p_{\text{cal}} = \sigma(a s + b)$ on held-out scores $s$ of the
+frozen model~\cite{niculescu2005predicting}. Isotonic regression is reported for comparison only. Because calibration is
+monotone, it fixes the probability scale without changing the ranking. The operating threshold is
+the one with the highest recall subject to precision of at least 0.60. Planners act on every
+flagged flight, so false alarms carry a cost. The 60\% level is a stated assumption, as no cost
+data are available.
+
+\subsection{One job per period}
+Each time period is used for exactly one decision, so no period scores a choice it helped make:
+January--July to fit candidate models, August to tune hyperparameters (and for XGBoost early
+stopping), January--August to retrain the chosen model, September to fit calibration, October to
+choose the threshold, and November--December for a single test evaluation.
