@@ -20,7 +20,8 @@ a limitation).
   commit `d4d5da3`) evaluated models on the Nov–Dec test period several times. That iteration
   also changed XGBoost hyperparameters and removed feature groups after viewing test results.
 - **Decision:** None of that iteration's model code, hyperparameters, feature-group choices or
-  results is reused. The modelling stage is redeveloped from scratch on branch `ml-restart`.
+  results is reused. The modelling stage is redeveloped from scratch on branch `ml-restart`
+  (renamed `main` on 2026-10-25; the earlier iteration is kept as `old-main`).
   Every model, feature and threshold reported is selected without reference to those results.
 - **Report wording:** "An earlier iteration of this project evaluated on the Nov–Dec holdout; all
   models and features reported here were re-developed and selected without reference to those
@@ -282,10 +283,9 @@ Any later change to features must be a new, logged decision made without test da
 
 ---
 
-## Pending decisions (to be logged in order)
+## Pending decisions
 
-| ID | Phase | Decision | Evidence allowed |
-|---|---|---|---|
+None. All decisions from D-000 to D-205 are recorded.
 
 ---
 

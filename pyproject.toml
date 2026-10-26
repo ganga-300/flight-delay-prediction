@@ -22,3 +22,9 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+# Executed exploratory notebooks are part of the evidence record (D-101 to D-106), so their code is
+# not rewritten for style. Long lines, import order, an unused import and zip() on equal-length
+# lists do not affect any output.
+"notebooks/*.ipynb" = ["E501", "I001", "F401", "B905"]

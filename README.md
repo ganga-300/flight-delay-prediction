@@ -40,7 +40,7 @@ retrained on January–August, sigmoid-calibrated on September (D-202, D-204, D-
 | Evaluation | `src/flight_delay/evaluation/`, `scripts/calibrate_threshold.py`, `scripts/evaluate.py`, `reports/`, `notebooks/04_model_results.ipynb` (D-203 to D-205) |
 | GitHub Repo & Code Quality | `tests/`, `pyproject.toml` (ruff + pytest config) |
 | Project Presentation | `presentation/` |
-| Project Report (IEEE) | `report/` (IEEEtran LaTeX) |
+| Project Report (IEEE) | `report/FlightDelayPrediction.pdf` (compiled), `report/` (IEEEtran LaTeX source) |
 
 ## Problem definition
 
@@ -51,7 +51,8 @@ retrained on January–August, sigmoid-calibrated on September (D-202, D-204, D-
 
 ## Dataset
 
-Kaggle *Flights* dataset (2013 US flights departing NYC). Larger extension: BTS Airline On-Time Performance.
+Kaggle [*Flights*](https://www.kaggle.com/datasets/matinsajadi/flights) dataset (2013 US flights
+departing NYC), provided by the course. Larger extension: BTS Airline On-Time Performance.
 The raw file `data/raw/flights.csv` is committed; see `data/README.md` for provenance, hashes and the
 sealing step that creates the Jan–Oct development file.
 

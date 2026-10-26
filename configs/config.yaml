@@ -17,14 +17,14 @@ paths:
 target:
   column: arr_delay
   threshold_minutes: 15              # BTS on-time convention
-  cancelled_policy: exclude          # TODO: exclude | delayed — justify in report
+  cancelled_policy: exclude          # D-011: flights without an arrival-delay value are excluded
 
 decision_time:
   # Features for a flight on date D use only the published schedule and outcomes known by the
   # end of day D-1 (see docs/leakage_policy.md). Alternative considered: "sched_dep_minus_2h".
   mode: d_minus_1
 
-split:                               # chronological, inclusive date ranges (TODO: confirm)
+split:                               # D-013: chronological, inclusive date ranges
   train: ["2013-01-01", "2013-08-31"]
   valid: ["2013-09-01", "2013-10-31"]
   test:  ["2013-11-01", "2013-12-31"]
@@ -37,20 +37,9 @@ features:
   cyclic: [hour, day_of_week]          # month/day-of-year excluded: unseen months in valid/test
 
 evaluation:
-  operational_precision: 0.60        # TODO: justify; report recall at this precision
+  operational_precision: 0.60        # D-015: assumption; threshold infeasible on October (D-204)
   calibration_bins: 10
 
-models:
-  # Placeholder values from the original scaffold. Not a decision: the hyperparameter search space
-  # is fixed in the experiment plan before any training (docs/decision_log.md).
-  logreg:
-    C: 1.0
-    class_weight: balanced
-    max_iter: 1000
-  xgboost:
-    n_estimators: 500
-    learning_rate: 0.05
-    max_depth: 6
-    subsample: 0.8
-    colsample_bytree: 0.8
-    eval_metric: aucpr
+# Model settings are not configured here. The hyperparameter grid and selection rule are in D-201
+# (docs/decision_log.md); the selected model and its settings are in D-202 and
+# models/d201/final_training.json.
