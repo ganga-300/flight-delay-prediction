@@ -5,7 +5,7 @@ report is `FlightDelayPrediction.pdf` (compiled on Overleaf with pdfLaTeX).
 
 ```bash
 cd report
-latexmk -pdf main.tex     # or upload the folder to Overleaf
+latexmk -pdf main.tex     # or upload the folder to overleaf
 ```
 
 Figures are looked up in `report/figures/` first, then `reports/figures/`. The two figures used in
