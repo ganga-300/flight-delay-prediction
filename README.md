@@ -37,7 +37,7 @@ retrained on January–August, sigmoid-calibrated on September (D-202, D-204, D-
 | Feature Engineering | `src/flight_delay/features/`, `docs/leakage_policy.md` |
 | Theoretical Rigor | `docs/methodology.md`, `report/sections/` |
 | Model Application | `src/flight_delay/models/`, `scripts/train.py`, `models/d201/` (D-201, D-202) |
-| Evaluation | `src/flight_delay/evaluation/`, `scripts/calibrate_threshold.py`, `scripts/evaluate.py`, `reports/` (D-203 to D-205) |
+| Evaluation | `src/flight_delay/evaluation/`, `scripts/calibrate_threshold.py`, `scripts/evaluate.py`, `reports/`, `notebooks/04_model_results.ipynb` (D-203 to D-205) |
 | GitHub Repo & Code Quality | `tests/`, `pyproject.toml` (ruff + pytest config) |
 | Project Presentation | `presentation/` |
 | Project Report (IEEE) | `report/` (IEEEtran LaTeX) |
@@ -59,12 +59,12 @@ sealing step that creates the Jan–Oct development file.
 
 ```
 configs/            experiment configuration (paths, decision time, split dates, target threshold)
-data/               raw / interim / processed data (git-ignored contents)
+data/               raw/flights.csv (committed); interim/ and processed/ are generated, not committed
 docs/               literature review, data dictionary, leakage policy, methodology
-notebooks/          numbered exploratory notebooks (EDA, feature checks, model results)
+notebooks/          01 data quality, 02 EDA (Jan–Aug), 03 feature checks, 04 results summary (read-only)
 src/flight_delay/   importable package: data, features, models, evaluation, utils
 scripts/            CLI entry points that chain the pipeline
-tests/              pytest suite (leakage, split, features, metrics)
+tests/              pytest suite (leakage, split, sealed test set, features, metrics, calibration, training CLI)
 models/             trained models: d201/ (final model, run logs), d203/ (calibration, operating point)
 reports/            generated figures and metric tables
 report/             IEEE-format LaTeX project report
@@ -99,7 +99,7 @@ to run once `reports/results/test_metrics.json` exists.
 ## Phase 2 (later)
 
 Compact MLP with learned embeddings for airline / origin / destination, optional temporal model,
-and an offline what-if rescheduling analysis. Not part of this scaffold.
+and an offline what-if rescheduling analysis. Not part of Phase 1.
 
 ## Author
 
