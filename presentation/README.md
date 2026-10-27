@@ -1,5 +1,7 @@
 # Phase 1 Presentation
 
+PPT link: https://drive.google.com/drive/folders/1_z1m0x0Z3fkjQ0yms1E1UcIztOHx0IaW?usp=sharing
+
 TODO: slides (link or file) + speaker notes.
 
 Suggested flow (~10 min):
