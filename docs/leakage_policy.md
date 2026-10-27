@@ -5,22 +5,23 @@ Every rule below is enforced in code and covered by tests (`tests/test_features.
 `tests/test_leakage.py`, `tests/test_split.py`).
 
 ## 1. Prediction target and scope
-- `is_delayed = 1` if `arr_delay >= 15` minutes (BTS convention), else 0.
+- `is_delayed=1` if `arr_delay>=15` minutes (BTS convention),else 0.
 - Flights without an observed `arr_delay` (cancelled, or departed with no arrival record) are
-  excluded (`target.cancelled_policy: exclude`). The model predicts arrival delay ≥ 15 min **for
+  excluded (`target.cancelled_policy:exclude`). The model predicts arrival delay ≥ 15 min**for
   flights with an observed arrival-delay label**. It does not predict cancellations or diversions.
 
-## 2. Decision time
-`decision_time.mode: d_minus_1` — features for a flight on date **D** are computed at the
+## 2. Decision time 
+`decision_time.mode:d_minus_1` — features for a flight on date **D** are computed at the
 **end of day D−1**. Allowed inputs:
 - the published schedule, including all flights scheduled on D;
 - outcomes of earlier flights that were **known before D**.
 
 Same-day realised information (for example, morning delays on D) is not used.
 
+
 Why this cutoff (`docs/decision_log.md`, D-012): predictions support next-day operational
 planning, and end of D−1 is the latest point at which every feature can be computed for a whole
-day's schedule in one batch. A later cutoff would need same-day realtime data this dataset
+day's schedule in one batch. A later cutoff would need same-day realtime data this dataset 
 cannot validate.
 
 ## 3. Rules
@@ -29,7 +30,7 @@ cannot validate.
    also excluded: `tailnum` is missing only for cancelled flights, and `id` is just a row number.
    `build_feature_table` keeps only an explicit allow-list and calls `assert_no_leakage`.
 2. **Historical statistics use outcomes known strictly before D.** A past flight contributes
-   only from the date its outcome is known: its **actual arrival converted to New York time**
+   only from the date its outcome is known: its **actual arrival converted to New York time** 
    (destination IANA time zone, DST-aware, arrival date resolved) **+ 30 min**. An arrival after
    midnight on D−1 therefore counts only from D+1. `dep_delay`, `air_time` and `arr_time` are
    used only to *time* past labels, never as features of the flight being predicted. The current
@@ -37,7 +38,7 @@ cannot validate.
    earlier estimate (departure + delay + air time + 120 min) ignored taxi times, which reach
    210 min in the training period, and counted 19 training-period labels a day early. It is now
    only a fallback for airports without a time zone, with a 240-min buffer that exceeds the
-   longest training-period taxi time (D-104). The fallback is used on 0 rows in this data.
+   longest training-period taxi time (D-104). The fallback is used on 0 rows in this data .
 3. **Insufficient or unseen history** shrinks toward the global past rate:
    `(k + m·p0) / (n + m)`, where `m = history_prior_strength`. On the very first date (no past data),
    rates are NaN and are imputed with the train median.
@@ -59,8 +60,8 @@ cannot validate.
    and validation only.
 9. **Durations use a common time basis.** `sched_block_min` converts origin- and destination-local
    scheduled times to UTC with static airport time zones (`features/airport_timezones.py`).
-10. **The test holdout is sealed during development.** EDA, feature work, training and model
-    selection read only the Jan–Oct file (`paths.raw`), loaded through `load_dev_raw`, which
+10. **The test holdout is sealed during development.** EDA, feature work, training and model 
+   selection read only the Jan–Oct file (`paths.raw`), loaded through `load_dev_raw`, which
     rejects any row after 2013-10-31. The full-year file (`paths.raw_sealed`) is read once, by the
     final test evaluation after the model is frozen (`docs/decision_log.md`, D-002).
 

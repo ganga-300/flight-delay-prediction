@@ -77,7 +77,7 @@ presentation/       slides and speaker notes for the Phase 1 evaluation
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-pip install -e .
+pip install -e 
 pytest
 ```
 
@@ -105,3 +105,4 @@ and an offline what-if rescheduling analysis. Not part of Phase 1.
 ## Author
 
 Ganga Raghuwanshi — Newton School of Technology, Rishihood University
+Alisha Gupta — Newton School of Technology, Rishihood University

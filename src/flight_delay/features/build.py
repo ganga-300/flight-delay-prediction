@@ -56,6 +56,7 @@ CALENDAR = [
     "dow_sin",
     "dow_cos",
 ]
+
 SCHEDULE = [
     "sched_dep_min",
     "sched_arr_min",
@@ -65,6 +66,7 @@ SCHEDULE = [
     "log_distance",
 ]
 CONGESTION = [*CONGESTION_SLOTS, "sched_dep_origin_hour_share"]
+
 
 
 def history_columns(windows_days: list[int], include_all_past: bool = True) -> list[str]:
@@ -90,10 +92,8 @@ def feature_groups(config: dict) -> dict[str, list[str]]:
         fcfg.get("history_windows_days", [1, 7, 28]), fcfg.get("history_include_all_past", True)
     )
     return {
-        "calendar": CALENDAR,
-        "schedule_route": SCHEDULE,
-        "categorical": CATEGORICAL,
-        "congestion": CONGESTION,
+        "calendar": CALENDAR, "schedule_route": SCHEDULE,
+        "categorical": CATEGORICAL, "congestion": CONGESTION,
         "historical": hist,
     }
 
@@ -101,6 +101,7 @@ def feature_groups(config: dict) -> dict[str, list[str]]:
 def numeric_features(config: dict) -> list[str]:
     g = feature_groups(config)
     return g["calendar"] + g["schedule_route"] + g["congestion"] + g["historical"]
+
 
 
 def build_feature_table(raw: pd.DataFrame, config: dict) -> pd.DataFrame:
@@ -148,6 +149,7 @@ def encode_splits(
         for name in ("train", "valid", "test")
     }
     return splits, enc
+
 
 
 def build_features(df: pd.DataFrame, config: dict) -> pd.DataFrame:
