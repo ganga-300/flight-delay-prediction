@@ -16,26 +16,187 @@ delayed), validation September--October (55{,}628, 15.7\%) and test November--De
 25.8\%). Before any analysis, the November--December rows were moved out of the development data
 (the full file's SHA-256 was recorded). Every notebook, feature build and training script reads a
 January--October file through a loader that rejects later dates. The test rows were read once, in
-the final evaluation (Section~\ref{sec:results}).
+the final evaluation (Section~\ref{sec:results}). No figure in this section uses test data.
 
 \subsection{Data quality}
 On the January--October development data (281{,}373 rows) there are no duplicate rows, no
 duplicate flight keys and no error-level violations: all clock times are well formed, and
 departure and arrival delays agree with actual minus scheduled times once midnight wrap-around is
-allowed. Missing values are structured rather than random. All actual-time fields are missing
-together for the 6{,}997 cancelled flights (2.5\%), 1{,}021 flights departed without an
-arrival-delay value (0.4\%), and the aircraft tail number is missing only for cancelled flights.
-Because that missingness reveals the outcome, the tail number is not used as a feature. Actual
-departure and arrival times are post-departure information: departure delay alone reaches a
-single-feature ROC-AUC of 0.898 against the target, so these fields are excluded from all
-features.
+allowed.
+
+\textbf{Missing values} (Fig.~\ref{fig:missing}) are structured rather than random. The
+departure fields are missing together for exactly the 6{,}997 cancelled flights (2.5\%); the
+arrival fields are missing for 8{,}018 flights, i.e.\ the cancelled ones plus 1{,}021 that departed
+without an arrival record (0.4\%). These 8{,}018 rows have no label and are dropped. The aircraft
+tail number is missing for 2{,}169 flights, all of them cancelled. Because that missingness reveals
+the outcome, the tail number is not used as a feature. Actual departure and arrival times are
+post-departure information: departure delay alone reaches a single-feature ROC-AUC of 0.898
+against the target, so these fields are excluded from all features.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{eda_missing_values.png}
+\caption{Missing values by column, January--October. Only six columns have gaps, and they nest:
+the departure fields are missing for cancelled flights, the arrival fields for those plus flights
+with no arrival record. A random gap pattern would not nest like this.}
+\label{fig:missing}
+\end{figure}
+
+\textbf{Cancellations} (Fig.~\ref{fig:cancel}) are concentrated in February (5.1\%) and early
+summer, and in the regional carriers (SkyWest 11.1\%, Mesa 9.8\%, Endeavor 6.1\%). Removing them
+therefore removes slightly more of the worst operating days from the labelled data, which is why
+the target is defined conditional on the flight operating.
+
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{eda_cancellations.png}
+\caption{Cancellation rate by month (January--October) and by carrier. Cancellations are not
+spread evenly, so they cannot be treated as random missing labels; they are excluded and the
+model predicts delay given that the flight operates.}
+\label{fig:cancel}
+\end{figure*}
 
 \subsection{Exploratory analysis on the training period only}
-All exploratory statistics that informed feature design use January--August only. The delay rate
-rises steadily through the day, from 10.8\% for 05:00 departures to 40.5\% at 21:00. Thursday is
-the worst day (31.0\%) and Saturday the best (18.5\%). Carriers differ widely (ExpressJet 35.3\%,
-American 20.3\%), and the airport effect is not uniform across carriers (e.g.\ Endeavor 19.1\% at
-EWR vs 29.5\% at JFK), which motivates carrier--airport interaction features. The daily delay rate
-has a lag-1 autocorrelation of 0.356, but lags 2 and 7 are near zero (0.041 and 0.021): yesterday's
-delays are informative, but persistence beyond that is weak. Monthly delay rates vary between
-22.7\% and 32.2\% within the training period.
+All exploratory statistics and figures below use January--August only (217{,}727 labelled
+flights), so nothing about the validation or test months influenced feature design. Rates by group
+are shown with 95\% Wilson score intervals, which stay inside $[0,1]$ and remain sensible for small
+groups, where the normal approximation does not.
+
+\textbf{Target.} Arrival delay is strongly right-skewed (Fig.~\ref{fig:hist}): the median flight
+arrives 4 minutes early and 56\% arrive before schedule, but the mean is $+9$ minutes because of a
+long tail (9.9\% are at least an hour late; skewness 3.5). This is why we predict the BTS binary
+target rather than regress minutes, which a few extreme flights would dominate. At the 15-minute
+threshold 26.4\% of flights are delayed, a moderate class imbalance; we therefore use PR-AUC as
+the primary metric and balanced class weights.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{eda_arrival_delay_hist.png}
+\caption{Arrival delay, January--August (clipped to $[-80,300]$ min for display). The vertical line
+is the 15-minute target threshold; the 26.4\% of flights to its right form the positive class.}
+\label{fig:hist}
+\end{figure}
+
+\textbf{Time of day} is the strongest single pattern (Fig.~\ref{fig:hour}). The delay rate rises
+almost monotonically from 10.8\% for 05:00 departures to 40.5\% at 21:00, because delays in an
+aircraft's earlier legs carry forward through the day. The lower panel shows that the late
+evening hours have few flights, so their intervals are wider. This motivates the scheduled
+departure hour, its sine/cosine encoding (so 23:00 and 05:00 are close) and a departure-time
+bucket used in carrier crosses.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{eda_delay_by_hour.png}
+\caption{Delay rate by scheduled departure hour with 95\% intervals (top) and the number of
+flights per hour (bottom), January--August. The dashed line is the overall rate, 26.4\%.}
+\label{fig:hour}
+\end{figure}
+
+\textbf{Month and weekday} (Fig.~\ref{fig:monthweek}). Thursday is the worst day (31.0\%) and
+Saturday the best (18.5\%), a stable weekly pattern that we encode as day of week, a weekend flag
+and sine/cosine terms. Monthly rates vary between 22.7\% (May) and 32.2\% (July), but the pattern is
+irregular, and training covers January--August only: a month or day-of-year feature would have
+no training examples for September--December and could only extrapolate. Month and day-of-year
+are therefore excluded; recent conditions are captured by the historical delay-rate features
+instead.
+
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{eda_delay_by_month_weekday.png}
+\caption{Delay rate by month (left) and day of week (right), January--August, with 95\%
+intervals. The weekday pattern is used as a feature; the month pattern is not, because the later
+months are never seen in training.}
+\label{fig:monthweek}
+\end{figure*}
+
+\textbf{Hour $\times$ month} (Fig.~\ref{fig:hourmonth}). The rise through the day appears in every
+month, but its height changes: in June and July evening departures exceed 50\% (July 22:00,
+63.9\%), while in May the same hours stay near 30\%. The hour effect is therefore stable in shape
+but scaled by current conditions, which a fixed hour feature cannot capture alone. This supports
+adding recent delay rates (previous day, last 7 and 28 days) alongside the calendar features.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{eda_hour_month_heatmap.png}
+\caption{Delay rate by scheduled departure hour and month, January--August (cells with fewer than
+100 flights left blank). Darker cells are higher delay rates.}
+\label{fig:hourmonth}
+\end{figure}
+
+\textbf{Carrier} (Fig.~\ref{fig:airline}). Carriers differ widely, from ExpressJet (35.3\%) to
+American (20.3\%) and Hawaiian (14.4\%). Group sizes also differ widely, which is why intervals are
+shown: SkyWest has only 7 flights (5 delayed), so its 71\% rate has a Wilson interval of
+$[0.36, 0.92]$ and is not reliable evidence. This motivates the carrier categorical feature with
+rare levels grouped as \emph{other} (fewer than 50 training rows), and past delay rates shrunk
+towards the global rate so that small groups do not produce extreme values.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{eda_delay_by_airline.png}
+\caption{Delay rate by airline, January--August, with 95\% Wilson intervals and flight counts.
+The dashed line is the overall rate.}
+\label{fig:airline}
+\end{figure}
+
+\textbf{Origin airport} (Fig.~\ref{fig:origin}). Newark is the most delay-prone origin (28.5\%),
+then JFK (25.9\%) and LaGuardia (24.4\%). The differences are small but, with over 65{,}000 flights
+per airport, well outside the intervals, so origin is kept as a feature.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{eda_delay_by_origin.png}
+\caption{Delay rate by origin airport, January--August, with 95\% intervals and flight counts.}
+\label{fig:origin}
+\end{figure}
+
+\textbf{Carrier $\times$ origin} (Fig.~\ref{fig:carrierorigin}). The airport effect is not the same
+for every carrier: Endeavor is delayed 19.1\% of the time at EWR but 29.5\% at JFK, while
+ExpressJet is worst at EWR (36.5\%). An additive model with separate carrier and origin terms cannot
+represent this, so we add carrier--origin, carrier--destination, carrier--route and
+carrier--departure-time crosses, which let Logistic Regression learn these interactions directly.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.8\columnwidth]{eda_carrier_origin_heatmap.png}
+\caption{Delay rate by carrier and origin airport, January--August (cells with fewer than 500
+flights left blank). The ranking of airports changes between carriers.}
+\label{fig:carrierorigin}
+\end{figure}
+
+\textbf{Destination and route} (Fig.~\ref{fig:destroute}). Among the 25 busiest
+destinations the rate ranges from 20.4\% (Las Vegas) to 30.5\% (Nashville), and among the 20
+busiest routes from 19.0\% to 29.2\%, with several intervals clear of the overall rate. Destination
+and route are therefore kept as categorical features (with rare levels grouped) and as past-only
+historical delay rates. Most routes have far fewer flights than those shown, which is why the
+historical rates are shrunk towards the global rate.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=0.48\textwidth]{eda_delay_by_destination.png}\hfill
+\includegraphics[width=0.48\textwidth]{eda_delay_by_route.png}
+\caption{Delay rate for the 25 busiest destinations (left) and the 20 busiest
+origin--destination routes (right), January--August, with 95\% intervals.}
+\label{fig:destroute}
+\end{figure*}
+
+\textbf{Day-to-day variation} (Fig.~\ref{fig:daily}). The daily delay rate swings between 6.5\%
+and 79.2\% (8 March), far more than any calendar pattern explains; bad days come in short runs
+(the dataset has no weather fields, so their cause cannot be checked here). The lag-1 autocorrelation is 0.356, but lags 2 and 7 are near zero (0.041
+and 0.021): yesterday's delays are informative, but persistence beyond that is weak. This is the
+evidence for the 1-day historical delay rates, which at the end of day $D{-}1$ are the most recent
+outcomes available, and for keeping the 7- and 28-day windows as slower background levels.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{eda_daily_delay_rate.png}
+\caption{Daily delay rate over the training period with a 7-day moving average; the dashed line
+is the overall rate. Bad days cluster in short runs, so the previous day's delay rate is a useful
+signal one day ahead.}
+\label{fig:daily}
+\end{figure}
+
+\textbf{Summary.} Each feature group in Section~\ref{sec:features} follows from a figure above:
+calendar features from Figs.~\ref{fig:hour} and~\ref{fig:monthweek}; categorical and cross
+features from Figs.~\ref{fig:airline}--\ref{fig:destroute}; historical delay rates from
+Figs.~\ref{fig:hourmonth} and~\ref{fig:daily}; and the exclusions (actual times, tail number,
+month, day of year) from Figs.~\ref{fig:missing} and~\ref{fig:monthweek}.
