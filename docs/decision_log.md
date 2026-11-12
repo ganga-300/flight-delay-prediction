@@ -587,3 +587,69 @@ reliability diagram, and at the threshold: precision, recall and flights flagged
   better calibrated than the class-weighted Logistic Regression's, but still too high (mean 0.243).
   No usable threshold reaches 0.60 precision.
 
+
+### D-303 · Member 2 GRU: pre-registered design
+- **Status:** Written 2026-11-12, before any GRU or control model was trained.
+- **Question:** do ordered daily sequences of past delays, read by a compact GRU, improve
+  next-day prediction over the Phase 1 Logistic Regression and the Member 1 MLP, and is any gain
+  due to reading the days in order (recurrence) rather than to the extra inputs?
+- **Sequences:** for a flight on day D, the last L days D-L ... D-1, oldest first. A past flight
+  counts on the day its outcome became known (`outcome_known_date`, D-104/D-105), so a D-1
+  flight landing after 23:30 New York time is not in D's sequence. Ten values per day: delay
+  rate for the whole system, the flight's origin, carrier and destination (each smoothed towards
+  the global past rate with prior strength 20, as in Phase 1); log(1 + flights) for system,
+  origin and carrier; a has-data flag for the carrier; and the day's weekday as sine/cosine.
+  Only past delayed/not-delayed labels are used (no delay minutes, no cancellations: tested on
+  January-August, they add at most 0.006 R² for the next day's rate). Days before 1 January are
+  padding (flag 0). Channel scaling is fitted on each stage's training flights only.
+- **Models** (identical static branch and head; only the sequence encoder differs):
+  - *GRU:* 1-layer GRU over the L x 10 sequence (hidden size h), final state.
+  - *Control (no recurrence):* the same L x 10 values flattened -> Linear(h) -> ReLU.
+  - Both join the flight's 59 Phase 1 features (Member 1's `MLPPreprocessor`: scaled numeric +
+    one-hot) -> Linear(64) -> ReLU -> Dropout(0.2) -> Linear(1).
+  - *Member 1 MLP:* unchanged (D-302), re-run with the seeds below.
+- **Protocol:** D-301. Adam lr 0.001, batch 256, unweighted BCE, max 30 epochs, early stopping
+  with patience 5 on August PR-AUC, refit January-August for the chosen epoch count, CPU.
+- **Grid (GRU only, seed 42):** L in {7, 14, 28} x h in {16, 32}. Highest August PR-AUC wins;
+  ties within 0.001 go to the smaller (L, then h). The control uses the selected L and h.
+- **Seeds:** the selected GRU, the control and the Member 1 MLP are each run with seeds 42-46.
+  Each seed selects its own epoch on August and is refit January-August. Results are reported as
+  mean and standard deviation over seeds.
+- **Evaluation:** September-October once, with the Phase 1 Logistic Regression (D-202, raw) on
+  the same flights. PR-AUC (primary), ROC-AUC, Brier, ECE; September and October also separately.
+  Differences in PR-AUC (GRU - LR, GRU - control, GRU - MLP) get 95% intervals from a bootstrap
+  that resamples whole days (1,000 resamples, seed 42), averaging each difference over the 5
+  seeds.
+- **Diagnostic (not used for selection):** the selected GRU without the 29 Phase 1 historical
+  features, 5 seeds, to see whether the sequence alone recovers that information.
+- **Reading rule:** a model "improves" on another only if the 95% interval of the PR-AUC
+  difference excludes 0.
+
+### D-304 · Member 2 GRU results
+- **Run:** `scripts/train_gru.py` exactly as pre-registered in D-303, CPU, torch 2.15.0, about
+  9 minutes. Outputs in `models/phase2/member2/` and `reports/{results,figures}/phase2_member2/`.
+  Details: `docs/phase2_member2_gru.md`.
+- **Grid (August PR-AUC, seed 42):** all six settings within 0.004 (0.368-0.372). Selected
+  L = 14 days, hidden size 16 (0.3719). Every GRU seed chose epoch 1 or 2.
+- **Checks against earlier results:** Member 1 MLP seed 42 reproduces D-302 exactly (0.2773);
+  the Logistic Regression reproduces 0.2896.
+
+| September-October, mean ± sd over seeds 42-46 | PR-AUC | ROC-AUC | Brier | ECE |
+|---|---|---|---|---|
+| GRU (L = 14, h = 16) | 0.2946 ± 0.0055 | 0.6743 | 0.1360 | 0.0863 |
+| Logistic Regression (D-202, raw) | 0.2896 | 0.6800 | 0.1855 | 0.2334 |
+| GRU without the 29 history features | 0.2885 ± 0.0064 | 0.6748 | 0.1347 | 0.0840 |
+| Member 1 MLP | 0.2839 ± 0.0043 | 0.6719 | 0.1333 | 0.0757 |
+| Control (same inputs, no recurrence) | 0.2553 ± 0.0214 | 0.6433 | 0.1458 | 0.0820 |
+
+| PR-AUC difference (day bootstrap, 95%) | Estimate | Interval | Counts? |
+|---|---|---|---|
+| GRU - LR | +0.0050 | [-0.0137, +0.0238] | No |
+| GRU - control | +0.0393 | [+0.0087, +0.0718] | Yes |
+| GRU - MLP | +0.0106 | [-0.0004, +0.0216] | No |
+| GRU without history - GRU | -0.0061 | [-0.0220, +0.0078] | No |
+
+- **Reading:** reading the days in order beats feeding the same values in flat, but no Phase 2
+  model so far beats the Phase 1 Logistic Regression beyond noise. The sequence alone recovers
+  almost all of the 29 history features. Raw GRU probabilities are too high (mean 0.243 vs
+  0.157) and need calibration (Member 5).
