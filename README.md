@@ -106,7 +106,7 @@ sealed. Install `torch` (in `requirements.txt`) for the Phase 2 scripts; Phase 1
 | Member | Work | Status |
 |---|---|---|
 | 1 | Simple MLP baseline (one-hot inputs) | Done (D-302) |
-| 2 | GRU over ordered daily airport/carrier sequences | Not merged yet |
+| 2 | GRU over ordered daily airport/carrier sequences | Done (D-303, D-304) |
 | 3 | Embedding MLP and tuning (Aditya) | Not merged yet |
 | 4 | Ablations and DL + XGBoost hybrid | Not merged yet |
 | 5 | Common evaluation, calibration, integration | Not merged yet |
@@ -131,6 +131,30 @@ notebook [`notebooks/phase2_member1_mlp.ipynb`](notebooks/phase2_member1_mlp.ipy
 ```bash
 python scripts/train_mlp_baseline.py   # refuses to overwrite models/phase2/member1/
 pytest tests/test_mlp.py               # skipped if torch is not installed
+```
+
+### Member 2: GRU over daily delay sequences (D-303, D-304)
+
+For each flight, the last 14 days of delay rates for the whole system, its origin, airline and
+destination (a past flight counts only from the day its outcome was known) are read by a 1-layer
+GRU (hidden size 16) and combined with the 59 Phase 1 features. A control model gets the same
+inputs without recurrence.
+
+September–October, mean over 5 seeds (delay rate 0.157):
+
+| Model | PR-AUC | ROC-AUC |
+|---|---|---|
+| GRU | **0.295** | 0.674 |
+| Logistic Regression (Phase 1) | 0.290 | **0.680** |
+| Member 1 MLP | 0.284 | 0.672 |
+| Control (no recurrence) | 0.255 | 0.643 |
+
+The GRU beats the control (day-bootstrap 95% interval excludes 0) but not the Logistic
+Regression or the MLP. Details: [`docs/phase2_member2_gru.md`](docs/phase2_member2_gru.md),
+notebook [`notebooks/phase2_member2_gru.ipynb`](notebooks/phase2_member2_gru.ipynb).
+
+```bash
+python scripts/train_gru.py            # about 9 minutes on CPU; refuses to overwrite
 ```
 
 ## Author

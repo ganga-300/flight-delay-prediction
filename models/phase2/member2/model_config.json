@@ -1,0 +1,35 @@
+{
+  "protocol": "D-303",
+  "selected_length": 14,
+  "selected_hidden_size": 16,
+  "sequence_channels": [
+    "system_rate",
+    "system_log_n",
+    "origin_rate",
+    "origin_log_n",
+    "carrier_rate",
+    "carrier_log_n",
+    "carrier_has_data",
+    "dest_rate",
+    "dow_sin",
+    "dow_cos"
+  ],
+  "static_dim": 1015,
+  "head": "Linear(64) -> ReLU -> Dropout(0.2) -> Linear(1)",
+  "optimizer": "Adam",
+  "learning_rate": 0.001,
+  "batch_size": 256,
+  "max_epochs": 30,
+  "patience": 5,
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46
+  ],
+  "saved_model": "seed 42, refit January-August",
+  "device": "cpu",
+  "torch_version": "2.15.0",
+  "holdout_accessed": false
+}
