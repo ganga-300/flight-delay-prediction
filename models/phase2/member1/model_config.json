@@ -1,0 +1,18 @@
+{
+  "architecture": "Input -> Linear(128) -> ReLU -> Dropout(0.3) -> Linear(64) -> ReLU -> Dropout(0.2) -> Linear(1)",
+  "input_dim": 1015,
+  "hidden_dim1": 128,
+  "hidden_dim2": 64,
+  "dropout1": 0.3,
+  "dropout2": 0.2,
+  "optimizer": "Adam",
+  "learning_rate": 0.001,
+  "batch_size": 256,
+  "loss_function": "BCEWithLogitsLoss",
+  "use_pos_weight": false,
+  "max_epochs": 30,
+  "patience": 5,
+  "seed": 42,
+  "device": "mps",
+  "best_epoch": 1
+}

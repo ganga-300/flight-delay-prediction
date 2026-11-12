@@ -1,0 +1,26 @@
+{
+  "pr_auc": 0.28155388223917566,
+  "roc_auc": 0.667380029312771,
+  "brier_score": 0.13755036890506744,
+  "ece_10": 0.0953730987277097,
+  "loss": 0.4412226974964142,
+  "precision": 0.382831245001333,
+  "recall": 0.16447142366281067,
+  "f1_score": 0.23009133151738503,
+  "threshold": 0.5,
+  "confusion_matrix": [
+    [
+      44582,
+      2315
+    ],
+    [
+      7295,
+      1436
+    ]
+  ],
+  "positive_rate": 0.1569533348083496,
+  "mean_predicted_probability": 0.25232642889022827,
+  "op_precision_0.60_recall": 0.0,
+  "op_precision_0.60_threshold": null,
+  "sample_count": 55628
+}

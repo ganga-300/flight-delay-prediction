@@ -20,5 +20,5 @@ pytest>=8.0
 pytest-cov>=4.1
 ruff>=0.4
 
-# Phase 2 (deep learning) — uncomment when needed
-# torch>=2.2
+# Phase 2 (deep learning)
+torch>=2.2

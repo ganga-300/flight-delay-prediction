@@ -97,10 +97,47 @@ their outputs are committed (`models/d201/`, `models/d203/`, `reports/`). `train
 `calibrate_threshold.py` refuse to overwrite their outputs. `evaluate.py` is single-use: it refuses
 to run once `reports/results/test_metrics.json` exists.
 
-## Phase 2 (later)
+## Phase 2 — Deep Learning Extensions
 
-Compact MLP with learned embeddings for airline / origin / destination, optional temporal model,
-and an offline what-if rescheduling analysis. Not part of Phase 1.
+### Member 1: Simple MLP Baseline (PyTorch & One-Hot Encoding)
+
+Member 1 establishes the Deep Learning baseline for binary flight delay prediction (`is_delayed = 1 if arr_delay >= 15 else 0`) using a PyTorch feed-forward Multi-Layer Perceptron (MLP) with One-Hot Encoding.
+
+* **Architecture**: Input (1,015) $\to$ Linear(128) $\to$ ReLU $\to$ Dropout(0.3) $\to$ Linear(64) $\to$ ReLU $\to$ Dropout(0.2) $\to$ Linear(1)
+* **Features**: 49 numerical features (StandardScaler) + 10 categorical features (OneHotEncoder) = 1,015 input dimensions
+* **Training Protocol**: Adam ($lr = 0.001$), batch size 256, max epochs 30, early stopping patience 5 on validation PR-AUC, seed 42
+* **Hardware Support**: Automatic device detection (`cuda`, `mps` for Apple Silicon, or `cpu`)
+* **Validation Performance (Sept–Oct 2013)**:
+  * PR-AUC: **0.2816** (vs 0.1570 validation delay rate baseline)
+  * ROC-AUC: **0.6674**
+  * Brier Score: **0.1376**
+  * ECE (10 bins): **0.0954**
+  * Best Checkpoint: Epoch 1 (early stopped at Epoch 6)
+* **Model Artifacts**: `models/phase2/member1/`
+* **Reports & Figures**: `reports/figures/phase2_member1/` and `reports/results/phase2_member1/`
+* **Documentation**: Detailed design, calibration analysis, and methodology in [`docs/phase2_member1_mlp.md`](docs/phase2_member1_mlp.md)
+* **Notebook**: Interactive walk-through in [`notebooks/phase2_member1_mlp.ipynb`](notebooks/phase2_member1_mlp.ipynb)
+
+#### Reproduction Commands
+
+```bash
+# 1. Prepare development dataset (Jan-Oct 2013; holdout Nov-Dec remains sealed)
+python scripts/seal_holdout.py
+
+# 2. Build 59 engineered features and train/validation parquets
+python scripts/build_features.py
+
+# 3. Train Member 1 PyTorch MLP Baseline
+python scripts/train_mlp_baseline.py
+
+# 4. Run tests
+pytest tests/test_mlp.py
+pytest tests/
+```
+
+### Future Phase 2 Work (Members 2 & 3)
+* **Member 2**: Recurrent temporal architectures (GRU) capturing sequence dependencies across flight turnarounds.
+* **Member 3**: Entity-embedding MLP replacing high-dimensional one-hot encodings with learned low-dimensional embeddings.
 
 ## Author
 
