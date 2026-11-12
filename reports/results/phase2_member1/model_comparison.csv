@@ -1,4 +1,3 @@
-model,eval_period,pr_auc,roc_auc,notes
-Logistic_Regression (Phase 1 Winner),August 2013 (Tuning Selection),0.4007,0.6756,Historical D-201 August selection score (not Sept-Oct validation)
-XGBoost (Phase 1 Candidate),August 2013 (Tuning Selection),0.396,0.677,Historical D-201 August selection score (not Sept-Oct validation)
-MLP_Baseline (Phase 2 Member 1),Sept-Oct 2013 (Validation Set),0.28155388223917566,0.667380029312771,"Best epoch 1, Adam lr=0.001, OHE input dim=1015"
+model,pr_auc,roc_auc,brier_score,ece_10,mean_predicted_probability,positive_rate,notes
+"Logistic Regression (Phase 1 final, raw)",0.28958971259266636,0.6799992410449366,0.18553713549558998,0.2334129115907373,0.3903662444446957,0.15695333285395843,"D-202 model, trained Jan-Aug; never tuned on Sep-Oct"
+"MLP baseline (Phase 2 Member 1, raw)",0.2773151632879254,0.6679335235958814,0.13443197309970856,0.08560304476243276,0.2425563633441925,0.15695333285395843,trained Jan-Aug for 1 epoch(s) chosen on August

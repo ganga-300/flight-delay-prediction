@@ -553,3 +553,37 @@ reliability diagram, and at the threshold: precision, recall and flights flagged
   it under-predict in November–December.
 - An earlier iteration of this project evaluated on the Nov–Dec holdout (D-000). Every model,
   feature, calibration and threshold decision reported here was made again without those results.
+
+## Phase 2 — Deep learning
+
+### D-301 · Phase 2 protocol
+- **Status:** Adopted 2026-11-12, before any Phase 2 model was selected on it.
+- **Decision:** Phase 2 models follow the D-201 protocol. Fit on January–July; choose epochs and
+  hyperparameters on August PR-AUC; refit on January–August with the chosen settings (fixed epoch
+  count, no early stopping); then score September–October once. Encoders, scalers and vocabularies
+  are fitted on the training rows of each stage only. November–December stays sealed (D-002) and
+  is not used in Phase 2.
+- **Comparison rule:** every Phase 2 model is compared with the Phase 1 Logistic Regression (D-202
+  final model, also trained on January–August) on the same September–October flights, with PR-AUC
+  as the primary metric and ROC-AUC, Brier and ECE alongside.
+- **Why:** the first MLP run chose its epoch on September–October and reported the same period,
+  which overstates the result, and it compared that score with Phase 1's August scores, a different
+  period with a different delay rate (24.6% against 15.7%).
+
+### D-302 · Member 1 simple MLP baseline
+- **Run:** `scripts/train_mlp_baseline.py`, CPU, torch 2.15.0, seed 42. Outputs in
+  `models/phase2/member1/` and `reports/{results,figures}/phase2_member1/`.
+- **Model:** 1,015 inputs (49 standardised numeric + 966 one-hot) → 128 → 64 → 1, ReLU, dropout
+  0.3/0.2, Adam lr 0.001, batch 256, unweighted BCE.
+- **August selection:** best epoch 1 (PR-AUC 0.3796; Phase 1 LR 0.4007, XGBoost 0.3960). August
+  loss rises from epoch 2, so the network overfits after one pass.
+
+| September–October (55,628 flights, delay rate 0.157) | PR-AUC | ROC-AUC | Brier | ECE |
+|---|---|---|---|---|
+| Logistic Regression (D-202, raw) | 0.2896 | 0.6800 | 0.1855 | 0.2334 |
+| Simple MLP (raw) | 0.2773 | 0.6679 | 0.1344 | 0.0856 |
+
+- **Reading:** the MLP ranks slightly worse than Logistic Regression. Its raw probabilities are
+  better calibrated than the class-weighted Logistic Regression's, but still too high (mean 0.243).
+  No usable threshold reaches 0.60 precision.
+

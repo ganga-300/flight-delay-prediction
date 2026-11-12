@@ -1,23 +1,23 @@
 {
-  "timestamp": "2026-11-12T20:56:59.158829",
-  "split": {
-    "train": [
-      "2013-01-01",
-      "2013-08-31"
-    ],
-    "valid": [
-      "2013-09-01",
-      "2013-10-31"
-    ],
-    "test": [
-      "2013-11-01",
-      "2013-12-31"
-    ]
+  "timestamp": "2026-11-12T21:41:27.537380",
+  "protocol": "D-301",
+  "stage_a_fit_period": "2013-01-01 to 2013-07-31",
+  "stage_a_tuning_period": "2013-08-01 to 2013-08-31",
+  "final_training_period": "2013-01-01 to 2013-08-31",
+  "evaluation_period": "2013-09-01 to 2013-10-31",
+  "holdout_accessed": false,
+  "rows": {
+    "fit": 188971,
+    "tune": 28756,
+    "final": 217727,
+    "eval": 55628
   },
-  "training_rows": 217727,
-  "validation_rows": 55628,
-  "training_positive_rate": 0.2637385427951813,
-  "validation_positive_rate": 0.1569533348083496,
+  "positive_rate": {
+    "fit": 0.2664429843425751,
+    "tune": 0.24596606194972992,
+    "final": 0.2637385427951813,
+    "eval": 0.1569533348083496
+  },
   "numeric_features": [
     "sched_dep_hour_frac",
     "dow",
@@ -83,8 +83,8 @@
   ],
   "one_hot_feature_count": 966,
   "total_input_dim": 1015,
-  "train_parquet_sha256": "29571618297af552b59367837816cbaf3c7789699490a9df1724e03a1db0a7f3",
-  "valid_parquet_sha256": "23fe71fd1de1877bd07346342c04158204734dc4bc83426468f3cf01418148ec",
   "best_epoch": 1,
-  "training_device": "mps"
+  "august_pr_auc_at_best_epoch": 0.37956919024859836,
+  "training_device": "cpu",
+  "torch_version": "2.15.0"
 }

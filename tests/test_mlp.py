@@ -16,25 +16,23 @@ Verifies:
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
-import tempfile
 
 import numpy as np
 import pandas as pd
 import pytest
-import torch
-import torch.nn as nn
 
-from flight_delay.config import REPO_ROOT, load_config
-from flight_delay.data.schema import TARGET_COLUMN
-from flight_delay.features.build import CATEGORICAL, numeric_features
-from flight_delay.features.encoding import FeatureEncoder
-from flight_delay.features.leakage import POST_DEPARTURE_COLUMNS
-from flight_delay.models.mlp import MLPBaseline
-from flight_delay.models.mlp_training import (
+torch = pytest.importorskip("torch")
+nn = torch.nn
+
+from flight_delay.config import REPO_ROOT, load_config  # noqa: E402
+from flight_delay.data.schema import TARGET_COLUMN  # noqa: E402
+from flight_delay.features.build import CATEGORICAL, numeric_features  # noqa: E402
+from flight_delay.features.encoding import FeatureEncoder  # noqa: E402
+from flight_delay.features.leakage import POST_DEPARTURE_COLUMNS  # noqa: E402
+from flight_delay.models.mlp import MLPBaseline  # noqa: E402
+from flight_delay.models.mlp_training import (  # noqa: E402
     MLPPreprocessor,
-    get_device,
     predict_flight_delays,
     set_torch_seed,
 )
@@ -179,7 +177,7 @@ def test_unseen_validation_categories_handled_correctly():
 
 
 def test_no_target_or_post_departure_columns_enter_input():
-    """Verify that target and post-departure leaky columns are excluded from preprocessor features."""
+    """Verify target and post-departure leaky columns are excluded from preprocessor features."""
     cfg = load_config()
     num_cols = numeric_features(cfg)
     cat_cols = list(CATEGORICAL)
@@ -191,7 +189,9 @@ def test_no_target_or_post_departure_columns_enter_input():
     assert not leaked, f"Forbidden leaky columns detected in model inputs: {sorted(leaked)}"
 
     # Also check fitted preprocessor if saved
-    saved_preprocessor_path = REPO_ROOT / "models" / "phase2" / "member1" / "mlp_preprocessor.joblib"
+    saved_preprocessor_path = (
+        REPO_ROOT / "models" / "phase2" / "member1" / "mlp_preprocessor.joblib"
+    )
     if saved_preprocessor_path.exists():
         preprocessor = MLPPreprocessor.load(saved_preprocessor_path)
         for name in preprocessor.all_feature_names_:

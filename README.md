@@ -99,45 +99,39 @@ to run once `reports/results/test_metrics.json` exists.
 
 ## Phase 2 — Deep Learning Extensions
 
-### Member 1: Simple MLP Baseline (PyTorch & One-Hot Encoding)
+Phase 2 reuses the Phase 1 data, 59 features and protocol (D-301): fit January–July, tune on
+August, refit January–August, compare models once on September–October. November–December stays
+sealed. Install `torch` (in `requirements.txt`) for the Phase 2 scripts; Phase 1 runs without it.
 
-Member 1 establishes the Deep Learning baseline for binary flight delay prediction (`is_delayed = 1 if arr_delay >= 15 else 0`) using a PyTorch feed-forward Multi-Layer Perceptron (MLP) with One-Hot Encoding.
+| Member | Work | Status |
+|---|---|---|
+| 1 | Simple MLP baseline (one-hot inputs) | Done (D-302) |
+| 2 | GRU over ordered daily airport/carrier sequences | Not merged yet |
+| 3 | Embedding MLP and tuning (Aditya) | Not merged yet |
+| 4 | Ablations and DL + XGBoost hybrid | Not merged yet |
+| 5 | Common evaluation, calibration, integration | Not merged yet |
 
-* **Architecture**: Input (1,015) $\to$ Linear(128) $\to$ ReLU $\to$ Dropout(0.3) $\to$ Linear(64) $\to$ ReLU $\to$ Dropout(0.2) $\to$ Linear(1)
-* **Features**: 49 numerical features (StandardScaler) + 10 categorical features (OneHotEncoder) = 1,015 input dimensions
-* **Training Protocol**: Adam ($lr = 0.001$), batch size 256, max epochs 30, early stopping patience 5 on validation PR-AUC, seed 42
-* **Hardware Support**: Automatic device detection (`cuda`, `mps` for Apple Silicon, or `cpu`)
-* **Validation Performance (Sept–Oct 2013)**:
-  * PR-AUC: **0.2816** (vs 0.1570 validation delay rate baseline)
-  * ROC-AUC: **0.6674**
-  * Brier Score: **0.1376**
-  * ECE (10 bins): **0.0954**
-  * Best Checkpoint: Epoch 1 (early stopped at Epoch 6)
-* **Model Artifacts**: `models/phase2/member1/`
-* **Reports & Figures**: `reports/figures/phase2_member1/` and `reports/results/phase2_member1/`
-* **Documentation**: Detailed design, calibration analysis, and methodology in [`docs/phase2_member1_mlp.md`](docs/phase2_member1_mlp.md)
-* **Notebook**: Interactive walk-through in [`notebooks/phase2_member1_mlp.ipynb`](notebooks/phase2_member1_mlp.ipynb)
+### Member 1: Simple MLP Baseline (D-302)
 
-#### Reproduction Commands
+PyTorch MLP: Input (1,015 = 49 scaled numeric + 966 one-hot) → Linear(128) → ReLU → Dropout(0.3)
+→ Linear(64) → ReLU → Dropout(0.2) → Linear(1). Adam (lr 0.001), batch 256, seed 42, early
+stopping on August PR-AUC (best epoch 1), refit on January–August.
+
+September–October, same flights, raw probabilities (delay rate 0.157):
+
+| Model | PR-AUC | ROC-AUC | Brier | ECE |
+|---|---|---|---|---|
+| Logistic Regression (Phase 1) | **0.290** | **0.680** | 0.186 | 0.233 |
+| Simple MLP | 0.277 | 0.668 | **0.134** | **0.086** |
+
+The MLP ranks slightly worse than Logistic Regression; its raw probabilities are closer to the
+truth but still too high (0.24 vs 0.157). Details: [`docs/phase2_member1_mlp.md`](docs/phase2_member1_mlp.md),
+notebook [`notebooks/phase2_member1_mlp.ipynb`](notebooks/phase2_member1_mlp.ipynb).
 
 ```bash
-# 1. Prepare development dataset (Jan-Oct 2013; holdout Nov-Dec remains sealed)
-python scripts/seal_holdout.py
-
-# 2. Build 59 engineered features and train/validation parquets
-python scripts/build_features.py
-
-# 3. Train Member 1 PyTorch MLP Baseline
-python scripts/train_mlp_baseline.py
-
-# 4. Run tests
-pytest tests/test_mlp.py
-pytest tests/
+python scripts/train_mlp_baseline.py   # refuses to overwrite models/phase2/member1/
+pytest tests/test_mlp.py               # skipped if torch is not installed
 ```
-
-### Future Phase 2 Work (Members 2 & 3)
-* **Member 2**: Recurrent temporal architectures (GRU) capturing sequence dependencies across flight turnarounds.
-* **Member 3**: Entity-embedding MLP replacing high-dimensional one-hot encodings with learned low-dimensional embeddings.
 
 ## Author
 

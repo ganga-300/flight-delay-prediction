@@ -11,6 +11,8 @@ from typing import Any
 import joblib
 import numpy as np
 import pandas as pd
+import torch
+import torch.nn as nn
 from sklearn.metrics import (
     confusion_matrix,
     f1_score,
@@ -18,8 +20,6 @@ from sklearn.metrics import (
     recall_score,
 )
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-import torch
-import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
 from flight_delay.evaluation.metrics import (
@@ -243,8 +243,8 @@ def evaluate_mlp(
 def train_mlp_baseline(
     X_train: np.ndarray,
     y_train: np.ndarray,
-    X_valid: np.ndarray,
-    y_valid: np.ndarray,
+    X_valid: np.ndarray | None,
+    y_valid: np.ndarray | None,
     device: torch.device,
     learning_rate: float = 0.001,
     batch_size: int = 256,
@@ -255,11 +255,14 @@ def train_mlp_baseline(
 ) -> tuple[MLPBaseline, dict[str, Any], int, dict[str, Any]]:
     """Train MLP baseline with Adam, BCEWithLogitsLoss, and early stopping on validation PR-AUC.
 
+    With ``X_valid=None`` the model trains for exactly ``max_epochs`` epochs with no early
+    stopping. This is the final refit, whose epoch count was chosen on the tuning month.
+
     Args:
         X_train: Training feature matrix.
         y_train: Training labels.
-        X_valid: Validation feature matrix.
-        y_valid: Validation labels.
+        X_valid: Tuning-period feature matrix, or None for a fixed-epoch refit.
+        y_valid: Tuning-period labels, or None for a fixed-epoch refit.
         device: PyTorch device.
         learning_rate: Learning rate for Adam (default 0.001).
         batch_size: Mini-batch size (default 256).
@@ -330,8 +333,15 @@ def train_mlp_baseline(
     best_metrics: dict[str, Any] = {}
     epochs_no_improve = 0
 
-    print(f"Starting training on {device} (Input dim: {input_dim}, Train: {len(X_train):,}, Valid: {len(X_valid):,})")
-    print(f"Class imbalance: Train Positive={pos_count:,} ({pos_count/len(y_train):.4f}), Negative={neg_count:,}")
+    n_valid = "none (fixed epochs)" if X_valid is None else f"{len(X_valid):,}"
+    print(
+        f"Starting training on {device} (Input dim: {input_dim}, "
+        f"Train: {len(X_train):,}, Valid: {n_valid})"
+    )
+    print(
+        f"Class imbalance: Train Positive={pos_count:,} ({pos_count / len(y_train):.4f}), "
+        f"Negative={neg_count:,}"
+    )
     print(f"pos_weight={pos_weight_value:.4f} (applied to loss: {use_pos_weight})")
 
     for epoch in range(1, max_epochs + 1):
@@ -353,6 +363,13 @@ def train_mlp_baseline(
             batches += 1
 
         train_loss = running_loss / max(1, batches)
+
+        if X_valid is None:
+            history["epoch"].append(epoch)
+            history["train_loss"].append(train_loss)
+            print(f"Epoch {epoch:2d}/{max_epochs:2d} | Train Loss: {train_loss:.5f}")
+            best_epoch = epoch
+            continue
 
         # Validation after every epoch
         val_metrics = evaluate_mlp(model, X_valid, y_valid, device, threshold=0.5)
@@ -390,13 +407,18 @@ def train_mlp_baseline(
         else:
             epochs_no_improve += 1
             if epochs_no_improve >= patience:
-                print(f"Early stopping triggered at epoch {epoch} (no PR-AUC improvement for {patience} epochs).")
+                print(
+                    f"Early stopping triggered at epoch {epoch} "
+                    f"(no PR-AUC improvement for {patience} epochs)."
+                )
                 break
 
     # Load best checkpoint weights
     if best_model_state is not None:
         model.load_state_dict(best_model_state)
-        print(f"Restored best checkpoint from Epoch {best_epoch} with Valid PR-AUC: {best_pr_auc:.5f}")
+        print(
+            f"Restored best checkpoint from Epoch {best_epoch} with Valid PR-AUC: {best_pr_auc:.5f}"
+        )
 
     return model, history, best_epoch, best_metrics
 

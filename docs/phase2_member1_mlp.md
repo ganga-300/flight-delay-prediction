@@ -19,7 +19,7 @@ where $\mathbf{x} \in \mathbb{R}^{D}$ represents the feature vector known before
 ### Why MLP is Appropriate
 1. **Non-linear Feature Interactions**: Tabular flight data exhibits complex multi-way interactions (e.g., origin congestion interacting non-linearly with scheduled departure hour and carrier delay propensities). Whereas linear models (Logistic Regression) require manual polynomial feature construction, multi-layer feed-forward networks learn non-linear representations through compositions of affine transformations and non-linear activation functions.
 2. **Dense Gradient-Based Baseline**: A standard fully connected MLP provides an established deep learning reference point that directly consumes high-dimensional one-hot representations without sequence assumptions or specialized embedding lookup tables.
-3. **Calibrated Probabilistic Output**: In aviation decision support (e.g., airline gate assignment, passenger proactive rebooking), well-calibrated posterior probabilities are essential rather than uncalibrated classification scores.
+3. **Probabilistic Output**: The network outputs a probability through a sigmoid. As with the Phase 1 models, these raw probabilities still need checking and, if used for decisions, post-hoc calibration (Section 5).
 
 ---
 
@@ -55,8 +55,10 @@ Raw Features (49 Numeric, 10 Categorical)
 ```
 
 1. **Rare-Level Collapsing (`FeatureEncoder`)**:
-   - Levels with fewer than 50 occurrences in the training set (January–August 2013) are collapsed to `__OTHER__`.
-   - Any category level in the validation split (September–October 2013) not seen during training is deterministically mapped to `__OTHER__`.
+   - Levels with fewer than 50 occurrences in the training rows are collapsed to `__OTHER__`. The
+     encoder, scaler and one-hot encoder are fitted separately for each training stage (January–July
+     for epoch selection, January–August for the final model; Section 4), never on later data.
+   - Any category level not seen in training is deterministically mapped to `__OTHER__`.
 2. **Standardization of Numerical Features (`StandardScaler`)**:
    - Neural network weights are updated via gradient descent; disparities in feature scale (e.g., `distance` in thousands of miles versus `sched_dep_hour_frac` in $[0, 1]$) lead to ill-conditioned loss surfaces, erratic gradients, and slow convergence.
    - All 49 numerical features are centered to zero mean and scaled to unit variance:
@@ -64,11 +66,11 @@ Raw Features (49 Numeric, 10 Categorical)
    - Parameters $\mu_{\text{train}}$ and $\sigma_{\text{train}}$ are estimated **strictly from the training split**.
 3. **One-Hot Encoding (`OneHotEncoder`)**:
    - Categorical levels are converted into binary indicator variables with `handle_unknown="ignore"`.
-   - The 10 categorical columns expand into **966 binary indicator columns**.
+   - The 10 categorical columns expand into **966 binary indicator columns** for the final January–August fit (962 for the January–July fit).
 4. **Input Dimension**:
    - The preprocessed input dimensionality is:
      $$D = 49 \text{ (numerical)} + 966 \text{ (one-hot)} = \mathbf{1,015} \text{ dimensions}$$
-   - Preprocessed arrays are cast to `float32`. Memory footprint: 843.0 MB for the training set (217,727 rows) and 215.4 MB for the validation set (55,628 rows), enabling efficient GPU/MPS in-memory processing.
+   - Preprocessed arrays are cast to `float32` (about 0.85 GB for the 217,727 January–August rows).
 
 ---
 
@@ -107,83 +109,100 @@ Given input vector $\mathbf{x} \in \mathbb{R}^{1015}$:
 
 ## 4. Training Protocol & Optimization
 
+### Protocol (D-301): one job per period, as in Phase 1
+| Period | Job |
+|:---|:---|
+| January–July 2013 (188,971 flights) | Fit the network (Stage A) |
+| August 2013 (28,756 flights) | Early stopping: choose the number of epochs by August PR-AUC |
+| January–August 2013 (217,727 flights) | Refit for exactly that many epochs, no early stopping (Stage B, the saved model) |
+| September–October 2013 (55,628 flights) | Score once, next to the Phase 1 Logistic Regression on the same flights |
+| November–December 2013 | Sealed; not read |
+
+This is the same protocol as Phase 1 (D-201): no period is both used to make a choice and to
+report a result. September–October is therefore an honest out-of-sample estimate for both models.
+
 ### Training Configuration
-* **Framework**: PyTorch 2.12.1
-* **Device**: Apple Silicon MPS (`mps`) / CUDA / CPU (automatic hardware fallback)
+* **Framework**: PyTorch 2.15.0, trained on CPU (`--device cpu`, the default) so the run is reproducible; `cuda`/`mps` can be selected.
 * **Optimizer**: Adam ($\beta_1 = 0.9, \beta_2 = 0.999, \epsilon = 10^{-8}$)
 * **Learning Rate**: $0.001$
 * **Batch Size**: 256
 * **Maximum Epochs**: 30
-* **Early Stopping**: Patience = 5 epochs, monitoring **Validation PR-AUC** (Average Precision)
-* **Random Seed**: 42 (fixed seeds for Python `random`, `numpy`, and PyTorch CPU/GPU/MPS generators)
+* **Early Stopping**: Patience = 5 epochs, monitoring **August PR-AUC** (Average Precision)
+* **Random Seed**: 42 (fixed seeds for Python `random`, `numpy`, and PyTorch generators)
 
 ### Loss Function & Class Imbalance Analysis
 Binary Cross-Entropy with Logits loss:
 
 $$\mathcal{L}_{\text{BCE}}(z, y) = - \left[ y \log \sigma(z) + (1 - y) \log (1 - \sigma(z)) \right]$$
 
-The training target is imbalanced:
-* Total Training Samples: 217,727 flights (Jan–Aug 2013)
-* On-Time ($y = 0$): 160,304 flights (73.63%)
-* Delayed ($y = 1$): 57,423 flights (26.37%)
-* Training Positive Rate: $0.2637$
-* Training Imbalance Ratio: $r = \frac{160,304}{57,423} \approx 2.7916$
+The training target is imbalanced (January–August): 160,304 on-time and 57,423 delayed flights,
+a positive rate of 0.2637 and an imbalance ratio of $160{,}304 / 57{,}423 \approx 2.79$.
 
-#### Impact of `pos_weight` on Probability Calibration
-When setting `pos_weight = 2.7916` in `nn.BCEWithLogitsLoss`:
-* **Validation PR-AUC**: 0.28370 vs 0.28155 (unweighted) — minimal ranking change (+0.0021).
-* **Validation ECE**: **0.3212** (weighted) vs **0.0954** (unweighted) — calibration error degrades by **3.37x**.
-* **Mean Predicted Probability**: **0.4782** (weighted) vs **0.2523** (unweighted) against the true validation delay rate of **0.1570**.
-* **Theoretical Reason**: `pos_weight` artificially boosts positive gradient penalties, shifting predicted logits positive by approximately $\ln(2.7916) \approx +1.026$. This inflates predicted probabilities toward 50%, destroying probability calibration unless separate post-hoc calibration is performed.
-* **Decision**: As required for a clean baseline model evaluated by Brier score and ECE, the canonical baseline is trained without loss distortion (`use_pos_weight=False`), yielding well-calibrated raw probabilities (ECE = 0.0954).
+#### `pos_weight` (not used)
+Setting `pos_weight = 2.79` in `nn.BCEWithLogitsLoss` up-weights delayed flights. In an earlier
+run (before D-301, selected on September–October, so indicative only) it barely changed PR-AUC
+(0.2837 vs 0.2816) but pushed the mean predicted probability from 0.25 to 0.48 against a 0.157
+delay rate (ECE 0.32 vs 0.10). Because PR-AUC depends only on the ranking, re-weighting gives no
+ranking benefit and only distorts the probabilities, so the baseline is trained without it
+(`use_pos_weight=False`).
 
 ---
 
 ## 5. Empirical Results & Evaluation
 
-The model was trained on January–August 2013 and evaluated on the full September–October 2013 validation set (55,628 flights).
+### Epoch selection on August (Stage A)
+* Best epoch: **1** (August PR-AUC 0.3796, ROC-AUC 0.6668; August delay rate 0.246).
+* Training loss falls every epoch ($0.524 \to 0.488$), while August loss rises from epoch 1
+  ($0.542 \to 0.600$) and August PR-AUC falls: the network starts to overfit after one pass over
+  the data. Early stopping halted training at **epoch 6**.
+* For comparison, the Phase 1 models on the same August period scored PR-AUC 0.4007 (Logistic
+  Regression) and 0.3960 (XGBoost), D-201.
 
-### Checkpoint Selection & Early Stopping
-* Best Checkpoint: **Epoch 1** (Validation PR-AUC = 0.28155, ROC-AUC = 0.66738).
-* Training loss decreased steadily across epochs ($0.524 \to 0.489$), while validation loss increased from epoch 2 onward ($0.441 \to 0.468$), reflecting classic neural network overfitting on dense tabular one-hot encodings.
-* Early stopping halted training at **Epoch 6** after 5 consecutive epochs without PR-AUC improvement.
-* The best checkpoint (Epoch 1) was restored and saved as `models/phase2/member1/mlp_baseline.pth`.
-
-### Training History
-
-| Epoch | Train BCE Loss | Valid BCE Loss | Valid PR-AUC | Valid ROC-AUC | Valid Brier | Valid ECE | Note |
+| Epoch | Train BCE (Jan–Jul) | August BCE | August PR-AUC | August ROC-AUC | August Brier | August ECE | Note |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **1** | **0.52425** | **0.44122** | **0.28155** | **0.66738** | **0.13755** | **0.09537** | **Best Checkpoint (\*)** |
-| 2 | 0.51067 | 0.43004 | 0.27876 | 0.66154 | 0.13110 | 0.06378 | |
-| 3 | 0.50432 | 0.42969 | 0.27133 | 0.66295 | 0.13063 | 0.06260 | Lowest Valid Loss |
-| 4 | 0.49840 | 0.43930 | 0.27596 | 0.65535 | 0.13374 | 0.07955 | |
-| 5 | 0.49328 | 0.44896 | 0.26512 | 0.65040 | 0.13745 | 0.08674 | |
-| 6 | 0.48923 | 0.46847 | 0.25536 | 0.65108 | 0.14488 | 0.11021 | Early Stopping Trigger |
+| **1** | **0.52416** | **0.54175** | **0.37957** | **0.66682** | **0.17775** | **0.05285** | **Selected** |
+| 2 | 0.50935 | 0.55518 | 0.37321 | 0.66670 | 0.18529 | 0.07477 | |
+| 3 | 0.50248 | 0.56335 | 0.35238 | 0.66046 | 0.18908 | 0.07470 | |
+| 4 | 0.49736 | 0.57959 | 0.33872 | 0.65619 | 0.19603 | 0.08893 | |
+| 5 | 0.49172 | 0.61123 | 0.34619 | 0.66515 | 0.20263 | 0.11449 | |
+| 6 | 0.48771 | 0.59968 | 0.34576 | 0.66500 | 0.19780 | 0.10502 | Early stop |
 
-### Validation Performance Metrics (September–October 2013)
+The final model was then refit on January–August for 1 epoch (training loss 0.524).
 
-| Metric | Value | Interpretation |
-|:---|:---:|:---|
-| **PR-AUC (Average Precision)** | **0.28155** | Primary metric; significantly outperforms validation base delay rate (0.1570) by +12.46 percentage points. |
-| **ROC-AUC** | **0.66738** | Strong discriminative ability between delayed and on-time flights. |
-| **Brier Score** | **0.13755** | Mean squared probability error. |
-| **Expected Calibration Error (ECE-10)** | **0.09537** | Low calibration error across 10 equal-width bins. |
-| **Validation BCE Loss** | **0.44122** | Unweighted binary cross-entropy on validation split. |
-| **Precision (threshold = 0.50)** | **0.38283** | Precision at canonical 0.50 decision boundary. |
-| **Recall (threshold = 0.50)** | **0.16447** | Recall at canonical 0.50 decision boundary. |
-| **F1-Score (threshold = 0.50)** | **0.23009** | Harmonic mean of precision and recall. |
-| **Validation Positive Rate** | **0.15695** | 8,731 delayed flights out of 55,628 total validation flights. |
-| **Mean Predicted Probability** | **0.25233** | Average predicted delay probability. |
-| **Recall @ Precision $\ge$ 0.60** | **0.00000** | Infeasible (highest achievable precision on validation split is ~0.48). |
+### September–October results (scored once)
 
-### Confusion Matrix (Threshold = 0.50)
+| Model (raw probabilities) | PR-AUC | ROC-AUC | Brier | ECE (10 bins) | Mean probability |
+|:---|:---:|:---:|:---:|:---:|:---:|
+| Logistic Regression (Phase 1 final, D-202) | **0.2896** | **0.6800** | 0.1855 | 0.2334 | 0.390 |
+| Simple MLP baseline | 0.2773 | 0.6679 | **0.1344** | **0.0856** | 0.243 |
 
-$$\begin{pmatrix} \text{TN} & \text{FP} \\ \text{FN} & \text{TP} \end{pmatrix} = \begin{pmatrix} 44,582 & 2,315 \\ 7,295 & 1,436 \end{pmatrix}$$
+Delay rate: 0.157 (8,731 of 55,628 flights). Both models were trained on January–August and
+neither was tuned on September–October.
 
-* **True Negatives (TN)**: 44,582 (80.1% of validation flights correctly flagged on-time)
-* **False Positives (FP)**: 2,315 (4.2% false alarms)
-* **False Negatives (FN)**: 7,295 (13.1% missed delays)
-* **True Positives (TP)**: 1,436 (2.6% correctly caught delays)
+**Reading of the results**
+1. **Ranking: the MLP is slightly worse than Logistic Regression.** PR-AUC 0.277 against 0.290 and
+   ROC-AUC 0.668 against 0.680. The same order holds on August (0.380 against 0.401). With these
+   59 features, the extra non-linearity of the MLP does not help; the Phase 1 crosses already give
+   Logistic Regression the main interactions. This matches Phase 1, where XGBoost also did not beat
+   Logistic Regression.
+2. **Calibration: better than raw Logistic Regression, but not well calibrated.** The MLP's
+   raw probabilities are closer to the truth because it is trained without class weights, whereas
+   the Phase 1 model uses `class_weight="balanced"`. They are still too high on average (0.243
+   predicted against 0.157 observed; ECE 0.086), because September–October is calmer than the
+   training months. Post-hoc calibration (Member 5) is still needed before any probability is used
+   for decisions.
+3. **Operating target:** precision 0.60 is reached only at the extreme top of the ranking
+   (threshold 0.757, recall 0.0003, i.e. 3 of 8,731 delayed flights), so as in Phase 1 it is not
+   a usable operating point.
+4. **Overfitting after one epoch:** with 1,015 inputs, of which 966 are sparse one-hot columns,
+   the first layer alone has about 130k weights. The best epoch being the first suggests the
+   learning rate and capacity are too high for this data; tuning these (and replacing one-hot with
+   embeddings) is Member 3's task.
+
+### Diagnostic numbers at threshold 0.50 (not an operating point)
+Precision 0.420, recall 0.084, F1 0.140. Confusion matrix [[TN, FP], [FN, TP]] =
+[[45,886, 1,011], [7,999, 732]]. The 0.50 threshold is arbitrary; Phase 1 chose thresholds only
+on October against the precision target (D-204), and the MLP has no such threshold.
 
 ---
 
@@ -191,61 +210,57 @@ $$\begin{pmatrix} \text{TN} & \text{FP} \\ \text{FN} & \text{TP} \end{pmatrix} =
 
 All figures are saved in `reports/figures/phase2_member1/`:
 
-### A. Training vs Validation Loss Curve
-![Training vs Validation Loss](../reports/figures/phase2_member1/loss_curve.png)
-*Illustrates the training convergence of the Adam optimizer on BCE loss alongside validation loss monitoring.*
+### A. Training vs August Loss Curve
+![Training vs August Loss](../reports/figures/phase2_member1/loss_curve.png)
+*Stage A: training loss on January–July against loss on the August tuning month.*
 
-### B. Validation PR-AUC vs Epoch
-![Validation PR-AUC vs Epoch](../reports/figures/phase2_member1/valid_pr_auc_vs_epoch.png)
-*Shows model ranking performance across epochs, marking Epoch 1 as the optimal checkpoint.*
+### B. August PR-AUC vs Epoch
+![August PR-AUC vs Epoch](../reports/figures/phase2_member1/august_pr_auc_vs_epoch.png)
+*Epoch selection: August PR-AUC per epoch, with the selected epoch marked.*
 
 ### C. Confusion Matrix Heatmap
 ![Confusion Matrix](../reports/figures/phase2_member1/confusion_matrix.png)
-*Detailed breakdown of true versus predicted delay labels on September–October validation flights.*
+*Final model on September–October at the diagnostic 0.50 threshold.*
 
 ### D. Precision-Recall Curve
 ![Precision-Recall Curve](../reports/figures/phase2_member1/precision_recall_curve.png)
-*Precision-Recall trajectory compared against the horizontal validation delay rate baseline (0.1570).*
+*Final model on September–October against the 0.157 delay rate.*
 
 ---
 
-## 7. Comparison with Phase 1 Baseline Models
+## 7. Comparison with Phase 1 and next steps
 
-It is crucial to note the methodological distinction between tuning metrics and validation metrics:
-* In Phase 1, Logistic Regression and XGBoost were tuned on January–July and evaluated on **August 2013** for model selection (D-201 protocol). August had an elevated summer delay rate (~28%).
-* In Phase 2, the MLP Baseline is evaluated on the official **September–October 2013 validation set** (55,628 flights), which has an autumn delay rate of only 15.70%.
-
-| Model | Evaluation Period | PR-AUC | ROC-AUC | Notes |
-|:---|:---|:---:|:---:|:---|
-| **Logistic Regression (L2, $C=0.01$)** | August 2013 (Selection) | 0.4007 | 0.6756 | Phase 1 winner; August tuning only |
-| **XGBoost (Hist Gradient Boosted)** | August 2013 (Selection) | 0.3960 | 0.6770 | Phase 1 runner-up; August tuning only |
-| **Simple MLP Baseline (PyTorch)** | Sept–Oct 2013 (Validation) | **0.2816** | **0.6674** | Phase 2 DL baseline; 1,015 OHE inputs |
-
-### Key Analytical Takeaways
-1. **Comparable ROC-AUC**: The simple MLP achieves an ROC-AUC of **0.6674**, very close to Logistic Regression (0.6756) and XGBoost (0.6770), demonstrating that the MLP effectively extracts linear and non-linear discriminative signals from the 1,015 preprocessed features.
-2. **Seasonal PR-AUC Shift**: The PR-AUC of 0.2816 reflects the seasonal drop in flight delays during September–October (positive rate = 15.70%) compared to August (positive rate = 28.0%). In precision-recall space, the baseline prevalence dictates the curve height ($AP \approx \text{prevalence}$ for random guessing). The MLP's $+12.46$ percentage point lift above baseline is consistent with Phase 1 models.
-3. **High-Dimensional Sparsity Overfitting**: The one-hot encoding expands 10 categorical columns into 966 binary sparse features. Fully connected layers with 128 hidden neurons introduce $1015 \times 128 \approx 130\text{k}$ parameters in Layer 1 alone. This causes early overfitting on training noise within few epochs.
-4. **Motivation for Member 2 & Member 3**:
-   - Member 3's **Learned Entity Embeddings** will replace the 966-dimensional sparse one-hot matrix with dense, low-dimensional vector embeddings (e.g., 8–16 dimensions per categorical entity), dramatically reducing parameters and improving generalization.
-   - Member 2's **GRU** will capture temporal sequences and autocorrelation across preceding flights rather than treating each flight independently.
+* Compared on the same flights and the same protocol (Section 5), the simple MLP ranks slightly
+  worse than the Phase 1 Logistic Regression. It is the deep-learning reference that Members 2–4
+  must beat; the Phase 1 Logistic Regression remains the overall reference.
+* **Member 3** replaces the 966 sparse one-hot columns with learned embeddings and tunes layers,
+  learning rate, batch size and dropout on August under the same D-301 protocol.
+* **Member 2** adds ordered daily sequences (GRU) of past airport and carrier delays.
+* **Member 4** measures what each feature group and embeddings contribute.
+* **Member 5** compares all models on September–October with the same metrics and calibrates.
 
 ---
 
 ## 8. Artifacts & Reproducibility
 
+```bash
+python scripts/seal_holdout.py      # once: January-October development file
+python scripts/train_mlp_baseline.py   # needs torch; refuses to overwrite existing outputs
+```
+
 ### Saved Files in `models/phase2/member1/`:
-* `mlp_baseline.pth`: PyTorch `state_dict` of the best-performing checkpoint (Epoch 1).
-* `mlp_preprocessor.joblib`: Serialized `MLPPreprocessor` containing the fitted `StandardScaler` and `OneHotEncoder`.
-* `feature_encoder.json`: Serialized `FeatureEncoder` state (rare-category mapping and training medians).
-* `training_history.json`: Epoch-by-epoch loss and validation metrics.
-* `validation_metrics.json`: Final evaluated metrics on the September–October validation set.
-* `model_config.json`: Hyperparameters, layer dimensions, random seed (42), and device information.
-* `run_metadata.json`: Dataset split boundaries, feature lists, SHA-256 hashes, and execution timestamps.
+* `mlp_baseline.pth`: PyTorch `state_dict` of the final model (January–August, 1 epoch).
+* `mlp_preprocessor.joblib`: Serialized `MLPPreprocessor` (fitted `FeatureEncoder`, `StandardScaler` and `OneHotEncoder`, January–August).
+* `feature_encoder.json`: The same `FeatureEncoder` state in JSON (rare-category mapping and training medians).
+* `training_history.json`: Stage A epoch-by-epoch losses and August metrics, and the Stage B refit loss.
+* `august_selection_metrics.json`: August metrics of the selected Stage A epoch.
+* `validation_metrics.json`: Final model's metrics on September–October.
+* `model_config.json`: Hyperparameters, layer dimensions, random seed (42), and device.
+* `run_metadata.json`: Periods, row counts, feature lists, torch version and timestamp.
 
 ### Saved Results in `reports/results/phase2_member1/`:
-* `validation_metrics.json`: Complete metric dictionary.
-* `validation_metrics.csv`: Metric summary table.
-* `model_comparison.csv`: Contextualized comparison across Phase 1 and Phase 2 baselines.
+* `validation_metrics.json`, `validation_metrics.csv`: September–October metrics of the MLP.
+* `model_comparison.csv`: MLP and Phase 1 Logistic Regression on the same September–October flights.
 
 ### Programmatic Inference Example
 
@@ -254,7 +269,7 @@ from flight_delay.models.mlp_training import predict_flight_delays
 import pandas as pd
 
 # Load new unencoded pre-departure features
-flights_df = pd.read_parquet("data/processed/valid.parquet").head(10)
+flights_df = pd.read_parquet("data/processed/valid.parquet").head(10)  # September-October rows
 
 # Run end-to-end inference using saved Phase 2 Member 1 artifacts
 probabilities, predictions = predict_flight_delays(
