@@ -26,9 +26,7 @@ class EmbeddingPreprocessor:
     ) -> None:
         self.numeric = list(numeric)
         self.categorical = list(categorical)
-        self.encoder = FeatureEncoder(
-            self.categorical, self.numeric, min_count=min_count
-        )
+        self.encoder = FeatureEncoder(self.categorical, self.numeric, min_count=min_count)
         self.scaler = StandardScaler()
 
     def fit(self, train: pd.DataFrame) -> EmbeddingPreprocessor:
@@ -37,17 +35,12 @@ class EmbeddingPreprocessor:
         self.scaler.fit(encoded[self.numeric])
         return self
 
-    def transform(
-        self, frame: pd.DataFrame
-    ) -> tuple[np.ndarray, np.ndarray]:
+    def transform(self, frame: pd.DataFrame) -> tuple[np.ndarray, np.ndarray]:
         encoded = self.encoder.transform(frame)
-        numeric = self.scaler.transform(
-            encoded[self.numeric]
-        ).astype(np.float32)
-        categories = np.column_stack([
-            encoded[column].cat.codes.to_numpy(dtype=np.int64)
-            for column in self.categorical
-        ])
+        numeric = self.scaler.transform(encoded[self.numeric]).astype(np.float32)
+        categories = np.column_stack(
+            [encoded[column].cat.codes.to_numpy(dtype=np.int64) for column in self.categorical]
+        )
 
         if not np.isfinite(numeric).all():
             raise ValueError("Numeric inputs contain non-finite values.")
@@ -60,10 +53,7 @@ class EmbeddingPreprocessor:
     def vocabulary_sizes(self) -> list[int]:
         if self.encoder.categories_ is None:
             raise RuntimeError("Fit preprocessing before reading vocabulary sizes.")
-        return [
-            len(self.encoder.categories_[column])
-            for column in self.categorical
-        ]
+        return [len(self.encoder.categories_[column]) for column in self.categorical]
 
     def save(self, path: str | Path) -> None:
         joblib.dump(self, path)
@@ -86,15 +76,14 @@ class EmbeddingMLP(nn.Module):
     ) -> None:
         super().__init__()
         self.embedding_dims = [
-            max(1, min(embedding_cap, math.ceil(math.sqrt(size))))
-            for size in vocabulary_sizes
+            max(1, min(embedding_cap, math.ceil(math.sqrt(size)))) for size in vocabulary_sizes
         ]
-        self.embeddings = nn.ModuleList([
-            nn.Embedding(size, dimension)
-            for size, dimension in zip(
-                vocabulary_sizes, self.embedding_dims, strict=True
-            )
-        ])
+        self.embeddings = nn.ModuleList(
+            [
+                nn.Embedding(size, dimension)
+                for size, dimension in zip(vocabulary_sizes, self.embedding_dims, strict=True)
+            ]
+        )
 
         input_dim = numeric_dim + sum(self.embedding_dims)
         first, second = hidden_dims
@@ -108,12 +97,7 @@ class EmbeddingMLP(nn.Module):
             nn.Linear(second, 1),
         )
 
-    def forward(
-        self, numeric: torch.Tensor, categories: torch.Tensor
-    ) -> torch.Tensor:
-        embedded = [
-            layer(categories[:, index])
-            for index, layer in enumerate(self.embeddings)
-        ]
+    def forward(self, numeric: torch.Tensor, categories: torch.Tensor) -> torch.Tensor:
+        embedded = [layer(categories[:, index]) for index, layer in enumerate(self.embeddings)]
         combined = torch.cat([numeric, *embedded], dim=1)
         return self.network(combined)
