@@ -820,3 +820,63 @@ reliability diagram, and at the threshold: precision, recall and flights flagged
   are under `models/phase2/member3/refit_d307/`. The updated report, executed
   notebook and presentation show the historical result alongside the final one.
   November–December remained sealed throughout this amendment.
+
+### D-309 · Member 4 pre-registered experimental plan: ablations and hybrid DL + XGBoost
+
+- Status: pre-registered before Member 4 training and evaluation. Date: 2026-11-13.
+- Reference architecture: Member 3's D-307 winning configuration `d307_016` (lr 0.0001,
+  hidden layers (128, 64), embedding cap 4, dropout 0.2, batch size 1024, weight decay 0.0001,
+  Adam, unweighted BCEWithLogitsLoss, 49 numeric + 10 categorical).
+- Scope of work:
+  1. Systematic feature and architectural ablations against the D-307 reference.
+  2. Hybrid Deep Learning + XGBoost model combining neural latent representations with numerical features,
+     benchmarked against a freshly retrained plain XGBoost baseline (D-201 settings).
+- Pre-registered Ablation Studies (4 configurations):
+  - Ablation 1 (No Historical): Drop all 29 historical features (`hist_*`). Input: 20 numeric
+    features (10 calendar, 6 schedule/route, 4 congestion) + 10 categorical (37 embedding dimensions).
+    All training hyperparameters identical to D-307.
+  - Ablation 2 (No Congestion): Drop all 4 congestion features (`sched_dep_origin_hour`,
+    `sched_dep_origin_day`, `sched_dep_carrier_origin_day`, `sched_dep_origin_hour_share`). Input: 45 numeric
+    features + 10 categorical (37 embedding dimensions). Hyperparameters identical to D-307.
+  - Ablation 3 (One-Hot instead of Embeddings): Retain all 49 numeric features, but replace
+    learned categorical embeddings with one-hot encoding (966 binary levels on Jan–Aug, 962 on Jan–Jul,
+    `min_count=50`, unseen -> `__OTHER__`). Input: 1,015 dimensions. Dense head:
+    Linear(1015, 128) -> ReLU -> Dropout(0.2) -> Linear(128, 64) -> ReLU -> Dropout(0.2) -> Linear(64, 1),
+    Adam lr=0.0001, batch size 1024, weight decay 0.0001.
+  - Ablation 4 (No Regularization): Same 59 features and embedding architecture as D-307, but
+    with dropout disabled (`dropout=0.0`) and weight decay disabled (`weight_decay=0.0`).
+- Pre-registered Hybrid DL + XGBoost Architecture:
+  - Neural representation model: D-307 Embedding MLP (`d307_016`).
+  - Representation layer: The 64-dimensional output activations of the second hidden layer ($\mathbf{h}_2 \in \mathbb{R}^{64}$)
+    after ReLU.
+  - Feature concatenation: Combine the 64-dimensional neural representations with the 49 original
+    standardized numerical features to form a 113-dimensional continuous feature matrix $\mathbf{Z} \in \mathbb{R}^{N \times 113}$.
+  - GBDT Engine: XGBoost binary classifier (`binary:logistic`, `eval_metric="aucpr"`).
+  - Hyperparameters: `max_depth=5`, `learning_rate=0.10`, `subsample=0.8`, `colsample_bytree=0.8`,
+    `scale_pos_weight=1.0`, `n_estimators=1000`.
+  - Tuning on August: For candidate training (Jan–Jul), neural representations are extracted for Jan–Jul
+    and August. XGBoost is tuned with early stopping (50 rounds) on August PR-AUC to determine the effective tree count.
+  - Plain XGBoost Baseline: Fresh XGBoost baseline trained on the 59 original features using D-201 settings
+    (`tree_method="hist"`, `enable_categorical=True`, `max_depth=5`, `learning_rate=0.10`, `subsample=0.8`,
+    `colsample_bytree=0.8`, `scale_pos_weight=1.0`, `n_estimators=1000`, early stopping 50 rounds on August).
+  - Final Retraining: The neural network is refitted on January–August for its August-selected epoch count.
+    Latent representations are extracted for January–August (train) and September–October (evaluation).
+    XGBoost is retrained on January–August for its effective tree count without early stopping.
+- Multi-seed Protocol:
+  - Seeds 42, 43, 44, 45, 46 for all 4 ablations, the hybrid model, and plain XGBoost.
+  - Stage A: Fit January–July, select best epoch on August PR-AUC (patience 5, max 30 epochs).
+  - Stage B: Refit January–August with freshly fitted preprocessing for the chosen epoch count.
+  - Evaluation: Score September–October once on the same 55,628 flights as Members 1, 2, and 3.
+  - November–December remains sealed and is NEVER accessed.
+- Statistical Significance Testing:
+  - Day-level block bootstrap (1,000 resamples of whole calendar dates, seed 42) using `day_bootstrap`
+    from `scripts/train_gru.py`.
+  - Compute paired PR-AUC differences against D-307 Embedding MLP, Phase 1 Logistic Regression,
+    Member 1 MLP, Member 2 GRU, and Plain XGBoost. Claim improvement only if the 95% bootstrap confidence interval
+    strictly excludes zero.
+- Reusable Code & Preservation:
+  - Reuse `EmbeddingPreprocessor` and `EmbeddingMLP` from `src/flight_delay/models/embedding_mlp.py`.
+  - Reuse Member 1's `MLPPreprocessor` for one-hot ablation.
+  - Reuse `day_bootstrap` from `scripts/train_gru.py`.
+  - Save all Member 4 artifacts under `models/phase2/member4/` and `reports/results/phase2_member4/`.
+  - Keep all existing Phase 1 and Member 1, 2, 3 code and artifacts intact.
