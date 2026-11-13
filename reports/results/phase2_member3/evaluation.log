@@ -1,0 +1,13 @@
+
+FINAL SCORES (saved before bootstrap)
+           pr_auc_mean  pr_auc_std  roc_auc_mean  roc_auc_std  brier_score_mean  brier_score_std  ece_10_mean  ece_10_std  mean_probability_mean  mean_probability_std
+model                                                                                                                                                                 
+embedding      0.27620     0.00242       0.67528      0.00171           0.12793          0.00057      0.04732     0.00438                0.20427               0.00438
+gru            0.29457     0.00552       0.67434      0.00384           0.13600          0.00467      0.08628     0.01429                0.24323               0.01429
+lr             0.28959         NaN       0.68000          NaN           0.18554              NaN      0.23341         NaN                0.39037                   NaN
+mlp            0.28393     0.00429       0.67187      0.00274           0.13327          0.00257      0.07574     0.01485                0.23267               0.01486
+Computing 1,000 paired whole-day bootstrap resamples...
+     comparison  difference    ci_low   ci_high  excludes_zero
+embedding - mlp   -0.007729 -0.025334  0.011097          False
+ embedding - lr   -0.013389 -0.021208 -0.003450           True
+embedding - gru   -0.018372 -0.038693  0.001972          False
