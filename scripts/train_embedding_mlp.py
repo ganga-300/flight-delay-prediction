@@ -1,4 +1,4 @@
-"""Member 3 D-305 pipeline: check, tune on August, refit, then evaluate once.
+"""Member 3 D-307 pipeline: check, tune on August, refit, then evaluate once.
 
 No stage reads the sealed raw file. The evaluation stage reuses saved predictions
 if interrupted during bootstrapping, so recovery does not rescore the models.
@@ -50,8 +50,11 @@ from flight_delay.models.embedding_training import (  # noqa: E402
 )
 from flight_delay.models.gru_training import sigmoid  # noqa: E402
 
-MODEL = ROOT / "models/phase2/member3"
-RESULT = ROOT / "reports/results/phase2_member3"
+MODEL = ROOT / "models/phase2/member3/refit_d307"
+RESULT = ROOT / "reports/results/phase2_member3/d307"
+HISTORICAL = ROOT / "reports/results/phase2_member3"
+TUNING = "tuning_d307"
+REFITS = "refit_d307"
 BASELINE = ROOT / "reports/results/phase2_member2/sep_oct_predictions.parquet"
 SEEDS = [42, 43, 44, 45, 46]
 METRICS = ["pr_auc", "roc_auc", "brier_score", "ece_10", "mean_probability"]
@@ -88,11 +91,11 @@ def read_json(path: Path) -> dict:
 
 def provenance() -> dict:
     log = (ROOT / "docs/decision_log.md").read_text()
-    decision = log.split("### D-305", 1)[1].split("\n### ", 1)[0].strip()
+    decision = log.split("### D-307", 1)[1].split("\n### ", 1)[0].strip()
     cfg = load_config()
     dev = ROOT / cfg["paths"]["raw"]
     if dev.resolve() != (ROOT / "data/interim/flights_dev.csv").resolve():
-        raise ValueError("D-305 requires the dedicated January-October development file")
+        raise ValueError("D-307 requires the dedicated January-October development file")
     return {
         "decision_sha256": hashlib.sha256(decision.encode()).hexdigest(),
         "development_sha256": sha256(dev),
@@ -103,7 +106,7 @@ def provenance() -> dict:
 
 def metadata(audit: dict) -> dict:
     return {
-        "protocol": "D-305",
+        "protocol": "D-307",
         "audit": audit,
         "created_utc": datetime.now(timezone.utc).isoformat(),
         "git_commit": subprocess.check_output(
@@ -125,13 +128,18 @@ def checked_record(path: Path, audit: dict) -> dict:
 def grid() -> list[dict]:
     return [
         {
-            "run": f"run{index:02d}",
+            "run": f"d307_{index:03d}",
             "learning_rate": rate,
             "hidden_dims": list(hidden),
             "embedding_cap": cap,
+            "dropout": dropout,
+            "batch_size": batch,
         }
-        for index, (rate, hidden, cap) in enumerate(
-            itertools.product([0.0001, 0.0003], [(64, 32), (128, 64)], [4, 8]), start=1
+        for index, (rate, hidden, cap, dropout, batch) in enumerate(
+            itertools.product(
+                [0.0001, 0.0003], [(64, 32), (128, 64)], [4, 8], [0.1, 0.2, 0.4], [256, 1024]
+            ),
+            start=1,
         )
     ]
 
@@ -171,6 +179,44 @@ def stage_a(table: pd.DataFrame, cfg: dict):
     return prep, make_data(fit, prep), make_data(tune, prep)
 
 
+def historical_run(settings: dict, audit: dict) -> tuple[dict, Path]:
+    """Validate and locate one compatible, unmodified D-305 August run."""
+    matches = []
+    for path in sorted((HISTORICAL / "tuning").glob("run*.json")):
+        record = read_json(path)
+        if all(
+            record[key] == settings[key]
+            for key in ("learning_rate", "hidden_dims", "embedding_cap")
+        ):
+            matches.append((record, path))
+    if len(matches) != 1 or settings["dropout"] != 0.2 or settings["batch_size"] != 256:
+        raise ValueError("Expected exactly one compatible D-305 run")
+    record, path = matches[0]
+    scores = [row["august_pr_auc"] for row in record["history"]]
+    if (
+        record["august_pr_auc"] != max(scores)
+        or record["best_epoch"] != scores.index(max(scores)) + 1
+    ):
+        raise ValueError("Historical August score or selected epoch is inconsistent")
+    for key in ("development_sha256", "baseline_predictions_sha256"):
+        if record["audit"][key] != audit[key]:
+            raise ValueError("Historical run input hashes differ")
+    log = (ROOT / "docs/decision_log.md").read_text()
+    original_decision = log.split("### D-305", 1)[1].split("\n### ", 1)[0].strip()
+    if hashlib.sha256(original_decision.encode()).hexdigest() != record["audit"]["decision_sha256"]:
+        raise ValueError("Historical D-305 decision changed")
+    edited = {"scripts/train_embedding_mlp.py", "src/flight_delay/models/embedding_training.py"}
+    for source, expected in record["audit"]["source_sha256"].items():
+        historical = subprocess.check_output(
+            ["git", "show", f"{record['git_commit']}:{source}"], cwd=ROOT
+        )
+        if hashlib.sha256(historical).hexdigest() != expected:
+            raise ValueError(f"Historical source mismatch for {source}")
+        if source not in edited and audit["source_sha256"][source] != expected:
+            raise ValueError(f"Shared source changed for reused run: {source}")
+    return record, path
+
+
 def check() -> None:
     cfg = load_config()
     if cfg["split"]["valid"] != ["2013-09-01", "2013-10-31"]:
@@ -183,7 +229,15 @@ def check() -> None:
         raise ValueError("Member 2 prediction schema is incomplete")
     assert len(numeric_features(cfg)) == 49 and len(CATEGORICAL) == 10
     audit = provenance()
-    print("PASS: D-305 present, 59 features, 8 settings, seeds 42-46, baseline schema")
+    reused = [
+        settings
+        for settings in grid()
+        if settings["dropout"] == 0.2 and settings["batch_size"] == 256
+    ]
+    for settings in reused:
+        historical_run(settings, audit)
+    print("PASS: D-307 present, 59 features, 48 settings, seeds 42-46, baseline schema")
+    print("PASS: all 8 reusable D-305 records passed source, input and checkpoint-selection checks")
     print("PASS: development file and provenance verified; training not started")
     print(json.dumps(audit, indent=2))
 
@@ -196,10 +250,22 @@ def tune(audit: dict) -> None:
     prep, fit, august = stage_a(table, cfg)
     records = []
     for settings in grid():
-        path = RESULT / "tuning" / (settings["run"] + ".json")
+        path = RESULT / TUNING / (settings["run"] + ".json")
         if path.exists():
             record = checked_record(path, audit)
             print(f"Reusing completed August run {settings['run']}", flush=True)
+        elif settings["dropout"] == 0.2 and settings["batch_size"] == 256:
+            original, original_path = historical_run(settings, audit)
+            record = {
+                **original,
+                **metadata(audit),
+                **settings,
+                "reused_from": str(original_path.relative_to(ROOT)),
+                "reused_record_sha256": sha256(original_path),
+                "original_training_commit": original["git_commit"],
+            }
+            write_json(path, record)
+            print(f"Reused D-305 {original['run']} as {settings['run']}", flush=True)
         else:
             print(f"\nAugust grid {settings}", flush=True)
             model, history, epoch, scores = train_embedding(
@@ -226,6 +292,8 @@ def tune(audit: dict) -> None:
             },
             "selection_metric": "August PR-AUC only",
             "grid_size": len(records),
+            "reused_runs": sum("reused_from" in row for row in records),
+            "new_runs": sum("reused_from" not in row for row in records),
         },
     )
     pd.DataFrame(
@@ -237,6 +305,8 @@ def tune(audit: dict) -> None:
                     "learning_rate",
                     "hidden_dims",
                     "embedding_cap",
+                    "dropout",
+                    "batch_size",
                     "parameters",
                     "best_epoch",
                     "august_pr_auc",
@@ -263,7 +333,7 @@ def refit(audit: dict) -> None:
     records = []
     for seed in SEEDS:
         path = MODEL / f"seed{seed}.pth"
-        record_path = RESULT / "refit" / f"seed{seed}.json"
+        record_path = RESULT / REFITS / f"seed{seed}.json"
         if record_path.exists() and path.exists():
             record = checked_record(record_path, audit)
             if sha256(path) != record["checkpoint_sha256"]:
@@ -272,7 +342,7 @@ def refit(audit: dict) -> None:
         else:
             print(f"\nSeed {seed}: choose epochs on August", flush=True)
             if seed == 42:
-                original = checked_record(RESULT / "tuning" / (settings["run"] + ".json"), audit)
+                original = checked_record(RESULT / TUNING / (settings["run"] + ".json"), audit)
                 epoch, august_scores = original["best_epoch"], original["august_metrics"]
                 history_a = original["history"]
             else:
@@ -391,6 +461,7 @@ def evaluate(audit: dict) -> None:
                 frozen["vocabulary_sizes"],
                 settings["embedding_cap"],
                 tuple(settings["hidden_dims"]),
+                dropout=settings["dropout"],
             )
             model.load_state_dict(torch.load(MODEL / f"seed{seed}.pth", weights_only=True))
             predictions[f"embedding_seed{seed}"] = sigmoid(predict_logits(model, data))

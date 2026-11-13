@@ -117,3 +117,40 @@ def test_refit_has_exact_epochs_and_reproduces_for_same_seed():
     np.testing.assert_array_equal(
         predict_logits(runs[0][0], data), predict_logits(runs[1][0], data)
     )
+
+
+def test_explicit_d305_defaults_produce_identical_training():
+    data = toy(8)
+    original = train_embedding(data, None, [3, 3], SETTINGS, 42, max_epochs=1)[0]
+    explicit = train_embedding(
+        data,
+        None,
+        [3, 3],
+        {**SETTINGS, "dropout": 0.2, "batch_size": 256},
+        42,
+        max_epochs=1,
+    )[0]
+    np.testing.assert_array_equal(predict_logits(original, data), predict_logits(explicit, data))
+
+
+def test_dropout_and_batch_size_control_the_training_run(monkeypatch):
+    import flight_delay.models.embedding_training as training
+
+    batches = []
+    original_loader = training.DataLoader
+
+    def capture_loader(*args, **kwargs):
+        batches.append(kwargs["batch_size"])
+        return original_loader(*args, **kwargs)
+
+    monkeypatch.setattr(training, "DataLoader", capture_loader)
+    model = train_embedding(
+        toy(9),
+        None,
+        [3, 3],
+        {**SETTINGS, "dropout": 0.4, "batch_size": 1024},
+        42,
+        max_epochs=1,
+    )[0]
+    assert batches == [1024]
+    assert [layer.p for layer in model.network if isinstance(layer, torch.nn.Dropout)] == [0.4, 0.4]

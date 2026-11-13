@@ -1,4 +1,4 @@
-"""Deterministic CPU training for the Member 3 model registered in D-305."""
+"""Deterministic CPU training for Member 3 under D-305 and the D-307 amendment."""
 
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ def train_embedding(
         vocabulary_sizes,
         settings["embedding_cap"],
         tuple(settings["hidden_dims"]),
-        dropout=0.2,
+        dropout=settings.get("dropout", 0.2),
     )
     optimizer = torch.optim.Adam(
         model.parameters(), lr=settings["learning_rate"], weight_decay=0.0001
@@ -71,7 +71,7 @@ def train_embedding(
             torch.from_numpy(train.categories),
             torch.from_numpy(train.labels).unsqueeze(-1),
         ),
-        batch_size=256,
+        batch_size=settings.get("batch_size", 256),
         shuffle=True,
         generator=generator,
         num_workers=0,

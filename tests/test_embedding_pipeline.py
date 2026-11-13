@@ -14,12 +14,29 @@ pipeline = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(pipeline)
 
 
-def test_grid_is_the_registered_eight_configurations():
+def test_grid_is_the_registered_joint_48_configurations():
     grid = pipeline.grid()
-    assert len(grid) == 8
+    assert len(grid) == 48
     assert {item["learning_rate"] for item in grid} == {0.0001, 0.0003}
     assert {tuple(item["hidden_dims"]) for item in grid} == {(64, 32), (128, 64)}
     assert {item["embedding_cap"] for item in grid} == {4, 8}
+    assert {item["dropout"] for item in grid} == {0.1, 0.2, 0.4}
+    assert {item["batch_size"] for item in grid} == {256, 1024}
+    reused = [item for item in grid if item["dropout"] == 0.2 and item["batch_size"] == 256]
+    assert len(reused) == 8
+    assert len(grid) - len(reused) == 40
+
+
+def test_inconsistent_historical_scores_are_rejected(tmp_path, monkeypatch):
+    record = pipeline.read_json(pipeline.HISTORICAL / "tuning/run01.json")
+    record["august_pr_auc"] += 0.01
+    pipeline.write_json(tmp_path / "tuning/run01.json", record)
+    monkeypatch.setattr(pipeline, "HISTORICAL", tmp_path)
+    settings = next(
+        row for row in pipeline.grid() if row["dropout"] == 0.2 and row["batch_size"] == 256
+    )
+    with pytest.raises(ValueError, match="Historical August score"):
+        pipeline.historical_run(settings, record["audit"])
 
 
 def test_provenance_rejects_a_non_development_path(monkeypatch):
