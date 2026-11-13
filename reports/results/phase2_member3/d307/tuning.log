@@ -1,0 +1,435 @@
+
+August grid {'run': 'd307_001', 'learning_rate': 0.0001, 'hidden_dims': [64, 32], 'embedding_cap': 4, 'dropout': 0.1, 'batch_size': 256}
+  epoch 01: loss=0.56837, August PR-AUC=0.38789, best_epoch=1
+  epoch 02: loss=0.52951, August PR-AUC=0.39409, best_epoch=2
+  epoch 03: loss=0.52479, August PR-AUC=0.39311, best_epoch=2
+  epoch 04: loss=0.52227, August PR-AUC=0.39207, best_epoch=2
+  epoch 05: loss=0.52003, August PR-AUC=0.39103, best_epoch=2
+  epoch 06: loss=0.51808, August PR-AUC=0.39150, best_epoch=2
+  epoch 07: loss=0.51635, August PR-AUC=0.38811, best_epoch=2
+
+August grid {'run': 'd307_002', 'learning_rate': 0.0001, 'hidden_dims': [64, 32], 'embedding_cap': 4, 'dropout': 0.1, 'batch_size': 1024}
+  epoch 01: loss=0.63198, August PR-AUC=0.33832, best_epoch=1
+  epoch 02: loss=0.55160, August PR-AUC=0.37026, best_epoch=2
+  epoch 03: loss=0.53755, August PR-AUC=0.38564, best_epoch=3
+  epoch 04: loss=0.53136, August PR-AUC=0.39265, best_epoch=4
+  epoch 05: loss=0.52829, August PR-AUC=0.39301, best_epoch=5
+  epoch 06: loss=0.52583, August PR-AUC=0.39358, best_epoch=6
+  epoch 07: loss=0.52452, August PR-AUC=0.39222, best_epoch=6
+  epoch 08: loss=0.52328, August PR-AUC=0.39269, best_epoch=6
+  epoch 09: loss=0.52208, August PR-AUC=0.39213, best_epoch=6
+  epoch 10: loss=0.52137, August PR-AUC=0.39204, best_epoch=6
+  epoch 11: loss=0.52012, August PR-AUC=0.39184, best_epoch=6
+Reused D-305 run01 as d307_003
+
+August grid {'run': 'd307_004', 'learning_rate': 0.0001, 'hidden_dims': [64, 32], 'embedding_cap': 4, 'dropout': 0.2, 'batch_size': 1024}
+  epoch 01: loss=0.63332, August PR-AUC=0.33775, best_epoch=1
+  epoch 02: loss=0.55500, August PR-AUC=0.36921, best_epoch=2
+  epoch 03: loss=0.54085, August PR-AUC=0.38487, best_epoch=3
+  epoch 04: loss=0.53486, August PR-AUC=0.39224, best_epoch=4
+  epoch 05: loss=0.53195, August PR-AUC=0.39348, best_epoch=5
+  epoch 06: loss=0.52941, August PR-AUC=0.39451, best_epoch=6
+  epoch 07: loss=0.52790, August PR-AUC=0.39375, best_epoch=6
+  epoch 08: loss=0.52740, August PR-AUC=0.39411, best_epoch=6
+  epoch 09: loss=0.52575, August PR-AUC=0.39379, best_epoch=6
+  epoch 10: loss=0.52524, August PR-AUC=0.39334, best_epoch=6
+  epoch 11: loss=0.52387, August PR-AUC=0.39331, best_epoch=6
+
+August grid {'run': 'd307_005', 'learning_rate': 0.0001, 'hidden_dims': [64, 32], 'embedding_cap': 4, 'dropout': 0.4, 'batch_size': 256}
+  epoch 01: loss=0.58051, August PR-AUC=0.38009, best_epoch=1
+  epoch 02: loss=0.54278, August PR-AUC=0.39414, best_epoch=2
+  epoch 03: loss=0.53693, August PR-AUC=0.39632, best_epoch=3
+  epoch 04: loss=0.53392, August PR-AUC=0.39680, best_epoch=4
+  epoch 05: loss=0.53161, August PR-AUC=0.39536, best_epoch=4
+  epoch 06: loss=0.52966, August PR-AUC=0.39642, best_epoch=4
+  epoch 07: loss=0.52798, August PR-AUC=0.39493, best_epoch=4
+  epoch 08: loss=0.52705, August PR-AUC=0.39592, best_epoch=4
+  epoch 09: loss=0.52672, August PR-AUC=0.39447, best_epoch=4
+
+August grid {'run': 'd307_006', 'learning_rate': 0.0001, 'hidden_dims': [64, 32], 'embedding_cap': 4, 'dropout': 0.4, 'batch_size': 1024}
+  epoch 01: loss=0.63757, August PR-AUC=0.33647, best_epoch=1
+  epoch 02: loss=0.56441, August PR-AUC=0.36617, best_epoch=2
+  epoch 03: loss=0.54980, August PR-AUC=0.38137, best_epoch=3
+  epoch 04: loss=0.54385, August PR-AUC=0.39050, best_epoch=4
+  epoch 05: loss=0.54065, August PR-AUC=0.39330, best_epoch=5
+  epoch 06: loss=0.53837, August PR-AUC=0.39524, best_epoch=6
+  epoch 07: loss=0.53626, August PR-AUC=0.39563, best_epoch=7
+  epoch 08: loss=0.53580, August PR-AUC=0.39607, best_epoch=8
+  epoch 09: loss=0.53422, August PR-AUC=0.39600, best_epoch=8
+  epoch 10: loss=0.53302, August PR-AUC=0.39575, best_epoch=8
+  epoch 11: loss=0.53215, August PR-AUC=0.39609, best_epoch=11
+  epoch 12: loss=0.53142, August PR-AUC=0.39599, best_epoch=11
+  epoch 13: loss=0.53049, August PR-AUC=0.39519, best_epoch=11
+  epoch 14: loss=0.52956, August PR-AUC=0.39550, best_epoch=11
+  epoch 15: loss=0.52880, August PR-AUC=0.39512, best_epoch=11
+  epoch 16: loss=0.52723, August PR-AUC=0.39568, best_epoch=11
+
+August grid {'run': 'd307_007', 'learning_rate': 0.0001, 'hidden_dims': [64, 32], 'embedding_cap': 8, 'dropout': 0.1, 'batch_size': 256}
+  epoch 01: loss=0.56498, August PR-AUC=0.38388, best_epoch=1
+  epoch 02: loss=0.52972, August PR-AUC=0.39066, best_epoch=2
+  epoch 03: loss=0.52526, August PR-AUC=0.39253, best_epoch=3
+  epoch 04: loss=0.52243, August PR-AUC=0.39291, best_epoch=4
+  epoch 05: loss=0.52048, August PR-AUC=0.39165, best_epoch=4
+  epoch 06: loss=0.51871, August PR-AUC=0.39248, best_epoch=4
+  epoch 07: loss=0.51699, August PR-AUC=0.39077, best_epoch=4
+  epoch 08: loss=0.51552, August PR-AUC=0.39225, best_epoch=4
+  epoch 09: loss=0.51404, August PR-AUC=0.39147, best_epoch=4
+
+August grid {'run': 'd307_008', 'learning_rate': 0.0001, 'hidden_dims': [64, 32], 'embedding_cap': 8, 'dropout': 0.1, 'batch_size': 1024}
+  epoch 01: loss=0.63033, August PR-AUC=0.35137, best_epoch=1
+  epoch 02: loss=0.54522, August PR-AUC=0.37773, best_epoch=2
+  epoch 03: loss=0.53501, August PR-AUC=0.38460, best_epoch=3
+  epoch 04: loss=0.53076, August PR-AUC=0.38855, best_epoch=4
+  epoch 05: loss=0.52834, August PR-AUC=0.39012, best_epoch=5
+  epoch 06: loss=0.52653, August PR-AUC=0.39183, best_epoch=6
+  epoch 07: loss=0.52516, August PR-AUC=0.39255, best_epoch=7
+  epoch 08: loss=0.52372, August PR-AUC=0.39298, best_epoch=8
+  epoch 09: loss=0.52255, August PR-AUC=0.39214, best_epoch=8
+  epoch 10: loss=0.52151, August PR-AUC=0.39199, best_epoch=8
+  epoch 11: loss=0.52031, August PR-AUC=0.39175, best_epoch=8
+  epoch 12: loss=0.51929, August PR-AUC=0.39175, best_epoch=8
+  epoch 13: loss=0.51862, August PR-AUC=0.39070, best_epoch=8
+Reused D-305 run02 as d307_009
+
+August grid {'run': 'd307_010', 'learning_rate': 0.0001, 'hidden_dims': [64, 32], 'embedding_cap': 8, 'dropout': 0.2, 'batch_size': 1024}
+  epoch 01: loss=0.63221, August PR-AUC=0.35104, best_epoch=1
+  epoch 02: loss=0.54849, August PR-AUC=0.37754, best_epoch=2
+  epoch 03: loss=0.53795, August PR-AUC=0.38453, best_epoch=3
+  epoch 04: loss=0.53386, August PR-AUC=0.38839, best_epoch=4
+  epoch 05: loss=0.53188, August PR-AUC=0.39011, best_epoch=5
+  epoch 06: loss=0.53018, August PR-AUC=0.39181, best_epoch=6
+  epoch 07: loss=0.52862, August PR-AUC=0.39321, best_epoch=7
+  epoch 08: loss=0.52719, August PR-AUC=0.39363, best_epoch=8
+  epoch 09: loss=0.52603, August PR-AUC=0.39312, best_epoch=8
+  epoch 10: loss=0.52486, August PR-AUC=0.39305, best_epoch=8
+  epoch 11: loss=0.52371, August PR-AUC=0.39292, best_epoch=8
+  epoch 12: loss=0.52320, August PR-AUC=0.39290, best_epoch=8
+  epoch 13: loss=0.52214, August PR-AUC=0.39191, best_epoch=8
+
+August grid {'run': 'd307_011', 'learning_rate': 0.0001, 'hidden_dims': [64, 32], 'embedding_cap': 8, 'dropout': 0.4, 'batch_size': 256}
+  epoch 01: loss=0.57699, August PR-AUC=0.38370, best_epoch=1
+  epoch 02: loss=0.54187, August PR-AUC=0.39042, best_epoch=2
+  epoch 03: loss=0.53727, August PR-AUC=0.39303, best_epoch=3
+  epoch 04: loss=0.53368, August PR-AUC=0.39404, best_epoch=4
+  epoch 05: loss=0.53187, August PR-AUC=0.39398, best_epoch=4
+  epoch 06: loss=0.53046, August PR-AUC=0.39472, best_epoch=6
+  epoch 07: loss=0.52884, August PR-AUC=0.39427, best_epoch=6
+  epoch 08: loss=0.52698, August PR-AUC=0.39441, best_epoch=6
+  epoch 09: loss=0.52650, August PR-AUC=0.39321, best_epoch=6
+  epoch 10: loss=0.52479, August PR-AUC=0.39212, best_epoch=6
+  epoch 11: loss=0.52285, August PR-AUC=0.39091, best_epoch=6
+
+August grid {'run': 'd307_012', 'learning_rate': 0.0001, 'hidden_dims': [64, 32], 'embedding_cap': 8, 'dropout': 0.4, 'batch_size': 1024}
+  epoch 01: loss=0.63721, August PR-AUC=0.35029, best_epoch=1
+  epoch 02: loss=0.55775, August PR-AUC=0.37714, best_epoch=2
+  epoch 03: loss=0.54677, August PR-AUC=0.38468, best_epoch=3
+  epoch 04: loss=0.54286, August PR-AUC=0.38844, best_epoch=4
+  epoch 05: loss=0.54014, August PR-AUC=0.39032, best_epoch=5
+  epoch 06: loss=0.53839, August PR-AUC=0.39227, best_epoch=6
+  epoch 07: loss=0.53700, August PR-AUC=0.39335, best_epoch=7
+  epoch 08: loss=0.53569, August PR-AUC=0.39376, best_epoch=8
+  epoch 09: loss=0.53416, August PR-AUC=0.39403, best_epoch=9
+  epoch 10: loss=0.53262, August PR-AUC=0.39413, best_epoch=10
+  epoch 11: loss=0.53163, August PR-AUC=0.39419, best_epoch=11
+  epoch 12: loss=0.53094, August PR-AUC=0.39420, best_epoch=12
+  epoch 13: loss=0.53018, August PR-AUC=0.39343, best_epoch=12
+  epoch 14: loss=0.52912, August PR-AUC=0.39362, best_epoch=12
+  epoch 15: loss=0.52881, August PR-AUC=0.39370, best_epoch=12
+  epoch 16: loss=0.52803, August PR-AUC=0.39379, best_epoch=12
+  epoch 17: loss=0.52744, August PR-AUC=0.39321, best_epoch=12
+
+August grid {'run': 'd307_013', 'learning_rate': 0.0001, 'hidden_dims': [128, 64], 'embedding_cap': 4, 'dropout': 0.1, 'batch_size': 256}
+  epoch 01: loss=0.54326, August PR-AUC=0.39521, best_epoch=1
+  epoch 02: loss=0.52404, August PR-AUC=0.39521, best_epoch=2
+  epoch 03: loss=0.51984, August PR-AUC=0.39300, best_epoch=2
+  epoch 04: loss=0.51673, August PR-AUC=0.39253, best_epoch=2
+  epoch 05: loss=0.51412, August PR-AUC=0.39159, best_epoch=2
+  epoch 06: loss=0.51194, August PR-AUC=0.39168, best_epoch=2
+  epoch 07: loss=0.51029, August PR-AUC=0.38663, best_epoch=2
+
+August grid {'run': 'd307_014', 'learning_rate': 0.0001, 'hidden_dims': [128, 64], 'embedding_cap': 4, 'dropout': 0.1, 'batch_size': 1024}
+  epoch 01: loss=0.56835, August PR-AUC=0.37864, best_epoch=1
+  epoch 02: loss=0.53390, August PR-AUC=0.39357, best_epoch=2
+  epoch 03: loss=0.52738, August PR-AUC=0.39642, best_epoch=3
+  epoch 04: loss=0.52406, August PR-AUC=0.39644, best_epoch=4
+  epoch 05: loss=0.52161, August PR-AUC=0.39510, best_epoch=4
+  epoch 06: loss=0.51982, August PR-AUC=0.39504, best_epoch=4
+  epoch 07: loss=0.51807, August PR-AUC=0.39212, best_epoch=4
+  epoch 08: loss=0.51677, August PR-AUC=0.39368, best_epoch=4
+  epoch 09: loss=0.51547, August PR-AUC=0.39277, best_epoch=4
+Reused D-305 run03 as d307_015
+
+August grid {'run': 'd307_016', 'learning_rate': 0.0001, 'hidden_dims': [128, 64], 'embedding_cap': 4, 'dropout': 0.2, 'batch_size': 1024}
+  epoch 01: loss=0.56973, August PR-AUC=0.37787, best_epoch=1
+  epoch 02: loss=0.53626, August PR-AUC=0.39312, best_epoch=2
+  epoch 03: loss=0.52988, August PR-AUC=0.39645, best_epoch=3
+  epoch 04: loss=0.52681, August PR-AUC=0.39747, best_epoch=4
+  epoch 05: loss=0.52402, August PR-AUC=0.39627, best_epoch=4
+  epoch 06: loss=0.52270, August PR-AUC=0.39627, best_epoch=4
+  epoch 07: loss=0.52105, August PR-AUC=0.39383, best_epoch=4
+  epoch 08: loss=0.51983, August PR-AUC=0.39471, best_epoch=4
+  epoch 09: loss=0.51897, August PR-AUC=0.39381, best_epoch=4
+
+August grid {'run': 'd307_017', 'learning_rate': 0.0001, 'hidden_dims': [128, 64], 'embedding_cap': 4, 'dropout': 0.4, 'batch_size': 256}
+  epoch 01: loss=0.55236, August PR-AUC=0.39184, best_epoch=1
+  epoch 02: loss=0.53335, August PR-AUC=0.39682, best_epoch=2
+  epoch 03: loss=0.52912, August PR-AUC=0.39694, best_epoch=3
+  epoch 04: loss=0.52622, August PR-AUC=0.39643, best_epoch=3
+  epoch 05: loss=0.52397, August PR-AUC=0.39480, best_epoch=3
+  epoch 06: loss=0.52241, August PR-AUC=0.39476, best_epoch=3
+  epoch 07: loss=0.52086, August PR-AUC=0.39247, best_epoch=3
+  epoch 08: loss=0.51991, August PR-AUC=0.39265, best_epoch=3
+
+August grid {'run': 'd307_018', 'learning_rate': 0.0001, 'hidden_dims': [128, 64], 'embedding_cap': 4, 'dropout': 0.4, 'batch_size': 1024}
+  epoch 01: loss=0.57445, August PR-AUC=0.37465, best_epoch=1
+  epoch 02: loss=0.54304, August PR-AUC=0.38953, best_epoch=2
+  epoch 03: loss=0.53658, August PR-AUC=0.39468, best_epoch=3
+  epoch 04: loss=0.53302, August PR-AUC=0.39705, best_epoch=4
+  epoch 05: loss=0.53030, August PR-AUC=0.39690, best_epoch=4
+  epoch 06: loss=0.52888, August PR-AUC=0.39713, best_epoch=6
+  epoch 07: loss=0.52715, August PR-AUC=0.39627, best_epoch=6
+  epoch 08: loss=0.52581, August PR-AUC=0.39697, best_epoch=6
+  epoch 09: loss=0.52565, August PR-AUC=0.39570, best_epoch=6
+  epoch 10: loss=0.52399, August PR-AUC=0.39571, best_epoch=6
+  epoch 11: loss=0.52322, August PR-AUC=0.39564, best_epoch=6
+
+August grid {'run': 'd307_019', 'learning_rate': 0.0001, 'hidden_dims': [128, 64], 'embedding_cap': 8, 'dropout': 0.1, 'batch_size': 256}
+  epoch 01: loss=0.54700, August PR-AUC=0.39323, best_epoch=1
+  epoch 02: loss=0.52511, August PR-AUC=0.39441, best_epoch=2
+  epoch 03: loss=0.52054, August PR-AUC=0.39376, best_epoch=2
+  epoch 04: loss=0.51723, August PR-AUC=0.39153, best_epoch=2
+  epoch 05: loss=0.51473, August PR-AUC=0.39066, best_epoch=2
+  epoch 06: loss=0.51242, August PR-AUC=0.38945, best_epoch=2
+  epoch 07: loss=0.51053, August PR-AUC=0.38488, best_epoch=2
+
+August grid {'run': 'd307_020', 'learning_rate': 0.0001, 'hidden_dims': [128, 64], 'embedding_cap': 8, 'dropout': 0.1, 'batch_size': 1024}
+  epoch 01: loss=0.57960, August PR-AUC=0.38190, best_epoch=1
+  epoch 02: loss=0.53627, August PR-AUC=0.39030, best_epoch=2
+  epoch 03: loss=0.52906, August PR-AUC=0.39380, best_epoch=3
+  epoch 04: loss=0.52549, August PR-AUC=0.39528, best_epoch=4
+  epoch 05: loss=0.52309, August PR-AUC=0.39456, best_epoch=4
+  epoch 06: loss=0.52128, August PR-AUC=0.39446, best_epoch=4
+  epoch 07: loss=0.51923, August PR-AUC=0.39336, best_epoch=4
+  epoch 08: loss=0.51774, August PR-AUC=0.39366, best_epoch=4
+  epoch 09: loss=0.51649, August PR-AUC=0.39273, best_epoch=4
+Reused D-305 run04 as d307_021
+
+August grid {'run': 'd307_022', 'learning_rate': 0.0001, 'hidden_dims': [128, 64], 'embedding_cap': 8, 'dropout': 0.2, 'batch_size': 1024}
+  epoch 01: loss=0.58134, August PR-AUC=0.38133, best_epoch=1
+  epoch 02: loss=0.53849, August PR-AUC=0.39047, best_epoch=2
+  epoch 03: loss=0.53127, August PR-AUC=0.39365, best_epoch=3
+  epoch 04: loss=0.52787, August PR-AUC=0.39572, best_epoch=4
+  epoch 05: loss=0.52551, August PR-AUC=0.39562, best_epoch=4
+  epoch 06: loss=0.52407, August PR-AUC=0.39555, best_epoch=4
+  epoch 07: loss=0.52221, August PR-AUC=0.39488, best_epoch=4
+  epoch 08: loss=0.52067, August PR-AUC=0.39511, best_epoch=4
+  epoch 09: loss=0.51973, August PR-AUC=0.39432, best_epoch=4
+
+August grid {'run': 'd307_023', 'learning_rate': 0.0001, 'hidden_dims': [128, 64], 'embedding_cap': 8, 'dropout': 0.4, 'batch_size': 256}
+  epoch 01: loss=0.55601, August PR-AUC=0.39119, best_epoch=1
+  epoch 02: loss=0.53403, August PR-AUC=0.39496, best_epoch=2
+  epoch 03: loss=0.52955, August PR-AUC=0.39698, best_epoch=3
+  epoch 04: loss=0.52680, August PR-AUC=0.39592, best_epoch=3
+  epoch 05: loss=0.52492, August PR-AUC=0.39626, best_epoch=3
+  epoch 06: loss=0.52268, August PR-AUC=0.39535, best_epoch=3
+  epoch 07: loss=0.52122, August PR-AUC=0.39293, best_epoch=3
+  epoch 08: loss=0.51970, August PR-AUC=0.39385, best_epoch=3
+
+August grid {'run': 'd307_024', 'learning_rate': 0.0001, 'hidden_dims': [128, 64], 'embedding_cap': 8, 'dropout': 0.4, 'batch_size': 1024}
+  epoch 01: loss=0.58606, August PR-AUC=0.37871, best_epoch=1
+  epoch 02: loss=0.54427, August PR-AUC=0.38967, best_epoch=2
+  epoch 03: loss=0.53742, August PR-AUC=0.39306, best_epoch=3
+  epoch 04: loss=0.53369, August PR-AUC=0.39492, best_epoch=4
+  epoch 05: loss=0.53153, August PR-AUC=0.39580, best_epoch=5
+  epoch 06: loss=0.52969, August PR-AUC=0.39655, best_epoch=6
+  epoch 07: loss=0.52795, August PR-AUC=0.39676, best_epoch=7
+  epoch 08: loss=0.52682, August PR-AUC=0.39700, best_epoch=8
+  epoch 09: loss=0.52561, August PR-AUC=0.39625, best_epoch=8
+  epoch 10: loss=0.52504, August PR-AUC=0.39646, best_epoch=8
+  epoch 11: loss=0.52431, August PR-AUC=0.39635, best_epoch=8
+  epoch 12: loss=0.52263, August PR-AUC=0.39586, best_epoch=8
+  epoch 13: loss=0.52183, August PR-AUC=0.39497, best_epoch=8
+
+August grid {'run': 'd307_025', 'learning_rate': 0.0003, 'hidden_dims': [64, 32], 'embedding_cap': 4, 'dropout': 0.1, 'batch_size': 256}
+  epoch 01: loss=0.54198, August PR-AUC=0.39213, best_epoch=1
+  epoch 02: loss=0.52114, August PR-AUC=0.38851, best_epoch=1
+  epoch 03: loss=0.51620, August PR-AUC=0.38240, best_epoch=1
+  epoch 04: loss=0.51259, August PR-AUC=0.37693, best_epoch=1
+  epoch 05: loss=0.50930, August PR-AUC=0.37549, best_epoch=1
+  epoch 06: loss=0.50689, August PR-AUC=0.37629, best_epoch=1
+
+August grid {'run': 'd307_026', 'learning_rate': 0.0003, 'hidden_dims': [64, 32], 'embedding_cap': 4, 'dropout': 0.1, 'batch_size': 1024}
+  epoch 01: loss=0.57578, August PR-AUC=0.38398, best_epoch=1
+  epoch 02: loss=0.52962, August PR-AUC=0.39249, best_epoch=2
+  epoch 03: loss=0.52363, August PR-AUC=0.39092, best_epoch=2
+  epoch 04: loss=0.52048, August PR-AUC=0.39040, best_epoch=2
+  epoch 05: loss=0.51830, August PR-AUC=0.38992, best_epoch=2
+  epoch 06: loss=0.51587, August PR-AUC=0.39078, best_epoch=2
+  epoch 07: loss=0.51417, August PR-AUC=0.38546, best_epoch=2
+Reused D-305 run05 as d307_027
+
+August grid {'run': 'd307_028', 'learning_rate': 0.0003, 'hidden_dims': [64, 32], 'embedding_cap': 4, 'dropout': 0.2, 'batch_size': 1024}
+  epoch 01: loss=0.57818, August PR-AUC=0.38323, best_epoch=1
+  epoch 02: loss=0.53334, August PR-AUC=0.39359, best_epoch=2
+  epoch 03: loss=0.52699, August PR-AUC=0.39270, best_epoch=2
+  epoch 04: loss=0.52406, August PR-AUC=0.39190, best_epoch=2
+  epoch 05: loss=0.52213, August PR-AUC=0.39079, best_epoch=2
+  epoch 06: loss=0.51995, August PR-AUC=0.39190, best_epoch=2
+  epoch 07: loss=0.51825, August PR-AUC=0.38753, best_epoch=2
+
+August grid {'run': 'd307_029', 'learning_rate': 0.0003, 'hidden_dims': [64, 32], 'embedding_cap': 4, 'dropout': 0.4, 'batch_size': 256}
+  epoch 01: loss=0.55418, August PR-AUC=0.39419, best_epoch=1
+  epoch 02: loss=0.53282, August PR-AUC=0.39278, best_epoch=1
+  epoch 03: loss=0.52810, August PR-AUC=0.39145, best_epoch=1
+  epoch 04: loss=0.52480, August PR-AUC=0.39059, best_epoch=1
+  epoch 05: loss=0.52205, August PR-AUC=0.38743, best_epoch=1
+  epoch 06: loss=0.51953, August PR-AUC=0.38941, best_epoch=1
+
+August grid {'run': 'd307_030', 'learning_rate': 0.0003, 'hidden_dims': [64, 32], 'embedding_cap': 4, 'dropout': 0.4, 'batch_size': 1024}
+  epoch 01: loss=0.58527, August PR-AUC=0.38049, best_epoch=1
+  epoch 02: loss=0.54225, August PR-AUC=0.39404, best_epoch=2
+  epoch 03: loss=0.53502, August PR-AUC=0.39515, best_epoch=3
+  epoch 04: loss=0.53188, August PR-AUC=0.39468, best_epoch=3
+  epoch 05: loss=0.53017, August PR-AUC=0.39371, best_epoch=3
+  epoch 06: loss=0.52837, August PR-AUC=0.39476, best_epoch=3
+  epoch 07: loss=0.52638, August PR-AUC=0.39252, best_epoch=3
+  epoch 08: loss=0.52581, August PR-AUC=0.39451, best_epoch=3
+
+August grid {'run': 'd307_031', 'learning_rate': 0.0003, 'hidden_dims': [64, 32], 'embedding_cap': 8, 'dropout': 0.1, 'batch_size': 256}
+  epoch 01: loss=0.54116, August PR-AUC=0.39071, best_epoch=1
+  epoch 02: loss=0.52153, August PR-AUC=0.39020, best_epoch=1
+  epoch 03: loss=0.51661, August PR-AUC=0.38780, best_epoch=1
+  epoch 04: loss=0.51230, August PR-AUC=0.38493, best_epoch=1
+  epoch 05: loss=0.50940, August PR-AUC=0.38367, best_epoch=1
+  epoch 06: loss=0.50658, August PR-AUC=0.38077, best_epoch=1
+
+August grid {'run': 'd307_032', 'learning_rate': 0.0003, 'hidden_dims': [64, 32], 'embedding_cap': 8, 'dropout': 0.1, 'batch_size': 1024}
+  epoch 01: loss=0.57212, August PR-AUC=0.38351, best_epoch=1
+  epoch 02: loss=0.52934, August PR-AUC=0.39062, best_epoch=2
+  epoch 03: loss=0.52444, August PR-AUC=0.39299, best_epoch=3
+  epoch 04: loss=0.52095, August PR-AUC=0.39205, best_epoch=3
+  epoch 05: loss=0.51850, August PR-AUC=0.38983, best_epoch=3
+  epoch 06: loss=0.51649, August PR-AUC=0.39030, best_epoch=3
+  epoch 07: loss=0.51460, August PR-AUC=0.38761, best_epoch=3
+  epoch 08: loss=0.51257, August PR-AUC=0.38783, best_epoch=3
+Reused D-305 run06 as d307_033
+
+August grid {'run': 'd307_034', 'learning_rate': 0.0003, 'hidden_dims': [64, 32], 'embedding_cap': 8, 'dropout': 0.2, 'batch_size': 1024}
+  epoch 01: loss=0.57483, August PR-AUC=0.38380, best_epoch=1
+  epoch 02: loss=0.53256, August PR-AUC=0.39058, best_epoch=2
+  epoch 03: loss=0.52755, August PR-AUC=0.39348, best_epoch=3
+  epoch 04: loss=0.52423, August PR-AUC=0.39281, best_epoch=3
+  epoch 05: loss=0.52233, August PR-AUC=0.39088, best_epoch=3
+  epoch 06: loss=0.52050, August PR-AUC=0.39079, best_epoch=3
+  epoch 07: loss=0.51869, August PR-AUC=0.39014, best_epoch=3
+  epoch 08: loss=0.51667, August PR-AUC=0.38908, best_epoch=3
+
+August grid {'run': 'd307_035', 'learning_rate': 0.0003, 'hidden_dims': [64, 32], 'embedding_cap': 8, 'dropout': 0.4, 'batch_size': 256}
+  epoch 01: loss=0.55283, August PR-AUC=0.39177, best_epoch=1
+  epoch 02: loss=0.53313, August PR-AUC=0.39237, best_epoch=2
+  epoch 03: loss=0.52858, August PR-AUC=0.39053, best_epoch=2
+  epoch 04: loss=0.52468, August PR-AUC=0.38897, best_epoch=2
+  epoch 05: loss=0.52209, August PR-AUC=0.38617, best_epoch=2
+  epoch 06: loss=0.52008, August PR-AUC=0.38697, best_epoch=2
+  epoch 07: loss=0.51791, August PR-AUC=0.37865, best_epoch=2
+
+August grid {'run': 'd307_036', 'learning_rate': 0.0003, 'hidden_dims': [64, 32], 'embedding_cap': 8, 'dropout': 0.4, 'batch_size': 1024}
+  epoch 01: loss=0.58219, August PR-AUC=0.38354, best_epoch=1
+  epoch 02: loss=0.54058, August PR-AUC=0.39071, best_epoch=2
+  epoch 03: loss=0.53548, August PR-AUC=0.39354, best_epoch=3
+  epoch 04: loss=0.53279, August PR-AUC=0.39446, best_epoch=4
+  epoch 05: loss=0.53026, August PR-AUC=0.39312, best_epoch=4
+  epoch 06: loss=0.52855, August PR-AUC=0.39376, best_epoch=4
+  epoch 07: loss=0.52683, August PR-AUC=0.39279, best_epoch=4
+  epoch 08: loss=0.52534, August PR-AUC=0.39273, best_epoch=4
+  epoch 09: loss=0.52365, August PR-AUC=0.39024, best_epoch=4
+
+August grid {'run': 'd307_037', 'learning_rate': 0.0003, 'hidden_dims': [128, 64], 'embedding_cap': 4, 'dropout': 0.1, 'batch_size': 256}
+  epoch 01: loss=0.53065, August PR-AUC=0.39252, best_epoch=1
+  epoch 02: loss=0.51593, August PR-AUC=0.38820, best_epoch=1
+  epoch 03: loss=0.51075, August PR-AUC=0.37823, best_epoch=1
+  epoch 04: loss=0.50645, August PR-AUC=0.37131, best_epoch=1
+  epoch 05: loss=0.50294, August PR-AUC=0.36915, best_epoch=1
+  epoch 06: loss=0.49956, August PR-AUC=0.36421, best_epoch=1
+
+August grid {'run': 'd307_038', 'learning_rate': 0.0003, 'hidden_dims': [128, 64], 'embedding_cap': 4, 'dropout': 0.1, 'batch_size': 1024}
+  epoch 01: loss=0.54464, August PR-AUC=0.39500, best_epoch=1
+  epoch 02: loss=0.52252, August PR-AUC=0.39383, best_epoch=1
+  epoch 03: loss=0.51811, August PR-AUC=0.39104, best_epoch=1
+  epoch 04: loss=0.51429, August PR-AUC=0.38988, best_epoch=1
+  epoch 05: loss=0.51114, August PR-AUC=0.38717, best_epoch=1
+  epoch 06: loss=0.50873, August PR-AUC=0.38696, best_epoch=1
+Reused D-305 run07 as d307_039
+
+August grid {'run': 'd307_040', 'learning_rate': 0.0003, 'hidden_dims': [128, 64], 'embedding_cap': 4, 'dropout': 0.2, 'batch_size': 1024}
+  epoch 01: loss=0.54644, August PR-AUC=0.39520, best_epoch=1
+  epoch 02: loss=0.52501, August PR-AUC=0.39573, best_epoch=2
+  epoch 03: loss=0.52083, August PR-AUC=0.39207, best_epoch=2
+  epoch 04: loss=0.51772, August PR-AUC=0.39222, best_epoch=2
+  epoch 05: loss=0.51431, August PR-AUC=0.39005, best_epoch=2
+  epoch 06: loss=0.51246, August PR-AUC=0.39035, best_epoch=2
+  epoch 07: loss=0.51029, August PR-AUC=0.38296, best_epoch=2
+
+August grid {'run': 'd307_041', 'learning_rate': 0.0003, 'hidden_dims': [128, 64], 'embedding_cap': 4, 'dropout': 0.4, 'batch_size': 256}
+  epoch 01: loss=0.53923, August PR-AUC=0.39666, best_epoch=1
+  epoch 02: loss=0.52515, August PR-AUC=0.39339, best_epoch=1
+  epoch 03: loss=0.52111, August PR-AUC=0.38834, best_epoch=1
+  epoch 04: loss=0.51761, August PR-AUC=0.38421, best_epoch=1
+  epoch 05: loss=0.51498, August PR-AUC=0.37964, best_epoch=1
+  epoch 06: loss=0.51237, August PR-AUC=0.37716, best_epoch=1
+
+August grid {'run': 'd307_042', 'learning_rate': 0.0003, 'hidden_dims': [128, 64], 'embedding_cap': 4, 'dropout': 0.4, 'batch_size': 1024}
+  epoch 01: loss=0.55242, August PR-AUC=0.39332, best_epoch=1
+  epoch 02: loss=0.53137, August PR-AUC=0.39655, best_epoch=2
+  epoch 03: loss=0.52720, August PR-AUC=0.39429, best_epoch=2
+  epoch 04: loss=0.52403, August PR-AUC=0.39386, best_epoch=2
+  epoch 05: loss=0.52108, August PR-AUC=0.39291, best_epoch=2
+  epoch 06: loss=0.51933, August PR-AUC=0.39363, best_epoch=2
+  epoch 07: loss=0.51739, August PR-AUC=0.38793, best_epoch=2
+
+August grid {'run': 'd307_043', 'learning_rate': 0.0003, 'hidden_dims': [128, 64], 'embedding_cap': 8, 'dropout': 0.1, 'batch_size': 256}
+  epoch 01: loss=0.53250, August PR-AUC=0.39322, best_epoch=1
+  epoch 02: loss=0.51637, August PR-AUC=0.38721, best_epoch=1
+  epoch 03: loss=0.51048, August PR-AUC=0.37655, best_epoch=1
+  epoch 04: loss=0.50619, August PR-AUC=0.36554, best_epoch=1
+  epoch 05: loss=0.50283, August PR-AUC=0.37234, best_epoch=1
+  epoch 06: loss=0.49994, August PR-AUC=0.36340, best_epoch=1
+
+August grid {'run': 'd307_044', 'learning_rate': 0.0003, 'hidden_dims': [128, 64], 'embedding_cap': 8, 'dropout': 0.1, 'batch_size': 1024}
+  epoch 01: loss=0.55002, August PR-AUC=0.39249, best_epoch=1
+  epoch 02: loss=0.52440, August PR-AUC=0.39346, best_epoch=2
+  epoch 03: loss=0.51912, August PR-AUC=0.39215, best_epoch=2
+  epoch 04: loss=0.51506, August PR-AUC=0.38893, best_epoch=2
+  epoch 05: loss=0.51144, August PR-AUC=0.38598, best_epoch=2
+  epoch 06: loss=0.50896, August PR-AUC=0.38483, best_epoch=2
+  epoch 07: loss=0.50612, August PR-AUC=0.37898, best_epoch=2
+Reused D-305 run08 as d307_045
+
+August grid {'run': 'd307_046', 'learning_rate': 0.0003, 'hidden_dims': [128, 64], 'embedding_cap': 8, 'dropout': 0.2, 'batch_size': 1024}
+  epoch 01: loss=0.55191, August PR-AUC=0.39269, best_epoch=1
+  epoch 02: loss=0.52683, August PR-AUC=0.39503, best_epoch=2
+  epoch 03: loss=0.52169, August PR-AUC=0.39380, best_epoch=2
+  epoch 04: loss=0.51824, August PR-AUC=0.39129, best_epoch=2
+  epoch 05: loss=0.51512, August PR-AUC=0.39042, best_epoch=2
+  epoch 06: loss=0.51310, August PR-AUC=0.38793, best_epoch=2
+  epoch 07: loss=0.51032, August PR-AUC=0.38226, best_epoch=2
+
+August grid {'run': 'd307_047', 'learning_rate': 0.0003, 'hidden_dims': [128, 64], 'embedding_cap': 8, 'dropout': 0.4, 'batch_size': 256}
+  epoch 01: loss=0.54103, August PR-AUC=0.39380, best_epoch=1
+  epoch 02: loss=0.52597, August PR-AUC=0.39441, best_epoch=2
+  epoch 03: loss=0.52122, August PR-AUC=0.39200, best_epoch=2
+  epoch 04: loss=0.51726, August PR-AUC=0.38121, best_epoch=2
+  epoch 05: loss=0.51443, August PR-AUC=0.38132, best_epoch=2
+  epoch 06: loss=0.51147, August PR-AUC=0.37750, best_epoch=2
+  epoch 07: loss=0.50943, August PR-AUC=0.36975, best_epoch=2
+
+August grid {'run': 'd307_048', 'learning_rate': 0.0003, 'hidden_dims': [128, 64], 'embedding_cap': 8, 'dropout': 0.4, 'batch_size': 1024}
+  epoch 01: loss=0.55703, August PR-AUC=0.39225, best_epoch=1
+  epoch 02: loss=0.53245, August PR-AUC=0.39579, best_epoch=2
+  epoch 03: loss=0.52768, August PR-AUC=0.39490, best_epoch=2
+  epoch 04: loss=0.52427, August PR-AUC=0.39350, best_epoch=2
+  epoch 05: loss=0.52198, August PR-AUC=0.39344, best_epoch=2
+  epoch 06: loss=0.51988, August PR-AUC=0.39182, best_epoch=2
+  epoch 07: loss=0.51764, August PR-AUC=0.38739, best_epoch=2
+
+FROZEN AUGUST WINNER d307_016 0.3974745809428457

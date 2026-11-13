@@ -1,0 +1,233 @@
+{
+  "protocol": "D-307",
+  "audit": {
+    "decision_sha256": "82a4aaac45cef7a2335cff31194829e4fa690cf2c3055fe7c9dba34aa888861e",
+    "development_sha256": "8f206680eda4dc42098dbd4e9a6ec6f89f468afc41cbb913fd528fa4fc0018df",
+    "baseline_predictions_sha256": "7bb11730eceab866c4987c1ac8c50bcfa78a96639c186c23a18173f70bb02a2e",
+    "source_sha256": {
+      "src/flight_delay/models/embedding_mlp.py": "322b375fefe013828d99ad52e15f28c4decf084d5f9d4fb1dc68c1ed4ea405ed",
+      "src/flight_delay/models/embedding_training.py": "df47a8eb6bdae4db01f56c64f9301aab40d1bfd57c46ce3697f9ab206c48d787",
+      "scripts/train_embedding_mlp.py": "e6dd01c0707029532d3e5de7a7919be509bfc812b75e58477c4080cdda463bcf",
+      "src/flight_delay/models/mlp_training.py": "cb9eede05cac426e7203e32cafb109ba04b514139571a20b3985d8c29fe4e6ab",
+      "src/flight_delay/models/gru_training.py": "17dd5f3f73a363291870943ba4859896fc456a70e914c0b2893053fe1e142681",
+      "src/flight_delay/features/encoding.py": "ac6449adcabe0b350d5f2a227770f8de89848f755ae6369fb63e4c9c683dce97",
+      "scripts/train_gru.py": "f3c9373c4e9bad9eea7137f2c9a4dbb71a5a944f8c406d26f08ffdea6dcf4dfe",
+      "configs/config.yaml": "b859461930574798d95def7cadea2b5b4fa0d1552f462fc80ba3db87cba8016c"
+    }
+  },
+  "created_utc": "2026-11-13T11:19:28.615790+00:00",
+  "git_commit": "a25aa78f97afdf6b99cc010149de3fe69717a801",
+  "torch_version": "2.15.0",
+  "device": "cpu",
+  "holdout_accessed": false,
+  "run": "d307_012",
+  "learning_rate": 0.0001,
+  "hidden_dims": [
+    64,
+    32
+  ],
+  "embedding_cap": 8,
+  "dropout": 0.4,
+  "batch_size": 1024,
+  "best_epoch": 12,
+  "august_pr_auc": 0.394196936507891,
+  "august_metrics": {
+    "pr_auc": 0.394196936507891,
+    "roc_auc": 0.6707736925164358,
+    "brier_score": 0.17423538863658905,
+    "ece_10": 0.03861622753196705,
+    "loss": 0.5282078981399536,
+    "mean_predicted_probability": 0.26216837763786316,
+    "positive_rate": 0.24596606194972992
+  },
+  "parameters": 16555,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 0.6372142538788118,
+      "august_pr_auc": 0.3502892989340454,
+      "august_roc_auc": 0.6414095709472203,
+      "august_brier_score": 0.1876581907272339,
+      "august_ece_10": 0.09961075067887022,
+      "august_loss": 0.5619862079620361,
+      "august_mean_predicted_probability": 0.34557682275772095,
+      "august_positive_rate": 0.24596606194972992
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.557746885610391,
+      "august_pr_auc": 0.3771395604701746,
+      "august_roc_auc": 0.6665349885333804,
+      "august_brier_score": 0.17535793781280518,
+      "august_ece_10": 0.03740711145166198,
+      "august_loss": 0.5303645133972168,
+      "august_mean_predicted_probability": 0.2833731174468994,
+      "august_positive_rate": 0.24596606194972992
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.5467661594684817,
+      "august_pr_auc": 0.3846754593249882,
+      "august_roc_auc": 0.6706854350867633,
+      "august_brier_score": 0.17412084341049194,
+      "august_ece_10": 0.028792593974321105,
+      "august_loss": 0.5267154574394226,
+      "august_mean_predicted_probability": 0.27417242527008057,
+      "august_positive_rate": 0.24596606194972992
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.5428552798683447,
+      "august_pr_auc": 0.38844039454409035,
+      "august_roc_auc": 0.6718635581542063,
+      "august_brier_score": 0.17397890985012054,
+      "august_ece_10": 0.0288405573885022,
+      "august_loss": 0.5264083743095398,
+      "august_mean_predicted_probability": 0.2725768983364105,
+      "august_positive_rate": 0.24596606194972992
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.5401375609997049,
+      "august_pr_auc": 0.39032279723138724,
+      "august_roc_auc": 0.6719846525249472,
+      "august_brier_score": 0.1739298701286316,
+      "august_ece_10": 0.03071058530861553,
+      "august_loss": 0.5264742970466614,
+      "august_mean_predicted_probability": 0.2703778147697449,
+      "august_positive_rate": 0.24596606194972992
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.5383866115262015,
+      "august_pr_auc": 0.39226878900080464,
+      "august_roc_auc": 0.672531114387256,
+      "august_brier_score": 0.1739572435617447,
+      "august_ece_10": 0.03326005331673415,
+      "august_loss": 0.5266426205635071,
+      "august_mean_predicted_probability": 0.27050620317459106,
+      "august_positive_rate": 0.24596606194972992
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.5370015688756432,
+      "august_pr_auc": 0.39335319722683637,
+      "august_roc_auc": 0.6723159104910107,
+      "august_brier_score": 0.17391611635684967,
+      "august_ece_10": 0.034138956967011115,
+      "august_loss": 0.5267162322998047,
+      "august_mean_predicted_probability": 0.26900550723075867,
+      "august_positive_rate": 0.24596606194972992
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.5356894098833179,
+      "august_pr_auc": 0.3937646085359506,
+      "august_roc_auc": 0.6719173061496841,
+      "august_brier_score": 0.17396855354309082,
+      "august_ece_10": 0.035358018423319856,
+      "august_loss": 0.5270909667015076,
+      "august_mean_predicted_probability": 0.2666139602661133,
+      "august_positive_rate": 0.24596606194972992
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.5341554304569475,
+      "august_pr_auc": 0.39402596049922356,
+      "august_roc_auc": 0.6716354796471312,
+      "august_brier_score": 0.17396356165409088,
+      "august_ece_10": 0.03524271875675852,
+      "august_loss": 0.5272904634475708,
+      "august_mean_predicted_probability": 0.26416656374931335,
+      "august_positive_rate": 0.24596606194972992
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.5326211044870887,
+      "august_pr_auc": 0.39412732279277385,
+      "august_roc_auc": 0.6717210310937729,
+      "august_brier_score": 0.17403092980384827,
+      "august_ece_10": 0.03684868443369169,
+      "august_loss": 0.5275400876998901,
+      "august_mean_predicted_probability": 0.2636749744415283,
+      "august_positive_rate": 0.24596606194972992
+    },
+    {
+      "epoch": 11,
+      "train_loss": 0.5316347091904792,
+      "august_pr_auc": 0.3941883556275043,
+      "august_roc_auc": 0.6713161214859623,
+      "august_brier_score": 0.17405664920806885,
+      "august_ece_10": 0.03723620008514013,
+      "august_loss": 0.5277968645095825,
+      "august_mean_predicted_probability": 0.2614856958389282,
+      "august_positive_rate": 0.24596606194972992
+    },
+    {
+      "epoch": 12,
+      "train_loss": 0.5309355911110225,
+      "august_pr_auc": 0.394196936507891,
+      "august_roc_auc": 0.6707736925164358,
+      "august_brier_score": 0.17423538863658905,
+      "august_ece_10": 0.03861622753196705,
+      "august_loss": 0.5282078981399536,
+      "august_mean_predicted_probability": 0.26216837763786316,
+      "august_positive_rate": 0.24596606194972992
+    },
+    {
+      "epoch": 13,
+      "train_loss": 0.5301753305074072,
+      "august_pr_auc": 0.3934283617572394,
+      "august_roc_auc": 0.6704236654608438,
+      "august_brier_score": 0.174443781375885,
+      "august_ece_10": 0.03944454482505361,
+      "august_loss": 0.5288257598876953,
+      "august_mean_predicted_probability": 0.2622624635696411,
+      "august_positive_rate": 0.24596606194972992
+    },
+    {
+      "epoch": 14,
+      "train_loss": 0.5291219027348684,
+      "august_pr_auc": 0.3936228827682394,
+      "august_roc_auc": 0.6702869807155805,
+      "august_brier_score": 0.17456461489200592,
+      "august_ece_10": 0.040647746488039475,
+      "august_loss": 0.5291626453399658,
+      "august_mean_predicted_probability": 0.2618568241596222,
+      "august_positive_rate": 0.24596606194972992
+    },
+    {
+      "epoch": 15,
+      "train_loss": 0.5288111333973629,
+      "august_pr_auc": 0.3936969892177612,
+      "august_roc_auc": 0.6700252958553945,
+      "august_brier_score": 0.17476016283035278,
+      "august_ece_10": 0.04221664032332588,
+      "august_loss": 0.5294732451438904,
+      "august_mean_predicted_probability": 0.26384878158569336,
+      "august_positive_rate": 0.24596606194972992
+    },
+    {
+      "epoch": 16,
+      "train_loss": 0.5280282398582741,
+      "august_pr_auc": 0.39378964640621017,
+      "august_roc_auc": 0.6698193672865261,
+      "august_brier_score": 0.17487260699272156,
+      "august_ece_10": 0.04256780488715291,
+      "august_loss": 0.5299144983291626,
+      "august_mean_predicted_probability": 0.2620064318180084,
+      "august_positive_rate": 0.24596606194972992
+    },
+    {
+      "epoch": 17,
+      "train_loss": 0.527435810784873,
+      "august_pr_auc": 0.3932129971472981,
+      "august_roc_auc": 0.6695155408159101,
+      "august_brier_score": 0.17496204376220703,
+      "august_ece_10": 0.04284318952136792,
+      "august_loss": 0.5300719738006592,
+      "august_mean_predicted_probability": 0.26207301020622253,
+      "august_positive_rate": 0.24596606194972992
+    }
+  ]
+}
