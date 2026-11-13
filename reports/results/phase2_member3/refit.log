@@ -1,0 +1,62 @@
+
+Seed 42: choose epochs on August
+Seed 42: refit January-August for 2 epoch(s)
+  refit epoch 01: loss=0.54265
+  refit epoch 02: loss=0.52633
+
+Seed 43: choose epochs on August
+  epoch 01: loss=0.55463, August PR-AUC=0.39281, best_epoch=1
+  epoch 02: loss=0.52767, August PR-AUC=0.39636, best_epoch=2
+  epoch 03: loss=0.52389, August PR-AUC=0.39679, best_epoch=3
+  epoch 04: loss=0.52073, August PR-AUC=0.39524, best_epoch=3
+  epoch 05: loss=0.51828, August PR-AUC=0.39515, best_epoch=3
+  epoch 06: loss=0.51653, August PR-AUC=0.39374, best_epoch=3
+  epoch 07: loss=0.51475, August PR-AUC=0.39212, best_epoch=3
+  epoch 08: loss=0.51352, August PR-AUC=0.39027, best_epoch=3
+Seed 43: refit January-August for 3 epoch(s)
+  refit epoch 01: loss=0.55007
+  refit epoch 02: loss=0.52717
+  refit epoch 03: loss=0.52329
+
+Seed 44: choose epochs on August
+  epoch 01: loss=0.54978, August PR-AUC=0.38819, best_epoch=1
+  epoch 02: loss=0.52818, August PR-AUC=0.39678, best_epoch=2
+  epoch 03: loss=0.52363, August PR-AUC=0.39516, best_epoch=2
+  epoch 04: loss=0.52063, August PR-AUC=0.39599, best_epoch=2
+  epoch 05: loss=0.51837, August PR-AUC=0.39432, best_epoch=2
+  epoch 06: loss=0.51692, August PR-AUC=0.39363, best_epoch=2
+  epoch 07: loss=0.51497, August PR-AUC=0.39250, best_epoch=2
+Seed 44: refit January-August for 2 epoch(s)
+  refit epoch 01: loss=0.54580
+  refit epoch 02: loss=0.52689
+
+Seed 45: choose epochs on August
+  epoch 01: loss=0.55276, August PR-AUC=0.39326, best_epoch=1
+  epoch 02: loss=0.52827, August PR-AUC=0.39467, best_epoch=2
+  epoch 03: loss=0.52403, August PR-AUC=0.39496, best_epoch=3
+  epoch 04: loss=0.52128, August PR-AUC=0.39554, best_epoch=4
+  epoch 05: loss=0.51894, August PR-AUC=0.39712, best_epoch=5
+  epoch 06: loss=0.51698, August PR-AUC=0.39513, best_epoch=5
+  epoch 07: loss=0.51514, August PR-AUC=0.39441, best_epoch=5
+  epoch 08: loss=0.51363, August PR-AUC=0.39426, best_epoch=5
+  epoch 09: loss=0.51191, August PR-AUC=0.38935, best_epoch=5
+  epoch 10: loss=0.51055, August PR-AUC=0.38912, best_epoch=5
+Seed 45: refit January-August for 5 epoch(s)
+  refit epoch 01: loss=0.54922
+  refit epoch 02: loss=0.52726
+  refit epoch 03: loss=0.52387
+  refit epoch 04: loss=0.52109
+  refit epoch 05: loss=0.51860
+
+Seed 46: choose epochs on August
+  epoch 01: loss=0.55363, August PR-AUC=0.39705, best_epoch=1
+  epoch 02: loss=0.52776, August PR-AUC=0.39772, best_epoch=2
+  epoch 03: loss=0.52350, August PR-AUC=0.39542, best_epoch=2
+  epoch 04: loss=0.52124, August PR-AUC=0.39554, best_epoch=2
+  epoch 05: loss=0.51917, August PR-AUC=0.39322, best_epoch=2
+  epoch 06: loss=0.51747, August PR-AUC=0.39126, best_epoch=2
+  epoch 07: loss=0.51568, August PR-AUC=0.39203, best_epoch=2
+Seed 46: refit January-August for 2 epoch(s)
+  refit epoch 01: loss=0.55020
+  refit epoch 02: loss=0.52690
+FROZEN: all five January-August models; evaluation pending
