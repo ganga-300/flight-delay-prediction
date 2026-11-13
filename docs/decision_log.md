@@ -782,3 +782,41 @@ reliability diagram, and at the threshold: precision, recall and flights flagged
 - Show the final D-307 numbers next to D-306 in the Member 3 document and update
   the notebook and presentation. September–October has no role in model choice.
   November–December stays sealed. Member 1 and Member 2 files remain intact.
+
+### D-308 · Final Member 3 results under D-307
+
+- D-307 was committed as `90eecd5` before amended training. Its full joint grid
+  completed 48 seed-42 settings, with eight historical D-305 runs reused after
+  source, input and selection-record checks and 40 newly trained configurations.
+- August PR-AUC alone selected `d307_016`, with learning rate 0.0001, hidden
+  layers (128,64), embedding cap 4, dropout 0.2 and batch size 1024. Its August
+  PR-AUC was 0.3974746 at epoch 4. All epochs and settings were frozen without
+  September–October input into model choice.
+- Seeds 42–46 selected 4,5,5,10,4 epochs on August, respectively. Each model was
+  reinitialised and refit January–August with newly fitted preprocessing. The
+  five models were frozen in commit `154c1ae` before D-307 final scoring.
+- D-307 scored the same 55,628 September–October flights and preserved the saved
+  MLP, LR and GRU baseline probabilities exactly. All comparisons use raw scores.
+
+| Member 3 version | August tuning PR-AUC | Sep–Oct PR-AUC mean ± sd | ROC-AUC | Brier | ECE |
+| --- | --- | --- | --- | --- | --- |
+| D-306 historical | 0.39683 | 0.27620 ± 0.00242 | 0.67528 | 0.12793 | 0.04732 |
+| D-307 final | 0.39747 | 0.27572 ± 0.00347 | 0.67483 | 0.12826 | 0.05034 |
+
+| D-307 paired PR-AUC difference | Estimate | 95% day-bootstrap interval |
+| --- | --- | --- |
+| Embedding MLP − Member 1 MLP | −0.00821 | [−0.02668, +0.01158] |
+| Embedding MLP − Logistic Regression | −0.01387 | [−0.02181, −0.00340] |
+| Embedding MLP − GRU | −0.01885 | [−0.03969, +0.00226] |
+
+- The unchanged Member 2 day_bootstrap used 1,000 paired whole-day resamples.
+  The final model's PR-AUC is lower than LR with an entirely negative interval.
+  The MLP and GRU intervals include zero. The amendment completes the assigned
+  joint search, and its result supersedes D-306 independently of evaluation scores.
+- September–October was previously scored under D-305/D-306, as explicitly
+  disclosed in D-307. It was not used for any amended setting or epoch choice.
+  Historical artifacts and D-305/D-306 decision text remain byte-identical.
+- Amended records are under `reports/results/phase2_member3/d307/`; final models
+  are under `models/phase2/member3/refit_d307/`. The updated report, executed
+  notebook and presentation show the historical result alongside the final one.
+  November–December remained sealed throughout this amendment.

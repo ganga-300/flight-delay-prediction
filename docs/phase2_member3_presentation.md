@@ -1,103 +1,97 @@
-# Member 3 — presentation and demonstration
+# Member 3 — D-307 final presentation and demonstration
 
-## Slide 1 — My contribution
+## Slide 1 — Contribution and amendment
 
-- Built an embedding-based MLP for next-day flight-delay classification.
-- Used the existing 49 numeric and 10 categorical features.
-- Registered eight settings in D-305 before training.
-- Delivered five seed models, comparisons, uncertainty estimates and reproducible code.
-
-Speaker notes
-
-I continued the Phase 1 feature pipeline. My question was whether learned category
-representations could improve prediction compared with the existing MLP, LR and GRU.
-
-## Slide 2 — How the network works
-
-Use `reports/figures/phase2_member3/embedding_architecture.png`.
-
-- Scale numeric features using training statistics.
-- Give each category a trainable vector.
-- Combine 49 numeric values and 37 learned embedding values.
-- Apply two hidden layers of 128 and 64 neurons, with ReLU and dropout.
-- Convert the output logit into a delay probability using sigmoid.
+- Built an embedding MLP using 49 numeric and 10 categorical features.
+- Registered D-307 before amended training to cover dropout and batch size.
+- Evaluated the full 48-setting joint grid with seed 42.
+- Reused eight verified D-305 runs and trained 40 new settings.
 
 Speaker notes
 
-For example, an airline code receives a small vector of numbers. The model learns
-these numbers while predicting delayed and on-time flights. The final network has
-23,315 trainable parameters. Unknown categories map to a reserved category.
+Sep–Oct was scored once under D-305 (D-306) before this amendment. D-307 replaces D-306 as the Member 3 result because D-305 did not tune batch size and dropout as assigned. Sep–Oct is not used for any choice.
 
-## Slide 3 — Training protocol
+## Slide 2 — Architecture
 
-Use `reports/figures/phase2_member3/august_grid.png`.
+Use `reports/figures/phase2_member3/d307/embedding_architecture.png`.
 
-- Fit on January–July.
-- Select settings and epochs using August PR-AUC.
-- Selected learning rate 0.0001, hidden layers 128/64 and embedding cap 4.
-- Refit January–August using seeds 42–46 and their selected epochs.
-- Score September–October after every model is frozen.
+- Selected learning rate 0.0001, hidden layers [128, 64], embedding cap 4, dropout 0.2, batch size 1024.
+- Concatenate numeric values with trainable categorical embeddings.
+- Apply two ReLU hidden layers, dropout, and one output logit.
+- Use sigmoid to produce a probability at inference.
+- The refit model contains 23,315 parameters.
+- Fit vocabulary, imputation and scalers on each stage's training rows only.
 
-Speaker notes
+## Slide 3 — Joint tuning
 
-The eight runs combine two learning rates, two network widths and two embedding
-caps. Seed 42 selected epoch 2 and August PR-AUC 0.3968. The final seeds selected
-2, 3, 2, 5 and 2 epochs. Every stage learns its preprocessing from its training rows.
+Use `reports/figures/phase2_member3/d307/august_grid.png`.
 
-## Slide 4 — Final results
+- Learning rate 0.0001/0.0003, hidden layers 64–32/128–64, embedding cap 4/8.
+- Dropout 0.1/0.2/0.4 and batch size 256/1024.
+- Fit January–July and choose every setting and epoch by August PR-AUC.
+- Winner August PR-AUC 0.39747, seed-42 epoch 4.
+- Exact ties prefer fewer parameters, lower learning rate, then grid order.
+- Adam, weight decay 0.0001, unweighted BCE, maximum 30 epochs, patience 5.
 
-Use `reports/figures/phase2_member3/seed_comparison.png`.
+## Slide 4 — Five seeds and final results
 
-| Model | Sep–Oct PR-AUC |
-| --- | --- |
-| Embedding MLP | 0.2762 ± 0.0024 |
-| Member 1 MLP | 0.2839 ± 0.0043 |
-| Logistic Regression | 0.2896 |
-| GRU | 0.2946 ± 0.0055 |
+- Seeds 42–46 each choose their own epoch on August.
+- Reinitialise and refit January–August for the chosen epoch count.
+- Freeze every model before the D-307 September–October scoring.
+- Use the same 55,628 flights and saved MLP, LR and GRU baselines.
 
-Speaker notes
+| model | pr_auc_mean | pr_auc_std | roc_auc_mean | brier_score_mean | ece_10_mean |
+| --- | --- | --- | --- | --- | --- |
+| embedding | 0.27572 | 0.00347 | 0.67483 | 0.12826 | 0.05034 |
+| gru | 0.29457 | 0.00552 | 0.67434 | 0.136 | 0.08628 |
+| lr | 0.28959 | — | 0.68 | 0.18554 | 0.23341 |
+| mlp | 0.28393 | 0.00429 | 0.67187 | 0.13327 | 0.07574 |
 
-All models use the same 55,628 flights. My embedding model has lower PR-AUC in
-this experiment. Its Brier score is 0.1279 and ECE is 0.0473, the smallest raw
-probability errors among these compared models. Loss weighting and model choices
-also affect calibration, so these differences need careful interpretation.
+## Slide 5 — Historical result next to final result
 
-## Slide 5 — Uncertainty and conclusion
-
-Use `reports/figures/phase2_member3/bootstrap_differences.png`.
-
-- Resample whole days 1,000 times to preserve within-day dependence.
-- Compute paired PR-AUC differences on identical flights.
-- The embedding-minus-LR interval is entirely below zero.
-- The MLP and GRU difference intervals include zero.
-- Record the result under the registered protocol and retain the trained artifacts.
+| result | dropout | batch_size | August tuning PR-AUC | pr_auc | roc_auc | brier_score | ece_10 | pr_auc_std |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| D-306 historical | 0.2 | 256 | 0.39683 | 0.2762 | 0.67528 | 0.12793 | 0.04732 | 0.00242 |
+| D-307 final | 0.2 | 1024 | 0.39747 | 0.27572 | 0.67483 | 0.12826 | 0.05034 | 0.00347 |
 
 Speaker notes
 
-The LR comparison supports lower ranking performance for my model. This experiment
-does not demonstrate a ranking improvement from the chosen embedding architecture.
-One year of NYC data and past-known information limits generalisation. Matched
-ablations can isolate representation effects in Member 4's work.
+D-307 is the final Member 3 result because it completes the assigned joint grid.
+The historical D-306 results remain available for review. Final evaluation values
+were observed after architecture and epoch choices were frozen.
+
+## Slide 6 — Paired uncertainty and interpretation
+
+Use `reports/figures/phase2_member3/d307/bootstrap_differences.png`.
+
+| comparison | difference | ci_low | ci_high | excludes_zero |
+| --- | --- | --- | --- | --- |
+| embedding - mlp | -0.00821 | -0.02668 | 0.01158 | False |
+| embedding - lr | -0.01387 | -0.02181 | -0.0034 | True |
+| embedding - gru | -0.01885 | -0.03969 | 0.00226 | False |
+
+No comparison has a positive 95% interval entirely above zero. Negative intervals support lower PR-AUC for embedding - lr.
+
+The existing Member 2 bootstrap samples whole days 1,000 times, averages PR-AUC
+over the five seeds, and computes paired differences on identical sampled flights.
+PR-AUC evaluates ranking. Brier and ECE evaluate raw probability quality. Earlier
+evaluation exposure is disclosed. One year of NYC data limits generalisation.
 
 ## Demonstration
 
-1. Open D-305 and show its commit preceding training.
-2. Open the architecture code and the eight August experiment records.
-3. Open `notebooks/phase2_member3_embedding_mlp.ipynb` and its executed results.
-4. Show the five saved checkpoints and `frozen.json`.
-5. Show paired differences and explain the negative LR interval.
+1. Show D-307 and its pre-training commit `90eecd5`.
+2. Show all 48 settings and provenance of the eight reused runs.
+3. Show the five saved models under `models/phase2/member3/refit_d307/`.
+4. Open the executed Member 3 notebook and the historical-versus-final table.
+5. Explain the day-bootstrap intervals and the role of August-only selection.
 
-## Viva questions
+## Viva preparation
 
-- Why embeddings? They learn compact representations of categorical levels jointly
-  with the prediction task. Their value must be established experimentally.
-- Why lower learning rates? Earlier models peaked in one or two August epochs.
-  Smaller steps were included in the predeclared grid.
-- Why five seeds? Random initialisation and batch order can change a neural model's
-  performance. Reporting mean and standard deviation makes this variation visible.
-- Why PR-AUC? Delayed flights are the minority class, and precision–recall focuses
-  on retrieving those flights. The project predeclared it as the primary metric.
-- Why raw calibration differs from ranking? PR-AUC measures ordering, while Brier
-  and ECE assess probability values. These properties can move differently.
-- What is leakage? Using information unavailable at prediction time, or fitting
-  preprocessing on evaluation rows, can inflate measured performance.
+- An embedding is a category-specific vector learned jointly with the classifier.
+- Dropout randomly removes hidden activations during training to constrain overfitting.
+- Batch size controls how many examples contribute to each gradient update.
+- Learning rate controls update size. Batch size and learning rate interact,
+  which motivates tuning their combinations in the joint grid.
+- PR-AUC focuses on retrieving delayed flights in an imbalanced dataset.
+- Five seeds expose variation from initialisation and training order.
+- Preprocessing fitted on evaluation data would leak distribution information.
