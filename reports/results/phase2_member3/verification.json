@@ -1,0 +1,18 @@
+{
+  "protocol": "D-305",
+  "matched_flights": 55628,
+  "evaluation_days": 61,
+  "recomputed_metric_values": 240,
+  "maximum_metric_difference": 0.0,
+  "baseline_prediction_columns_identical": true,
+  "frozen_model_and_preprocessing_hashes_verified": true,
+  "original_member1_member2_files_unchanged": true,
+  "full_suite_passed": 108,
+  "existing_tests_skipped": 4,
+  "skip_reason": "Legacy Member 1 integration tests require generated processed parquet files.",
+  "member3_tests_passed": 17,
+  "executed_notebook_code_cells": 3,
+  "ruff": "passed",
+  "sealed_holdout_accessed": false,
+  "bootstrap_point_estimates_verified": true
+}

@@ -698,3 +698,48 @@ reliability diagram, and at the threshold: precision, recall and flights flagged
 - November-December remains sealed and is excluded from this work.
 - Save Member 3 code, checkpoints, preprocessing, run histories,
   August grid results and final aligned predictions separately.
+
+### D-306 · Member 3 embedding MLP results
+
+- Completed under the unchanged D-305 grid and selection rule, on CPU with
+  Python 3.11.17 and PyTorch 2.15.0. D-305 was committed as `12f13e8` before training.
+- The existing holdout-reference test rejected an unnecessary sealed-path name in
+  the new script's path comparison. Commit `9e01bfb` replaced it with an explicit
+  dedicated-development-path check. The identical August grid was rerun after
+  this implementation fix. September–October had not been scored at that point.
+- All eight registered settings were evaluated with seed 42. Run03 won on August
+  PR-AUC 0.3968296, with learning rate 0.0001, hidden layers (128,64), embedding
+  dimension cap 4, and epoch 2. These are tuning results.
+- The frozen architecture selected epochs 2,3,2,5,2 for seeds 42,43,44,45,46,
+  respectively. Each seed was reinitialised and refit on January–August.
+  Vocabularies, numeric medians and scalers were refit using those rows only.
+- The final model concatenates 49 numeric inputs and 37 embedding values,
+  followed by the 128/64 dense head. It has 23,315 trainable parameters.
+- Final model scoring used the same 55,628 September–October flights as Member 2,
+  with identical flight IDs, dates and labels. All probabilities are raw.
+
+| Model | PR-AUC mean ± sd | ROC-AUC | Brier | ECE |
+| --- | --- | --- | --- | --- |
+| Embedding MLP | 0.2762 ± 0.0024 | 0.6753 | 0.1279 | 0.0473 |
+| Member 1 MLP | 0.2839 ± 0.0043 | 0.6719 | 0.1333 | 0.0757 |
+| Logistic Regression | 0.2896 | 0.6800 | 0.1855 | 0.2334 |
+| Member 2 GRU | 0.2946 ± 0.0055 | 0.6743 | 0.1360 | 0.0863 |
+
+| Paired PR-AUC difference | Estimate | 95% day-bootstrap interval |
+| --- | --- | --- |
+| Embedding MLP − Member 1 MLP | −0.0077 | [−0.0253, +0.0111] |
+| Embedding MLP − Logistic Regression | −0.0134 | [−0.0212, −0.0034] |
+| Embedding MLP − GRU | −0.0184 | [−0.0387, +0.0020] |
+
+- Intervals use the unchanged `day_bootstrap` from `scripts/train_gru.py`, with
+  1,000 whole-day resamples and per-seed PR-AUC averaged within each sample.
+  The registered criterion supports lower ranking performance than LR. The
+  embedding model has smaller raw-probability Brier and ECE values. Different
+  architectures and loss weighting also influence that comparison.
+- No settings or epochs changed after the final evaluation. November–December
+  was excluded throughout this Member 3 work. Earlier project exposure remains
+  disclosed under D-000 and D-301.
+- Code, checkpoints, source hashes, histories, predictions and uncertainty results
+  are saved under the separate Member 3 paths. Details and reproducible stages
+  are in `docs/phase2_member3_embedding_mlp.md`. Member 1 and 2 files retain
+  their original contents.

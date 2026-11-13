@@ -28,6 +28,20 @@ def test_provenance_rejects_a_non_development_path(monkeypatch):
         pipeline.provenance()
 
 
+def test_completed_evaluation_cannot_be_scored_again(tmp_path, monkeypatch):
+    monkeypatch.setattr(pipeline, "RESULT", tmp_path)
+    (tmp_path / "evaluation.json").write_text("{}")
+    with pytest.raises(FileExistsError, match="Final evaluation is complete"):
+        pipeline.evaluate({})
+
+
+def test_resumed_run_rejects_changed_inputs(tmp_path):
+    path = tmp_path / "record.json"
+    pipeline.write_json(path, {"audit": {"source": "original"}})
+    with pytest.raises(ValueError, match="Inputs or source changed"):
+        pipeline.checked_record(path, {"source": "changed"})
+
+
 def test_winner_uses_august_and_registered_tie_breaks():
     records = [
         {"run": "run01", "august_pr_auc": 0.4, "parameters": 200, "learning_rate": 0.0001},
