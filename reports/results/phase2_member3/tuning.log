@@ -1,0 +1,73 @@
+
+August grid {'run': 'run01', 'learning_rate': 0.0001, 'hidden_dims': [64, 32], 'embedding_cap': 4}
+  epoch 01: loss=0.57158, August PR-AUC=0.38531, best_epoch=1
+  epoch 02: loss=0.53314, August PR-AUC=0.39448, best_epoch=2
+  epoch 03: loss=0.52832, August PR-AUC=0.39385, best_epoch=2
+  epoch 04: loss=0.52569, August PR-AUC=0.39331, best_epoch=2
+  epoch 05: loss=0.52361, August PR-AUC=0.39193, best_epoch=2
+  epoch 06: loss=0.52180, August PR-AUC=0.39250, best_epoch=2
+  epoch 07: loss=0.52021, August PR-AUC=0.38943, best_epoch=2
+
+August grid {'run': 'run02', 'learning_rate': 0.0001, 'hidden_dims': [64, 32], 'embedding_cap': 8}
+  epoch 01: loss=0.56809, August PR-AUC=0.38371, best_epoch=1
+  epoch 02: loss=0.53307, August PR-AUC=0.39101, best_epoch=2
+  epoch 03: loss=0.52873, August PR-AUC=0.39372, best_epoch=3
+  epoch 04: loss=0.52549, August PR-AUC=0.39368, best_epoch=3
+  epoch 05: loss=0.52411, August PR-AUC=0.39231, best_epoch=3
+  epoch 06: loss=0.52232, August PR-AUC=0.39307, best_epoch=3
+  epoch 07: loss=0.52089, August PR-AUC=0.39220, best_epoch=3
+  epoch 08: loss=0.51961, August PR-AUC=0.39290, best_epoch=3
+
+August grid {'run': 'run03', 'learning_rate': 0.0001, 'hidden_dims': [128, 64], 'embedding_cap': 4}
+  epoch 01: loss=0.54591, August PR-AUC=0.39504, best_epoch=1
+  epoch 02: loss=0.52668, August PR-AUC=0.39683, best_epoch=2
+  epoch 03: loss=0.52281, August PR-AUC=0.39467, best_epoch=2
+  epoch 04: loss=0.51977, August PR-AUC=0.39390, best_epoch=2
+  epoch 05: loss=0.51753, August PR-AUC=0.39308, best_epoch=2
+  epoch 06: loss=0.51556, August PR-AUC=0.39320, best_epoch=2
+  epoch 07: loss=0.51403, August PR-AUC=0.38902, best_epoch=2
+
+August grid {'run': 'run04', 'learning_rate': 0.0001, 'hidden_dims': [128, 64], 'embedding_cap': 8}
+  epoch 01: loss=0.54947, August PR-AUC=0.39243, best_epoch=1
+  epoch 02: loss=0.52781, August PR-AUC=0.39481, best_epoch=2
+  epoch 03: loss=0.52325, August PR-AUC=0.39493, best_epoch=3
+  epoch 04: loss=0.52031, August PR-AUC=0.39339, best_epoch=3
+  epoch 05: loss=0.51817, August PR-AUC=0.39265, best_epoch=3
+  epoch 06: loss=0.51591, August PR-AUC=0.39120, best_epoch=3
+  epoch 07: loss=0.51426, August PR-AUC=0.38695, best_epoch=3
+  epoch 08: loss=0.51268, August PR-AUC=0.38730, best_epoch=3
+
+August grid {'run': 'run05', 'learning_rate': 0.0003, 'hidden_dims': [64, 32], 'embedding_cap': 4}
+  epoch 01: loss=0.54524, August PR-AUC=0.39262, best_epoch=1
+  epoch 02: loss=0.52432, August PR-AUC=0.39021, best_epoch=1
+  epoch 03: loss=0.52007, August PR-AUC=0.38745, best_epoch=1
+  epoch 04: loss=0.51674, August PR-AUC=0.38416, best_epoch=1
+  epoch 05: loss=0.51356, August PR-AUC=0.38060, best_epoch=1
+  epoch 06: loss=0.51135, August PR-AUC=0.38001, best_epoch=1
+
+August grid {'run': 'run06', 'learning_rate': 0.0003, 'hidden_dims': [64, 32], 'embedding_cap': 8}
+  epoch 01: loss=0.54436, August PR-AUC=0.39110, best_epoch=1
+  epoch 02: loss=0.52497, August PR-AUC=0.39114, best_epoch=2
+  epoch 03: loss=0.52046, August PR-AUC=0.39004, best_epoch=2
+  epoch 04: loss=0.51653, August PR-AUC=0.38717, best_epoch=2
+  epoch 05: loss=0.51389, August PR-AUC=0.38457, best_epoch=2
+  epoch 06: loss=0.51126, August PR-AUC=0.38368, best_epoch=2
+  epoch 07: loss=0.50869, August PR-AUC=0.37250, best_epoch=2
+
+August grid {'run': 'run07', 'learning_rate': 0.0003, 'hidden_dims': [128, 64], 'embedding_cap': 4}
+  epoch 01: loss=0.53328, August PR-AUC=0.39473, best_epoch=1
+  epoch 02: loss=0.51884, August PR-AUC=0.39030, best_epoch=1
+  epoch 03: loss=0.51431, August PR-AUC=0.38369, best_epoch=1
+  epoch 04: loss=0.51023, August PR-AUC=0.37657, best_epoch=1
+  epoch 05: loss=0.50741, August PR-AUC=0.37399, best_epoch=1
+  epoch 06: loss=0.50423, August PR-AUC=0.36994, best_epoch=1
+
+August grid {'run': 'run08', 'learning_rate': 0.0003, 'hidden_dims': [128, 64], 'embedding_cap': 8}
+  epoch 01: loss=0.53503, August PR-AUC=0.39323, best_epoch=1
+  epoch 02: loss=0.51941, August PR-AUC=0.38997, best_epoch=1
+  epoch 03: loss=0.51382, August PR-AUC=0.38154, best_epoch=1
+  epoch 04: loss=0.50984, August PR-AUC=0.37037, best_epoch=1
+  epoch 05: loss=0.50696, August PR-AUC=0.37079, best_epoch=1
+  epoch 06: loss=0.50413, August PR-AUC=0.36640, best_epoch=1
+
+FROZEN AUGUST WINNER run03 0.39682957698336496
