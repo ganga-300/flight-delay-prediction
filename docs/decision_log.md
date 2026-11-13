@@ -743,3 +743,42 @@ reliability diagram, and at the threshold: precision, recall and flights flagged
   are saved under the separate Member 3 paths. Details and reproducible stages
   are in `docs/phase2_member3_embedding_mlp.md`. Member 1 and 2 files retain
   their original contents.
+
+### D-307 · Member 3 joint tuning amendment
+
+- Registered before running the amended experiments. D-307 replaces D-306 as the
+  final Member 3 result because batch size and dropout were assigned for tuning.
+- Disclosure recorded verbatim as requested.
+  "Sep–Oct was scored once under D-305 (D-306) before this amendment. D-307 replaces D-306 as the Member 3 result because D-305 did not tune batch size and dropout as assigned. Sep–Oct is not used for any choice."
+- Full joint grid with seed 42 uses learning rate {0.0001,0.0003}, hidden layers
+  {(64,32),(128,64)}, embedding cap {4,8}, dropout {0.1,0.2,0.4}, and batch size
+  {256,1024}. The Cartesian product contains 48 configurations. Reuse the eight
+  D-305 runs with dropout 0.2 and batch size 256 after checking historical source
+  and input hashes. Train the remaining 40 configurations.
+- Fit candidates on January–July. Fit vocabulary, rare-category collapsing,
+  numeric imputation and scaling on those training rows only. Use August PR-AUC
+  alone for every configuration and epoch choice. The earliest epoch wins an
+  equal-score checkpoint tie. Select the configuration with highest August
+  PR-AUC. Exact ties prefer fewer trainable parameters, lower learning rate,
+  then deterministic grid order, following D-305. Grid order is learning rate,
+  hidden layers, embedding cap, dropout, then batch size, each in the order above.
+- Fixed choices remain Adam, weight decay 0.0001, unweighted BCEWithLogitsLoss,
+  CPU, maximum 30 epochs and patience 5 on August PR-AUC.
+- Freeze the winning configuration before final seed runs. For each seed 42–46,
+  choose its epoch on August using January–July training, then reinitialise and
+  refit on January–August for exactly that many epochs. Refit preprocessing on
+  January–August only. No early stopping during the final refit.
+- Freeze all five final models before scoring September–October once under
+  D-307. Use the same 55,628 flights and saved Member 1 MLP, LR and GRU
+  probabilities. Check flight IDs, dates and labels before scoring.
+- Report PR-AUC, ROC-AUC, Brier and ECE, seed means and sample standard deviations,
+  and monthly results. Import the existing day_bootstrap from scripts/train_gru.py
+  for paired differences against MLP, LR and GRU with 1,000 whole-day resamples
+  and seed 42. Claim improvement only for an entirely positive 95% interval.
+- Store amended results under reports/results/phase2_member3/d307/, including
+  tuning_d307/ and refit_d307/ records. Store final model artifacts separately
+  under models/phase2/member3/refit_d307/. Store new figures in the d307/
+  subdirectory of Member 3 figures. Preserve the D-305/D-306 artifacts.
+- Show the final D-307 numbers next to D-306 in the Member 3 document and update
+  the notebook and presentation. September–October has no role in model choice.
+  November–December stays sealed. Member 1 and Member 2 files remain intact.
