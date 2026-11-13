@@ -653,3 +653,170 @@ reliability diagram, and at the threshold: precision, recall and flights flagged
   model so far beats the Phase 1 Logistic Regression beyond noise. The sequence alone recovers
   almost all of the 29 history features. Raw GRU probabilities are too high (mean 0.243 vs
   0.157) and need calibration (Member 5).
+
+### D-305 · Member 3 embedding MLP: pre-training experiment plan
+
+- Status: registered before Member 3 training.
+- Goal: evaluate learned categorical embeddings with the existing 49 numeric
+  and 10 categorical features, following D-301.
+- Architecture: concatenate scaled numeric inputs and categorical embeddings;
+  two ReLU hidden layers, dropout after each, and one output logit.
+- Embedding dimension per category:
+  min(cap, ceil(sqrt(training vocabulary size))), minimum 1.
+- Tuning grid, seed 42:
+  - learning rate: {0.0001, 0.0003}
+  - hidden layers: {(64, 32), (128, 64)}
+  - embedding dimension cap: {4, 8}
+  - Total: 8 configurations.
+- Fixed settings: Adam, weight decay 0.0001, dropout 0.2,
+  batch size 256, unweighted BCEWithLogitsLoss, CPU,
+  maximum 30 epochs, early-stopping patience 5.
+- Stage A: fit January-July. Fit categorical vocabularies, rare-category
+  collapsing, missing-value imputation and numeric scalers on these rows only.
+  Map unknown categories to the reserved unknown/other category.
+- Epoch selection: highest August PR-AUC; retain the earliest epoch when
+  scores tie. Early stopping uses August PR-AUC only.
+- Configuration selection: highest August PR-AUC at its best epoch.
+  Exact ties prefer fewer trainable parameters, then lower learning rate,
+  then deterministic configuration order.
+- Freeze the selected configuration before final runs.
+- Final seeds: 42, 43, 44, 45, 46. Each seed selects its epoch on August
+  using January-July training and the frozen configuration.
+- Stage B: reinitialize each model and refit preprocessing on January-August.
+  Train for exactly its August-selected epoch count, without early stopping.
+- Evaluate all frozen final models on September-October once at the end.
+  Do not use September-October for settings, epochs or model selection.
+- Compare on identical flight IDs and labels with saved Member 1 MLP,
+  Logistic Regression and GRU predictions from
+  reports/results/phase2_member2/sep_oct_predictions.parquet.
+- Report PR-AUC, ROC-AUC, Brier and ECE, with mean and standard deviation
+  across seeds. Compute paired PR-AUC differences using day_bootstrap
+  imported from scripts/train_gru.py, with its 1,000 day resamples.
+- Claim improvement only when the difference's 95% interval is above zero.
+- Reuse Member 1 and Member 2 utilities through imports.
+  Keep their implementation and saved artifacts intact.
+- November-December remains sealed and is excluded from this work.
+- Save Member 3 code, checkpoints, preprocessing, run histories,
+  August grid results and final aligned predictions separately.
+
+### D-306 · Member 3 embedding MLP results
+
+- Completed under the unchanged D-305 grid and selection rule, on CPU with
+  Python 3.11.17 and PyTorch 2.15.0. D-305 was committed as `12f13e8` before training.
+- The existing holdout-reference test rejected an unnecessary sealed-path name in
+  the new script's path comparison. Commit `9e01bfb` replaced it with an explicit
+  dedicated-development-path check. The identical August grid was rerun after
+  this implementation fix. September–October had not been scored at that point.
+- All eight registered settings were evaluated with seed 42. Run03 won on August
+  PR-AUC 0.3968296, with learning rate 0.0001, hidden layers (128,64), embedding
+  dimension cap 4, and epoch 2. These are tuning results.
+- The frozen architecture selected epochs 2,3,2,5,2 for seeds 42,43,44,45,46,
+  respectively. Each seed was reinitialised and refit on January–August.
+  Vocabularies, numeric medians and scalers were refit using those rows only.
+- The final model concatenates 49 numeric inputs and 37 embedding values,
+  followed by the 128/64 dense head. It has 23,315 trainable parameters.
+- Final model scoring used the same 55,628 September–October flights as Member 2,
+  with identical flight IDs, dates and labels. All probabilities are raw.
+
+| Model | PR-AUC mean ± sd | ROC-AUC | Brier | ECE |
+| --- | --- | --- | --- | --- |
+| Embedding MLP | 0.2762 ± 0.0024 | 0.6753 | 0.1279 | 0.0473 |
+| Member 1 MLP | 0.2839 ± 0.0043 | 0.6719 | 0.1333 | 0.0757 |
+| Logistic Regression | 0.2896 | 0.6800 | 0.1855 | 0.2334 |
+| Member 2 GRU | 0.2946 ± 0.0055 | 0.6743 | 0.1360 | 0.0863 |
+
+| Paired PR-AUC difference | Estimate | 95% day-bootstrap interval |
+| --- | --- | --- |
+| Embedding MLP − Member 1 MLP | −0.0077 | [−0.0253, +0.0111] |
+| Embedding MLP − Logistic Regression | −0.0134 | [−0.0212, −0.0034] |
+| Embedding MLP − GRU | −0.0184 | [−0.0387, +0.0020] |
+
+- Intervals use the unchanged `day_bootstrap` from `scripts/train_gru.py`, with
+  1,000 whole-day resamples and per-seed PR-AUC averaged within each sample.
+  The registered criterion supports lower ranking performance than LR. The
+  embedding model has smaller raw-probability Brier and ECE values. Different
+  architectures and loss weighting also influence that comparison.
+- No settings or epochs changed after the final evaluation. November–December
+  was excluded throughout this Member 3 work. Earlier project exposure remains
+  disclosed under D-000 and D-301.
+- Code, checkpoints, source hashes, histories, predictions and uncertainty results
+  are saved under the separate Member 3 paths. Details and reproducible stages
+  are in `docs/phase2_member3_embedding_mlp.md`. Member 1 and 2 files retain
+  their original contents.
+
+### D-307 · Member 3 joint tuning amendment
+
+- Registered before running the amended experiments. D-307 replaces D-306 as the
+  final Member 3 result because batch size and dropout were assigned for tuning.
+- Disclosure recorded verbatim as requested.
+  "Sep–Oct was scored once under D-305 (D-306) before this amendment. D-307 replaces D-306 as the Member 3 result because D-305 did not tune batch size and dropout as assigned. Sep–Oct is not used for any choice."
+- Full joint grid with seed 42 uses learning rate {0.0001,0.0003}, hidden layers
+  {(64,32),(128,64)}, embedding cap {4,8}, dropout {0.1,0.2,0.4}, and batch size
+  {256,1024}. The Cartesian product contains 48 configurations. Reuse the eight
+  D-305 runs with dropout 0.2 and batch size 256 after checking historical source
+  and input hashes. Train the remaining 40 configurations.
+- Fit candidates on January–July. Fit vocabulary, rare-category collapsing,
+  numeric imputation and scaling on those training rows only. Use August PR-AUC
+  alone for every configuration and epoch choice. The earliest epoch wins an
+  equal-score checkpoint tie. Select the configuration with highest August
+  PR-AUC. Exact ties prefer fewer trainable parameters, lower learning rate,
+  then deterministic grid order, following D-305. Grid order is learning rate,
+  hidden layers, embedding cap, dropout, then batch size, each in the order above.
+- Fixed choices remain Adam, weight decay 0.0001, unweighted BCEWithLogitsLoss,
+  CPU, maximum 30 epochs and patience 5 on August PR-AUC.
+- Freeze the winning configuration before final seed runs. For each seed 42–46,
+  choose its epoch on August using January–July training, then reinitialise and
+  refit on January–August for exactly that many epochs. Refit preprocessing on
+  January–August only. No early stopping during the final refit.
+- Freeze all five final models before scoring September–October once under
+  D-307. Use the same 55,628 flights and saved Member 1 MLP, LR and GRU
+  probabilities. Check flight IDs, dates and labels before scoring.
+- Report PR-AUC, ROC-AUC, Brier and ECE, seed means and sample standard deviations,
+  and monthly results. Import the existing day_bootstrap from scripts/train_gru.py
+  for paired differences against MLP, LR and GRU with 1,000 whole-day resamples
+  and seed 42. Claim improvement only for an entirely positive 95% interval.
+- Store amended results under reports/results/phase2_member3/d307/, including
+  tuning_d307/ and refit_d307/ records. Store final model artifacts separately
+  under models/phase2/member3/refit_d307/. Store new figures in the d307/
+  subdirectory of Member 3 figures. Preserve the D-305/D-306 artifacts.
+- Show the final D-307 numbers next to D-306 in the Member 3 document and update
+  the notebook and presentation. September–October has no role in model choice.
+  November–December stays sealed. Member 1 and Member 2 files remain intact.
+
+### D-308 · Final Member 3 results under D-307
+
+- D-307 was committed as `90eecd5` before amended training. Its full joint grid
+  completed 48 seed-42 settings, with eight historical D-305 runs reused after
+  source, input and selection-record checks and 40 newly trained configurations.
+- August PR-AUC alone selected `d307_016`, with learning rate 0.0001, hidden
+  layers (128,64), embedding cap 4, dropout 0.2 and batch size 1024. Its August
+  PR-AUC was 0.3974746 at epoch 4. All epochs and settings were frozen without
+  September–October input into model choice.
+- Seeds 42–46 selected 4,5,5,10,4 epochs on August, respectively. Each model was
+  reinitialised and refit January–August with newly fitted preprocessing. The
+  five models were frozen in commit `154c1ae` before D-307 final scoring.
+- D-307 scored the same 55,628 September–October flights and preserved the saved
+  MLP, LR and GRU baseline probabilities exactly. All comparisons use raw scores.
+
+| Member 3 version | August tuning PR-AUC | Sep–Oct PR-AUC mean ± sd | ROC-AUC | Brier | ECE |
+| --- | --- | --- | --- | --- | --- |
+| D-306 historical | 0.39683 | 0.27620 ± 0.00242 | 0.67528 | 0.12793 | 0.04732 |
+| D-307 final | 0.39747 | 0.27572 ± 0.00347 | 0.67483 | 0.12826 | 0.05034 |
+
+| D-307 paired PR-AUC difference | Estimate | 95% day-bootstrap interval |
+| --- | --- | --- |
+| Embedding MLP − Member 1 MLP | −0.00821 | [−0.02668, +0.01158] |
+| Embedding MLP − Logistic Regression | −0.01387 | [−0.02181, −0.00340] |
+| Embedding MLP − GRU | −0.01885 | [−0.03969, +0.00226] |
+
+- The unchanged Member 2 day_bootstrap used 1,000 paired whole-day resamples.
+  The final model's PR-AUC is lower than LR with an entirely negative interval.
+  The MLP and GRU intervals include zero. The amendment completes the assigned
+  joint search, and its result supersedes D-306 independently of evaluation scores.
+- September–October was previously scored under D-305/D-306, as explicitly
+  disclosed in D-307. It was not used for any amended setting or epoch choice.
+  Historical artifacts and D-305/D-306 decision text remain byte-identical.
+- Amended records are under `reports/results/phase2_member3/d307/`; final models
+  are under `models/phase2/member3/refit_d307/`. The updated report, executed
+  notebook and presentation show the historical result alongside the final one.
+  November–December remained sealed throughout this amendment.

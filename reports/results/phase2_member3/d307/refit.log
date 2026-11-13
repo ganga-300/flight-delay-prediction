@@ -1,0 +1,88 @@
+
+Seed 42: choose epochs on August
+Seed 42: refit January-August for 4 epoch(s)
+  refit epoch 01: loss=0.56450
+  refit epoch 02: loss=0.53327
+  refit epoch 03: loss=0.52837
+  refit epoch 04: loss=0.52626
+
+Seed 43: choose epochs on August
+  epoch 01: loss=0.59998, August PR-AUC=0.36314, best_epoch=1
+  epoch 02: loss=0.54037, August PR-AUC=0.38716, best_epoch=2
+  epoch 03: loss=0.53192, August PR-AUC=0.39407, best_epoch=3
+  epoch 04: loss=0.52830, August PR-AUC=0.39615, best_epoch=4
+  epoch 05: loss=0.52583, August PR-AUC=0.39681, best_epoch=5
+  epoch 06: loss=0.52381, August PR-AUC=0.39633, best_epoch=5
+  epoch 07: loss=0.52238, August PR-AUC=0.39593, best_epoch=5
+  epoch 08: loss=0.52117, August PR-AUC=0.39545, best_epoch=5
+  epoch 09: loss=0.51990, August PR-AUC=0.39522, best_epoch=5
+  epoch 10: loss=0.51856, August PR-AUC=0.39483, best_epoch=5
+Seed 43: refit January-August for 5 epoch(s)
+  refit epoch 01: loss=0.59121
+  refit epoch 02: loss=0.53662
+  refit epoch 03: loss=0.52983
+  refit epoch 04: loss=0.52687
+  refit epoch 05: loss=0.52470
+
+Seed 44: choose epochs on August
+  epoch 01: loss=0.57949, August PR-AUC=0.35642, best_epoch=1
+  epoch 02: loss=0.54028, August PR-AUC=0.38386, best_epoch=2
+  epoch 03: loss=0.53273, August PR-AUC=0.39321, best_epoch=3
+  epoch 04: loss=0.52801, August PR-AUC=0.39523, best_epoch=4
+  epoch 05: loss=0.52589, August PR-AUC=0.39699, best_epoch=5
+  epoch 06: loss=0.52381, August PR-AUC=0.39620, best_epoch=5
+  epoch 07: loss=0.52243, August PR-AUC=0.39567, best_epoch=5
+  epoch 08: loss=0.52108, August PR-AUC=0.39528, best_epoch=5
+  epoch 09: loss=0.51970, August PR-AUC=0.39556, best_epoch=5
+  epoch 10: loss=0.51864, August PR-AUC=0.39479, best_epoch=5
+Seed 44: refit January-August for 5 epoch(s)
+  refit epoch 01: loss=0.57481
+  refit epoch 02: loss=0.53591
+  refit epoch 03: loss=0.52969
+  refit epoch 04: loss=0.52694
+  refit epoch 05: loss=0.52499
+
+Seed 45: choose epochs on August
+  epoch 01: loss=0.58948, August PR-AUC=0.36600, best_epoch=1
+  epoch 02: loss=0.54074, August PR-AUC=0.38805, best_epoch=2
+  epoch 03: loss=0.53266, August PR-AUC=0.39414, best_epoch=3
+  epoch 04: loss=0.52908, August PR-AUC=0.39555, best_epoch=4
+  epoch 05: loss=0.52645, August PR-AUC=0.39626, best_epoch=5
+  epoch 06: loss=0.52435, August PR-AUC=0.39533, best_epoch=5
+  epoch 07: loss=0.52256, August PR-AUC=0.39576, best_epoch=5
+  epoch 08: loss=0.52156, August PR-AUC=0.39633, best_epoch=8
+  epoch 09: loss=0.52000, August PR-AUC=0.39562, best_epoch=8
+  epoch 10: loss=0.51930, August PR-AUC=0.39671, best_epoch=10
+  epoch 11: loss=0.51769, August PR-AUC=0.39659, best_epoch=10
+  epoch 12: loss=0.51690, August PR-AUC=0.39591, best_epoch=10
+  epoch 13: loss=0.51607, August PR-AUC=0.39598, best_epoch=10
+  epoch 14: loss=0.51487, August PR-AUC=0.39623, best_epoch=10
+  epoch 15: loss=0.51423, August PR-AUC=0.39483, best_epoch=10
+Seed 45: refit January-August for 10 epoch(s)
+  refit epoch 01: loss=0.58387
+  refit epoch 02: loss=0.53812
+  refit epoch 03: loss=0.53137
+  refit epoch 04: loss=0.52794
+  refit epoch 05: loss=0.52556
+  refit epoch 06: loss=0.52357
+  refit epoch 07: loss=0.52251
+  refit epoch 08: loss=0.52111
+  refit epoch 09: loss=0.51997
+  refit epoch 10: loss=0.51894
+
+Seed 46: choose epochs on August
+  epoch 01: loss=0.59843, August PR-AUC=0.36069, best_epoch=1
+  epoch 02: loss=0.53920, August PR-AUC=0.39008, best_epoch=2
+  epoch 03: loss=0.53162, August PR-AUC=0.39620, best_epoch=3
+  epoch 04: loss=0.52812, August PR-AUC=0.39769, best_epoch=4
+  epoch 05: loss=0.52606, August PR-AUC=0.39687, best_epoch=4
+  epoch 06: loss=0.52428, August PR-AUC=0.39554, best_epoch=4
+  epoch 07: loss=0.52301, August PR-AUC=0.39483, best_epoch=4
+  epoch 08: loss=0.52146, August PR-AUC=0.39406, best_epoch=4
+  epoch 09: loss=0.52034, August PR-AUC=0.39374, best_epoch=4
+Seed 46: refit January-August for 4 epoch(s)
+  refit epoch 01: loss=0.59215
+  refit epoch 02: loss=0.53568
+  refit epoch 03: loss=0.52972
+  refit epoch 04: loss=0.52719
+FROZEN: all five January-August models; evaluation pending

@@ -1,0 +1,8 @@
+........................................................................ [ 62%]
+.....ss.s.s................................                              [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_mlp.py:128: Processed parquet data not available; build first.
+SKIPPED [1] tests/test_mlp.py:156: Processed data not available.
+SKIPPED [1] tests/test_mlp.py:209: Processed data files not found.
+SKIPPED [1] tests/test_mlp.py:252: Artifacts or valid data not available for end-to-end test.
+111 passed, 4 skipped in 36.42s
