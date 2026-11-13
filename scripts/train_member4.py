@@ -16,9 +16,6 @@ Executes:
 from __future__ import annotations
 
 import argparse
-import copy
-import hashlib
-import json
 import os
 import sys
 import time
@@ -30,11 +27,11 @@ os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 os.environ.setdefault("MPLCONFIGDIR", "/tmp/mpl")
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pyarrow.parquet as pq
 import torch
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -54,12 +51,10 @@ from flight_delay.evaluation.metrics import (  # noqa: E402
 from flight_delay.features.build import (  # noqa: E402
     CATEGORICAL,
     build_feature_table,
-    feature_groups,
     numeric_features,
 )
 from flight_delay.features.encoding import FeatureEncoder  # noqa: E402
 from flight_delay.models.ablation import (  # noqa: E402
-    OneHotMLP,
     get_ablation_numeric_features,
     predict_one_hot_logits,
     train_one_hot_ablation,
@@ -113,7 +108,9 @@ def plot_ablation_comparison(comparison_df: pd.DataFrame, out_path: Path) -> Non
     stds = comparison_df["pr_auc_std"].tolist()
 
     y_pos = np.arange(len(models))
-    colors = ["#1f77b4" if "Ablation" in m else "#2ca02c" if "Hybrid" in m else "#7f7f7f" for m in models]
+    colors = [
+        "#1f77b4" if "Ablation" in m else "#2ca02c" if "Hybrid" in m else "#7f7f7f" for m in models
+    ]
 
     plt.barh(y_pos, praucs, xerr=stds, align="center", color=colors, alpha=0.85, capsize=4)
     plt.yticks(y_pos, models, fontsize=10)
@@ -137,7 +134,9 @@ def plot_bootstrap_differences(bootstrap_df: pd.DataFrame, out_path: Path) -> No
     y_pos = np.arange(len(comps))
     xerr = [np.array(diffs) - np.array(ci_lows), np.array(ci_highs) - np.array(diffs)]
 
-    plt.errorbar(diffs, y_pos, xerr=xerr, fmt="o", color="#d62728", ecolor="#1f77b4", elinewidth=2, capsize=5)
+    plt.errorbar(
+        diffs, y_pos, xerr=xerr, fmt="o", color="#d62728", ecolor="#1f77b4", elinewidth=2, capsize=5
+    )
     plt.axvline(0.0, color="black", linestyle="--", alpha=0.7)
     plt.yticks(y_pos, comps, fontsize=10)
     plt.xlabel("Paired PR-AUC Difference (95% Day-Bootstrap CI)", fontsize=11)
@@ -149,10 +148,59 @@ def plot_bootstrap_differences(bootstrap_df: pd.DataFrame, out_path: Path) -> No
     plt.close()
 
 
+def check_existing_artifacts(allow_overwrite: bool = False) -> None:
+    """Refuse to overwrite existing result files, checkpoints, or experiment artifacts."""
+    if allow_overwrite:
+        return
+    output_files = [
+        RESULT_DIR / "sep_oct_predictions.parquet",
+        RESULT_DIR / "comparison.csv",
+        RESULT_DIR / "per_seed_metrics.csv",
+        RESULT_DIR / "august_seed_selection.csv",
+        RESULT_DIR / "bootstrap_pr_auc_differences.csv",
+        FIGURE_DIR / "ablation_comparison.png",
+        FIGURE_DIR / "bootstrap_differences.png",
+        MODEL_DIR / "ablation_no_history_preprocessor.joblib",
+        MODEL_DIR / "ablation_no_congestion_preprocessor.joblib",
+        MODEL_DIR / "ablation_one_hot_preprocessor.joblib",
+        MODEL_DIR / "ablation_no_regularization_preprocessor.joblib",
+        MODEL_DIR / "plain_xgboost_encoder.json",
+        MODEL_DIR / "hybrid_preprocessor.joblib",
+    ]
+    for s in SEEDS:
+        output_files.extend(
+            [
+                MODEL_DIR / f"ablation_no_history_seed{s}.pth",
+                MODEL_DIR / f"ablation_no_congestion_seed{s}.pth",
+                MODEL_DIR / f"ablation_one_hot_seed{s}.pth",
+                MODEL_DIR / f"ablation_no_regularization_seed{s}.pth",
+                MODEL_DIR / f"plain_xgboost_seed{s}.joblib",
+                MODEL_DIR / f"hybrid_nn_seed{s}.pth",
+                MODEL_DIR / f"hybrid_xgboost_seed{s}.joblib",
+            ]
+        )
+    existing = [p for p in output_files if p.exists()]
+    if existing:
+        msg = (
+            f"Refusing to overwrite existing Member 4 artifacts ({len(existing)} files found).\n"
+            f"First existing file: {existing[0]}\n"
+            "To prevent accidental loss of verified Phase 2 experimental results, "
+            "execution has stopped.\n"
+            "If you intentionally want to rerun from scratch, pass --overwrite."
+        )
+        raise FileExistsError(msg)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", default=str(ROOT / "configs/config.yaml"))
+    parser.add_argument(
+        "--overwrite", action="store_true", help="Allow overwriting existing artifacts"
+    )
     args = parser.parse_args()
+
+    # Pre-execution check: refuse to overwrite existing results
+    check_existing_artifacts(args.overwrite)
 
     start_time = time.time()
     cfg = load_config(args.config)
@@ -189,7 +237,10 @@ def main() -> None:
 
     # Load baseline predictions (LR, M1 MLP, M2 GRU, M3 D-307)
     baseline_df = pd.read_parquet(BASELINE_PATH)
-    if len(baseline_df) != len(eval_df) or not (baseline_df["id"].to_numpy() == eval_df["id"].to_numpy()).all():
+    if (
+        len(baseline_df) != len(eval_df)
+        or not (baseline_df["id"].to_numpy() == eval_df["id"].to_numpy()).all()
+    ):
         raise ValueError("Evaluation IDs do not align with Member 3 baseline predictions")
 
     prediction_records = baseline_df[["id", "date", "is_delayed", "lr"]].copy()
@@ -444,7 +495,7 @@ def main() -> None:
             generator=gen,
         )
 
-        best_ep, best_pr, stale, best_st = 0, -1.0, 0, None
+        best_ep, best_pr, stale = 0, -1.0, 0
         for ep in range(1, 31):
             model_a4_cand.train()
             for n_b, c_b, l_b in ldr:
@@ -453,14 +504,16 @@ def main() -> None:
                 loss.backward()
                 opt_a4.step()
 
-            m_tune = evaluate_logits(data_std_tune.labels, predict_logits(model_a4_cand, data_std_tune))
+            m_tune = evaluate_logits(
+                data_std_tune.labels, predict_logits(model_a4_cand, data_std_tune)
+            )
             if m_tune["pr_auc"] > best_pr:
                 best_pr, best_ep, stale = m_tune["pr_auc"], ep, 0
-                best_st = copy.deepcopy(model_a4_cand.state_dict())
             else:
                 stale += 1
             print(
-                f"  epoch {ep:02d}: loss={loss.item():.5f}, August PR-AUC={m_tune['pr_auc']:.5f}, best_epoch={best_ep}",
+                f"  epoch {ep:02d}: loss={loss.item():.5f}, "
+                f"August PR-AUC={m_tune['pr_auc']:.5f}, best_epoch={best_ep}",
                 flush=True,
             )
             if stale >= 5:
@@ -507,7 +560,9 @@ def main() -> None:
                 opt_a4_f.step()
             print(f"  refit epoch {ep:02d}: loss={loss.item():.5f}", flush=True)
 
-        torch.save(model_a4_final.state_dict(), MODEL_DIR / f"ablation_no_regularization_seed{s}.pth")
+        torch.save(
+            model_a4_final.state_dict(), MODEL_DIR / f"ablation_no_regularization_seed{s}.pth"
+        )
 
         eval_logits = predict_logits(model_a4_final, data_std_eval)
         eval_probs = sigmoid(eval_logits)
@@ -529,13 +584,17 @@ def main() -> None:
     print("=" * 70, flush=True)
 
     # Encode with FeatureEncoder
-    enc_fit = FeatureEncoder(list(CATEGORICAL), all_num, min_count=cfg["features"]["categorical_min_count"]).fit(fit_df)
+    enc_fit = FeatureEncoder(
+        list(CATEGORICAL), all_num, min_count=cfg["features"]["categorical_min_count"]
+    ).fit(fit_df)
     features_59 = all_num + list(CATEGORICAL)
 
     X_xgb_fit = enc_fit.transform(fit_df)[features_59]
     X_xgb_tune = enc_fit.transform(tune_df)[features_59]
 
-    enc_refit = FeatureEncoder(list(CATEGORICAL), all_num, min_count=cfg["features"]["categorical_min_count"]).fit(train_df)
+    enc_refit = FeatureEncoder(
+        list(CATEGORICAL), all_num, min_count=cfg["features"]["categorical_min_count"]
+    ).fit(train_df)
     enc_refit.save(MODEL_DIR / "plain_xgboost_encoder.json")
     X_xgb_train = enc_refit.transform(train_df)[features_59]
     X_xgb_eval = enc_refit.transform(eval_df)[features_59]
@@ -553,7 +612,9 @@ def main() -> None:
             seed=s,
             enable_categorical=True,
         )
-        xgb_cand, effective_trees = train_plain_xgboost(X_xgb_fit, y_fit, X_xgb_tune, y_tune, xgb_params)
+        xgb_cand, effective_trees = train_plain_xgboost(
+            X_xgb_fit, y_fit, X_xgb_tune, y_tune, xgb_params
+        )
         tune_probs = xgb_cand.predict_proba(X_xgb_tune)[:, 1]
         m_tune = compute_metrics(y_tune, tune_probs)
 
@@ -588,7 +649,8 @@ def main() -> None:
         metrics = compute_metrics(y_eval, eval_probs)
         per_seed_records.append({"experiment": "plain_xgboost", "seed": s, **metrics})
         print(
-            f"  Plain XGBoost Seed {s} -> Trees={effective_trees}, Sep-Oct PR-AUC={metrics['pr_auc']:.5f}, "
+            f"  Plain XGBoost Seed {s} -> Trees={effective_trees}, "
+            f"Sep-Oct PR-AUC={metrics['pr_auc']:.5f}, "
             f"ROC-AUC={metrics['roc_auc']:.5f}, Brier={metrics['brier_score']:.5f}",
             flush=True,
         )
@@ -638,7 +700,9 @@ def main() -> None:
             seed=s,
             enable_categorical=False,
         )
-        xgb_h_cand, h_effective_trees = train_hybrid_xgboost(Z_fit, y_fit, Z_tune, y_tune, xgb_h_params)
+        xgb_h_cand, h_effective_trees = train_hybrid_xgboost(
+            Z_fit, y_fit, Z_tune, y_tune, xgb_h_params
+        )
         m_tune_h = compute_metrics(y_tune, xgb_h_cand.predict_proba(Z_tune)[:, 1])
 
         selection_records.append(
@@ -655,7 +719,12 @@ def main() -> None:
         # Stage B: Train Final Neural Model on Jan-Aug
         print(f"  Refitting Neural Network on Jan-Aug for {nn_best_ep} epochs...", flush=True)
         nn_final, _, _, _ = train_embedding(
-            data_std_train, None, prep_refit_std.vocabulary_sizes, d307_settings, seed=s, max_epochs=nn_best_ep
+            data_std_train,
+            None,
+            prep_refit_std.vocabulary_sizes,
+            d307_settings,
+            seed=s,
+            max_epochs=nn_best_ep,
         )
         torch.save(nn_final.state_dict(), MODEL_DIR / f"hybrid_nn_seed{s}.pth")
 
@@ -689,14 +758,17 @@ def main() -> None:
         metrics = compute_metrics(y_eval, eval_probs)
         per_seed_records.append({"experiment": "hybrid_dl_xgboost", "seed": s, **metrics})
         print(
-            f"  Hybrid DL+XGBoost Seed {s} -> Trees={h_effective_trees}, Sep-Oct PR-AUC={metrics['pr_auc']:.5f}, "
+            f"  Hybrid DL+XGBoost Seed {s} -> Trees={h_effective_trees}, "
+            f"Sep-Oct PR-AUC={metrics['pr_auc']:.5f}, "
             f"ROC-AUC={metrics['roc_auc']:.5f}, Brier={metrics['brier_score']:.5f}",
             flush=True,
         )
 
     # Save all Sep-Oct predictions to Parquet
     prediction_records.to_parquet(RESULT_DIR / "sep_oct_predictions.parquet", index=False)
-    print(f"\nSaved all aligned Sep-Oct predictions to {RESULT_DIR / 'sep_oct_predictions.parquet'}")
+    print(
+        f"\nSaved all aligned Sep-Oct predictions to {RESULT_DIR / 'sep_oct_predictions.parquet'}"
+    )
 
     # =========================================================================
     # 7. CONSOLIDATED SUMMARY & BOOTSTRAP SIGNIFICANCE TESTING
@@ -718,12 +790,32 @@ def main() -> None:
         ("Logistic Regression (Phase 1)", "lr", None),
         ("Member 1 MLP (One-Hot)", "mlp", [f"mlp_seed{s}" for s in SEEDS]),
         ("Member 2 GRU (Sequences)", "gru", [f"gru_seed{s}" for s in SEEDS]),
-        ("Member 3 Embedding MLP (D-307 Reference)", "embedding_d307", [f"embedding_seed{s}" for s in SEEDS]),
+        (
+            "Member 3 Embedding MLP (D-307 Reference)",
+            "embedding_d307",
+            [f"embedding_seed{s}" for s in SEEDS],
+        ),
         ("Plain XGBoost Baseline", "plain_xgboost", [f"plain_xgboost_seed{s}" for s in SEEDS]),
-        ("Ablation 1 (No Historical)", "ablation_no_history", [f"ablation_no_history_seed{s}" for s in SEEDS]),
-        ("Ablation 2 (No Congestion)", "ablation_no_congestion", [f"ablation_no_congestion_seed{s}" for s in SEEDS]),
-        ("Ablation 3 (One-Hot Encoded)", "ablation_one_hot", [f"ablation_one_hot_seed{s}" for s in SEEDS]),
-        ("Ablation 4 (No Regularization)", "ablation_no_regularization", [f"ablation_no_regularization_seed{s}" for s in SEEDS]),
+        (
+            "Ablation 1 (No Historical)",
+            "ablation_no_history",
+            [f"ablation_no_history_seed{s}" for s in SEEDS],
+        ),
+        (
+            "Ablation 2 (No Congestion)",
+            "ablation_no_congestion",
+            [f"ablation_no_congestion_seed{s}" for s in SEEDS],
+        ),
+        (
+            "Ablation 3 (One-Hot Encoded)",
+            "ablation_one_hot",
+            [f"ablation_one_hot_seed{s}" for s in SEEDS],
+        ),
+        (
+            "Ablation 4 (No Regularization)",
+            "ablation_no_regularization",
+            [f"ablation_no_regularization_seed{s}" for s in SEEDS],
+        ),
         ("Hybrid DL + XGBoost", "hybrid_dl_xgboost", [f"hybrid_dl_xgboost_seed{s}" for s in SEEDS]),
     ]
 
@@ -801,7 +893,10 @@ def main() -> None:
     print(f"\nGenerated charts in {FIGURE_DIR}")
 
     total_time = time.time() - start_time
-    print(f"\nMember 4 pipeline completed successfully in {total_time:.1f}s ({total_time / 60:.2f} min).")
+    print(
+        f"\nMember 4 pipeline completed successfully in {total_time:.1f}s "
+        f"({total_time / 60:.2f} min)."
+    )
 
 
 if __name__ == "__main__":

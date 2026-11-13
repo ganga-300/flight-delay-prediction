@@ -2,11 +2,12 @@
 
 import numpy as np
 import pytest
-import torch
 
-from flight_delay.config import load_config
-from flight_delay.features.build import CATEGORICAL, feature_groups, numeric_features
-from flight_delay.models.ablation import (
+torch = pytest.importorskip("torch")
+
+from flight_delay.config import load_config  # noqa: E402
+from flight_delay.features.build import numeric_features  # noqa: E402
+from flight_delay.models.ablation import (  # noqa: E402
     OneHotMLP,
     get_ablation_numeric_features,
     predict_one_hot_logits,

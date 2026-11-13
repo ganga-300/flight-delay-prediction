@@ -3,11 +3,12 @@
 import numpy as np
 import pandas as pd
 import pytest
-import torch
 
-from flight_delay.models.embedding_mlp import EmbeddingMLP
-from flight_delay.models.embedding_training import EmbeddingData
-from flight_delay.models.hybrid import (
+torch = pytest.importorskip("torch")
+
+from flight_delay.models.embedding_mlp import EmbeddingMLP  # noqa: E402
+from flight_delay.models.embedding_training import EmbeddingData  # noqa: E402
+from flight_delay.models.hybrid import (  # noqa: E402
     build_hybrid_feature_matrix,
     extract_neural_representations,
     get_default_xgboost_params,
@@ -33,9 +34,9 @@ def test_extract_neural_representations_and_hybrid_matrix():
 
     rng = np.random.default_rng(42)
     numeric = rng.standard_normal((n_samples, numeric_dim)).astype(np.float32)
-    categories = np.column_stack(
-        [rng.integers(0, size, n_samples) for size in vocab_sizes]
-    ).astype(np.int64)
+    categories = np.column_stack([rng.integers(0, size, n_samples) for size in vocab_sizes]).astype(
+        np.int64
+    )
     labels = rng.integers(0, 2, n_samples).astype(np.float32)
 
     data = EmbeddingData(numeric, categories, labels)

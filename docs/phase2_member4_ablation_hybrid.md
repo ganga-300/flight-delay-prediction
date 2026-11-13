@@ -21,7 +21,7 @@ All models were tuned strictly on August 2013 data across five seeds (42–46), 
 ## Methodological Literature and Background
 
 - **Entity Embeddings for Tabular Data**: Guo & Berkhahn (2016) demonstrate that mapping high-cardinality categorical variables into low-dimensional continuous vector spaces captures latent semantic similarities and reduces sparsity. Member 3 established an embedding MLP achieving 0.2757 PR-AUC on September–October flights. Ablation 3 tests whether entity embeddings provide measurable predictive advantage over sparse one-hot encoding when network capacity and training schedules are held constant.
-- **Feature Ablation in Aviation Forecasting**: Flight operations literature (Sternberg et al., 2017; Rebollo & Balakrishnan, 2014) identifies departure/arrival congestion and downstream propagation of airframe delays as major predictors of delay cascades. Ablations 1 and 2 quantify the exact predictive penalty incurred when omitting historical aggregates or real-time airport congestion signals.
+- **Feature Ablation in Aviation Forecasting**: Flight operations literature (Sternberg et al., 2017; Rebollo & Balakrishnan, 2014) identifies departure congestion and downstream propagation of past delays as major factors in delay cascades. Ablations 1 and 2 quantify the empirical predictive penalty incurred when omitting historical aggregates or scheduled congestion signals.
 - **Tree-Neural Hybrids**: Gorishniy et al. (2021, *Revisiting Deep Learning Models for Tabular Data*) and Chen & Guestrin (2016) explore combining representation learning with gradient boosted trees. The hypothesis is that XGBoost's axis-aligned recursive partitioning can capture nonlinear decision boundaries over dense latent neural representations that a linear output layer might smooth over.
 
 ---
@@ -40,8 +40,8 @@ All models were tuned strictly on August 2013 data across five seeds (42–46), 
 The 59 engineered features from Phase 1 are partitioned into 49 numeric and 10 categorical columns:
 - **Calendar & Temporal (10 numeric)**: `dep_hour`, `dep_minute`, `dep_day_of_week`, `dep_day_of_month`, `dep_month`, `day_of_year`, `is_weekend`, `hour_sin`, `hour_cos`, `day_sin`, `day_cos`.
 - **Flight & Route Geometry (6 numeric)**: `distance`, `air_time_mean_route`, `air_time_std_route`, `taxi_out_mean_origin`, `taxi_in_mean_dest`, `dep_delay_mean_origin`.
-- **Airport & System Congestion (4 numeric)**: `origin_departures_last_hour`, `origin_arrivals_last_hour`, `dest_departures_last_hour`, `dest_arrivals_last_hour`.
-- **Historical Delay Aggregates (29 numeric)**: Carrier, origin, destination, route, and airframe rolling historical statistics across 1-day, 7-day, and 30-day lookback windows.
+- **Airport Scheduled Congestion (4 numeric)**: `sched_dep_origin_hour`, `sched_dep_origin_day`, `sched_dep_carrier_origin_day`, `sched_dep_origin_hour_share`. These are scheduled departure counts and shares derived from the flight timetable known before departure day, not real-time counts.
+- **Historical Delay Aggregates (29 numeric)**: Carrier, origin, destination, and route rolling historical statistics across 1-day, 7-day, and 28-day lookback windows, plus all past days.
 - **Categorical (10 columns)**: `carrier`, `origin`, `dest`, `tailnum_prefix`, `dep_time_of_day`, `route`, `distance_group`, `dep_delay_group_origin`, `dep_delay_group_dest`, `carrier_origin`.
 
 #### Architectural Dimensions:
@@ -135,7 +135,7 @@ To account for temporal clustering and daily weather co-dependencies across flig
 
 | Comparison | Point Difference | 95% CI Low | 95% CI High | Excludes Zero? | Interpretation |
 | :--- | :---: | :---: | :---: | :---: | :--- |
-| **Ablation 1 (No History) − D-307 Ref** | −0.01807 | −0.04621 | +0.00563 | False | Strong practical drop (−1.81% PR-AUC); wide CI due to day variability |
+| **Ablation 1 (No History) − D-307 Ref** | −0.01807 | −0.04621 | +0.00563 | False | Practical drop (−1.81% PR-AUC), but not statistically significant as 95% CI includes zero |
 | **Ablation 2 (No Congestion) − D-307 Ref** | **−0.01610** | **−0.02674** | **−0.00569** | **True (Significant)** | Congestion features provide a statistically significant +1.61% PR-AUC gain |
 | **Ablation 3 (One-Hot) − D-307 Ref** | −0.00041 | −0.00641 | +0.00513 | False | No detectable difference; embeddings compress 1,015 → 86 dims without loss |
 | **Ablation 4 (No Reg) − D-307 Ref** | −0.00003 | −0.00277 | +0.00279 | False | Negligible difference; early stopping dominates regularization on this dataset |
@@ -153,13 +153,13 @@ To account for temporal clustering and daily weather co-dependencies across flig
 
 ## Detailed Technical Insights & Findings
 
-### 1. The Critical Role of Congestion and Historical Signals
-- **Ablation 2 (Congestion)** demonstrates that real-time departure and arrival counts (`origin_departures_last_hour`, `origin_arrivals_last_hour`, etc.) are statistically significant predictors of delay. Removing these 4 features drops PR-AUC by 1.61 percentage points, and the 95% bootstrap interval ($[-0.0267, -0.0057]$) sits entirely below zero. Airport ground capacity bottlenecks are primary physical drivers of next-day delays.
-- **Ablation 1 (Historical)** confirms that omitting rolling 1-day, 7-day, and 30-day historical aggregates causes an average drop of 1.81 percentage points in PR-AUC (down to 0.2576). Without historical performance tracking, the model cannot account for chronic carrier route delays or airframe turnaround bottlenecks.
+### 1. The Role of Scheduled Congestion and Historical Signals
+- **Ablation 2 (Congestion)** demonstrates that scheduled departure density features (`sched_dep_origin_hour`, `sched_dep_origin_day`, `sched_dep_carrier_origin_day`, `sched_dep_origin_hour_share`) are statistically significant predictors of delay. Removing these 4 scheduled timetable features drops PR-AUC by 1.61 percentage points, and the 95% bootstrap interval ($[-0.0267, -0.0057]$) sits entirely below zero. Scheduled peak-hour density and airport timetable pressure are significant drivers of next-day delay risk.
+- **Ablation 1 (Historical)** shows an average drop of 1.81 percentage points in PR-AUC (down to 0.2576) when omitting rolling 1-day, 7-day, and 28-day historical aggregates (and cumulative history). However, this drop is NOT statistically significant because its 95% confidence interval spans zero ($[-0.0462, +0.0056]$). Due to daily delay variability across evaluation days, the marginal contribution of historical features cannot be asserted with 95% statistical certainty.
 
 ### 2. Learned Entity Embeddings vs. One-Hot Encoding
 - Comparing **Ablation 3** (One-Hot Encoded MLP, input dim 1,015) against **D-307** (Embedding MLP, input dim 86) reveals virtually identical performance: **0.2753 vs. 0.2757** PR-AUC (difference of $-0.0004$, 95% CI $[-0.0064, +0.0051]$).
-- While learned embeddings do not deliver a statistically significant improvement in discrimination on this tabular dataset, they achieve a **12× reduction in parameter footprint** for the input projection layer (86 dimensions vs 1,015 dimensions), drastically speeding up convergence and inference memory requirements without degrading performance.
+- While learned embeddings do not deliver a statistically significant improvement in discrimination on this tabular dataset, they achieve a **12× reduction in parameter footprint** for the input projection layer (86 dimensions vs 1,015 dimensions), reducing memory requirements without degrading performance. In terms of training duration, one-hot models reached their early-stopping point earlier (epochs 2–3) than embedding models (epochs 4–10), so embeddings did not speed up convergence.
 
 ### 3. Regularization Behavior
 - **Ablation 4** (disabling dropout and Adam weight decay) produced **0.2757 PR-AUC**, perfectly matching the regularized model (difference of $-0.00003$, 95% CI $[-0.0028, +0.0028]$).

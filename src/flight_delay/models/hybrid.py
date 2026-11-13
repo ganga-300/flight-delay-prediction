@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import os
 
-# Prevent OpenMP runtime conflicts between PyTorch and XGBoost on macOS Apple Silicon
+# Limit OpenMP threads to 1 for Apple Silicon compatibility
 os.environ.setdefault("OMP_NUM_THREADS", "1")
-os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 
 import numpy as np
 import pandas as pd

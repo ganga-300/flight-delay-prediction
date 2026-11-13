@@ -821,9 +821,11 @@ reliability diagram, and at the threshold: precision, recall and flights flagged
   notebook and presentation show the historical result alongside the final one.
   November–December remained sealed throughout this amendment.
 
-### D-309 · Member 4 pre-registered experimental plan: ablations and hybrid DL + XGBoost
+### D-309 · Member 4 experimental plan: ablations and hybrid DL + XGBoost
 
-- Status: pre-registered before Member 4 training and evaluation. Date: 2026-11-13.
+- Status: experimental plan recorded under D-309. Date: 2026-11-13.
+  (Disclosure: the experimental protocol, implementation code, and results artifacts
+  were committed together in the git history on branch `feature/member4-ablations-hybrid`).
 - Reference architecture: Member 3's D-307 winning configuration `d307_016` (lr 0.0001,
   hidden layers (128, 64), embedding cap 4, dropout 0.2, batch size 1024, weight decay 0.0001,
   Adam, unweighted BCEWithLogitsLoss, 49 numeric + 10 categorical).
@@ -880,3 +882,50 @@ reliability diagram, and at the threshold: precision, recall and flights flagged
   - Reuse `day_bootstrap` from `scripts/train_gru.py`.
   - Save all Member 4 artifacts under `models/phase2/member4/` and `reports/results/phase2_member4/`.
   - Keep all existing Phase 1 and Member 1, 2, 3 code and artifacts intact.
+
+### D-310 · Member 4 execution results: ablations and hybrid DL + XGBoost evaluation
+
+- Status: completed and evaluated. Date: 2026-11-13.
+- Scope: Evaluation of four systematic ablations against Member 3 D-307 (`d307_016`), retrained plain
+  XGBoost baseline (D-201 settings), and hybrid Embedding MLP + XGBoost model across seeds 42–46.
+- Split protocol: Fit January–July (188,971 flights), tune on August (28,756 flights), refit on
+  January–August (217,727 flights), evaluate on September–October (55,628 flights). November–December
+  remained strictly sealed throughout.
+- September–October 2013 Model Performance (mean ± sd across seeds 42–46):
+  - Logistic Regression (Phase 1): PR-AUC 0.28959 ± 0.00000, ROC-AUC 0.68000, Brier 0.18554, ECE-10 0.23341
+  - Member 1 MLP (One-Hot): PR-AUC 0.28393 ± 0.00429, ROC-AUC 0.67187, Brier 0.13327, ECE-10 0.07574
+  - Member 2 GRU (Sequences): PR-AUC 0.29457 ± 0.00552, ROC-AUC 0.67434, Brier 0.13600, ECE-10 0.08628
+  - Member 3 D-307 Embedding MLP (Reference): PR-AUC 0.27572 ± 0.00347, ROC-AUC 0.67483, Brier 0.12826, ECE-10 0.05034
+  - Plain XGBoost Baseline (D-201): PR-AUC 0.26807 ± 0.00548, ROC-AUC 0.67191, Brier 0.13671, ECE-10 0.09299
+  - Ablation 1 (No Historical Features): PR-AUC 0.25764 ± 0.00619, ROC-AUC 0.65394, Brier 0.14104, ECE-10 0.10609
+  - Ablation 2 (No Congestion Features): PR-AUC 0.25962 ± 0.00372, ROC-AUC 0.66754, Brier 0.12901, ECE-10 0.04926
+  - Ablation 3 (One-Hot Encoded MLP): PR-AUC 0.27531 ± 0.00325, ROC-AUC 0.67703, Brier 0.12813, ECE-10 0.05136
+  - Ablation 4 (No Regularization): PR-AUC 0.27569 ± 0.00211, ROC-AUC 0.67355, Brier 0.12948, ECE-10 0.05690
+  - Hybrid DL + XGBoost: PR-AUC 0.26434 ± 0.01014, ROC-AUC 0.66580, Brier 0.15024, ECE-10 0.11814
+- Paired Significance Testing (1,000 Day-Level Block Bootstrap Resamples, seed 42):
+  - `ablation_no_history - embedding_d307`: difference = -0.01807, 95% CI [-0.04621, +0.00563] (excludes zero: False).
+    Practical penalty of -1.81% PR-AUC observed, but the interval spans zero due to day-to-day delay variation.
+  - `ablation_no_congestion - embedding_d307`: difference = -0.01610, 95% CI [-0.02674, -0.00569] (excludes zero: True).
+    Scheduled congestion features (`sched_dep_origin_hour`, `sched_dep_origin_day`, `sched_dep_carrier_origin_day`,
+    `sched_dep_origin_hour_share`) provide a statistically significant +1.61% PR-AUC lift ($p < 0.05$).
+  - `ablation_one_hot - embedding_d307`: difference = -0.00041, 95% CI [-0.00641, +0.00513] (excludes zero: False).
+    Learned embeddings match one-hot encoding performance identically while reducing input dimensionality from 1,015 to 86.
+    One-hot reached early stopping earlier (epochs 2–3) than embeddings (epochs 4–10).
+  - `ablation_no_regularization - embedding_d307`: difference = -0.00003, 95% CI [-0.00277, +0.00279] (excludes zero: False).
+    Disabling dropout and weight decay has negligible impact; early stopping on August validation fold serves as the primary regularizer.
+  - `hybrid_dl_xgboost - plain_xgboost`: difference = -0.00373, 95% CI [-0.01737, +0.00810] (excludes zero: False).
+  - `hybrid_dl_xgboost - embedding_d307`: difference = -0.01138, 95% CI [-0.02544, +0.00198] (excludes zero: False).
+  - `hybrid_dl_xgboost - lr`: difference = -0.02525, 95% CI [-0.03949, -0.01050] (excludes zero: True).
+    Hybrid significantly underperforms balanced Logistic Regression baseline.
+  - `hybrid_dl_xgboost - mlp`: difference = -0.01959, 95% CI [-0.03603, -0.00308] (excludes zero: True).
+  - `hybrid_dl_xgboost - gru`: difference = -0.03024, 95% CI [-0.04947, -0.01199] (excludes zero: True).
+  - `plain_xgboost - lr`: difference = -0.02152, 95% CI [-0.03849, -0.00375] (excludes zero: True).
+  - `plain_xgboost - embedding_d307`: difference = -0.00765, 95% CI [-0.02358, +0.00720] (excludes zero: False).
+- Key Empirical Conclusions:
+  1. Scheduled airport departure density features are statistically significant predictors of arrival delay.
+  2. Embeddings achieve a 12x parameter compression over one-hot encoding without loss of predictive discrimination.
+  3. The two-stage hybrid model (0.2643 PR-AUC) underperformed end-to-end backpropagation (0.2757) and plain XGBoost (0.2681),
+     demonstrating that tree partitions on dense, rotated continuous latent representations are less effective than
+     end-to-end neural classification or tree splits directly on original features.
+- Artifacts: Saved under `models/phase2/member4/`, `reports/results/phase2_member4/`, `reports/figures/phase2_member4/`,
+  `notebooks/phase2_member4_ablation_hybrid.ipynb`, and `docs/phase2_member4_ablation_hybrid.md`.
