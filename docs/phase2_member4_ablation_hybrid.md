@@ -38,16 +38,16 @@ All models were tuned strictly on August 2013 data across five seeds (42–46), 
 ### 2. Feature Slicing and Dimensionality
 
 The 59 engineered features from Phase 1 are partitioned into 49 numeric and 10 categorical columns:
-- **Calendar & Temporal (10 numeric)**: `dep_hour`, `dep_minute`, `dep_day_of_week`, `dep_day_of_month`, `dep_month`, `day_of_year`, `is_weekend`, `hour_sin`, `hour_cos`, `day_sin`, `day_cos`.
-- **Flight & Route Geometry (6 numeric)**: `distance`, `air_time_mean_route`, `air_time_std_route`, `taxi_out_mean_origin`, `taxi_in_mean_dest`, `dep_delay_mean_origin`.
+- **Calendar (10 numeric)**: `sched_dep_hour_frac`, `dow`, `is_weekend`, `is_holiday`, `days_from_holiday`, `abs_days_to_holiday`, `dep_hour_sin`, `dep_hour_cos`, `dow_sin`, `dow_cos`.
+- **Schedule & Route (6 numeric)**: `sched_dep_min`, `sched_arr_min`, `sched_block_min`, `overnight_arrival`, `distance`, `log_distance`. All come from the published schedule, not from actual operations.
 - **Airport Scheduled Congestion (4 numeric)**: `sched_dep_origin_hour`, `sched_dep_origin_day`, `sched_dep_carrier_origin_day`, `sched_dep_origin_hour_share`. These are scheduled departure counts and shares derived from the flight timetable known before departure day, not real-time counts.
 - **Historical Delay Aggregates (29 numeric)**: Carrier, origin, destination, and route rolling historical statistics across 1-day, 7-day, and 28-day lookback windows, plus all past days.
-- **Categorical (10 columns)**: `carrier`, `origin`, `dest`, `tailnum_prefix`, `dep_time_of_day`, `route`, `distance_group`, `dep_delay_group_origin`, `dep_delay_group_dest`, `carrier_origin`.
+- **Categorical (10 columns)**: `carrier`, `origin`, `dest`, `route`, `dep_bucket`, `carrier_origin`, `carrier_dest`, `carrier_route`, `origin_dep_bucket`, `carrier_dep_bucket`.
 
 #### Architectural Dimensions:
 - **D-307 Reference (Embedding MLP)**: 49 numeric + 10 categorical (37 total embedding dims) = 86 input dimensions.
-- **Ablation 1 (No Historical)**: 20 numeric (Calendar + Geometry + Congestion) + 10 categorical (37 embedding dims) = 57 input dimensions.
-- **Ablation 2 (No Congestion)**: 45 numeric (Calendar + Geometry + Historical) + 10 categorical (37 embedding dims) = 82 input dimensions.
+- **Ablation 1 (No Historical)**: 20 numeric (Calendar + Schedule & Route + Congestion) + 10 categorical (37 embedding dims) = 57 input dimensions.
+- **Ablation 2 (No Congestion)**: 45 numeric (Calendar + Schedule & Route + Historical) + 10 categorical (37 embedding dims) = 82 input dimensions.
 - **Ablation 3 (One-Hot Encoded)**: 49 numeric + 966 one-hot category indicators = 1,015 input dimensions.
 - **Ablation 4 (No Regularization)**: 49 numeric + 10 categorical (37 embedding dims) = 86 input dimensions, trained with `dropout=0.0` and Adam `weight_decay=0.0`.
 - **Plain XGBoost Baseline**: 59 features (49 numeric + 10 categorical using native categorical histograms).
