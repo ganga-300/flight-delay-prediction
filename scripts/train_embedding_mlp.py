@@ -91,8 +91,8 @@ def provenance() -> dict:
     decision = log.split("### D-305", 1)[1].split("\n### ", 1)[0].strip()
     cfg = load_config()
     dev = ROOT / cfg["paths"]["raw"]
-    if dev.resolve() == (ROOT / cfg["paths"]["raw_sealed"]).resolve():
-        raise ValueError("Development path must be distinct from the sealed file")
+    if dev.resolve() != (ROOT / "data/interim/flights_dev.csv").resolve():
+        raise ValueError("D-305 requires the dedicated January-October development file")
     return {
         "decision_sha256": hashlib.sha256(decision.encode()).hexdigest(),
         "development_sha256": sha256(dev),

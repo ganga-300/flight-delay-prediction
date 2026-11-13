@@ -22,6 +22,12 @@ def test_grid_is_the_registered_eight_configurations():
     assert {item["embedding_cap"] for item in grid} == {4, 8}
 
 
+def test_provenance_rejects_a_non_development_path(monkeypatch):
+    monkeypatch.setattr(pipeline, "load_config", lambda: {"paths": {"raw": "wrong.csv"}})
+    with pytest.raises(ValueError, match="dedicated January-October"):
+        pipeline.provenance()
+
+
 def test_winner_uses_august_and_registered_tie_breaks():
     records = [
         {"run": "run01", "august_pr_auc": 0.4, "parameters": 200, "learning_rate": 0.0001},
