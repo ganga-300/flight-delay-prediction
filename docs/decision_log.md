@@ -653,3 +653,48 @@ reliability diagram, and at the threshold: precision, recall and flights flagged
   model so far beats the Phase 1 Logistic Regression beyond noise. The sequence alone recovers
   almost all of the 29 history features. Raw GRU probabilities are too high (mean 0.243 vs
   0.157) and need calibration (Member 5).
+
+### D-305 · Member 3 embedding MLP: pre-training experiment plan
+
+- Status: registered before Member 3 training.
+- Goal: evaluate learned categorical embeddings with the existing 49 numeric
+  and 10 categorical features, following D-301.
+- Architecture: concatenate scaled numeric inputs and categorical embeddings;
+  two ReLU hidden layers, dropout after each, and one output logit.
+- Embedding dimension per category:
+  min(cap, ceil(sqrt(training vocabulary size))), minimum 1.
+- Tuning grid, seed 42:
+  - learning rate: {0.0001, 0.0003}
+  - hidden layers: {(64, 32), (128, 64)}
+  - embedding dimension cap: {4, 8}
+  - Total: 8 configurations.
+- Fixed settings: Adam, weight decay 0.0001, dropout 0.2,
+  batch size 256, unweighted BCEWithLogitsLoss, CPU,
+  maximum 30 epochs, early-stopping patience 5.
+- Stage A: fit January-July. Fit categorical vocabularies, rare-category
+  collapsing, missing-value imputation and numeric scalers on these rows only.
+  Map unknown categories to the reserved unknown/other category.
+- Epoch selection: highest August PR-AUC; retain the earliest epoch when
+  scores tie. Early stopping uses August PR-AUC only.
+- Configuration selection: highest August PR-AUC at its best epoch.
+  Exact ties prefer fewer trainable parameters, then lower learning rate,
+  then deterministic configuration order.
+- Freeze the selected configuration before final runs.
+- Final seeds: 42, 43, 44, 45, 46. Each seed selects its epoch on August
+  using January-July training and the frozen configuration.
+- Stage B: reinitialize each model and refit preprocessing on January-August.
+  Train for exactly its August-selected epoch count, without early stopping.
+- Evaluate all frozen final models on September-October once at the end.
+  Do not use September-October for settings, epochs or model selection.
+- Compare on identical flight IDs and labels with saved Member 1 MLP,
+  Logistic Regression and GRU predictions from
+  reports/results/phase2_member2/sep_oct_predictions.parquet.
+- Report PR-AUC, ROC-AUC, Brier and ECE, with mean and standard deviation
+  across seeds. Compute paired PR-AUC differences using day_bootstrap
+  imported from scripts/train_gru.py, with its 1,000 day resamples.
+- Claim improvement only when the difference's 95% interval is above zero.
+- Reuse Member 1 and Member 2 utilities through imports.
+  Keep their implementation and saved artifacts intact.
+- November-December remains sealed and is excluded from this work.
+- Save Member 3 code, checkpoints, preprocessing, run histories,
+  August grid results and final aligned predictions separately.
