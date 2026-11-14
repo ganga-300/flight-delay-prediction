@@ -1007,3 +1007,36 @@ reliability diagram, and at the threshold: precision, recall and flights flagged
   under `reports/figures/phase2_member5/` (ablations in `ablation/`). Summaries:
   `reports/results/phase2_member5/evaluation_summary.md` and
   `reports/results/phase2_member5/ablation/evaluation_summary.md`.
+
+### D-312 · Phase 2 final model for the single November–December test
+
+- **Status:** Decided before any Phase 2 model is scored on November–December. Date: 2026-11-14.
+  Committed on its own; the commit is tagged `phase2-model-frozen`. Nothing below changes after
+  the test result.
+- **Owner:** Ganga Raghuwanshi (coordinator). The test run is Member 5's PR 2.
+- **Chosen model:** Member 2 GRU (D-303/D-304), the saved checkpoint
+  `models/phase2/member2/gru_final.pth` (seed 42, refit January–August, sequence length 14,
+  hidden size 16), with its saved `static_preprocessor.joblib` and `sequence_scaler.npz`.
+- **Why the GRU (all evidence from September–October, D-304 and D-311):**
+  - Highest PR-AUC (0.2946 ± 0.0055 vs LR 0.2896). The +0.005 difference is within bootstrap
+    noise ([−0.014, +0.024]), so this is not a claim that the GRU ranks better than LR.
+  - Best calibration after the September sigmoid (October ECE-10 0.0144 vs LR 0.0274).
+  - The only model with a feasible precision ≥ 0.60 threshold in all 5 seeds that flags a usable
+    number of flights (160–358). LR's threshold is infeasible.
+- **Why seed 42 only:** it is the only saved GRU checkpoint. `scripts/train_gru.py` was written
+  to save the first seed (42) before any result existed (`model_config.json`: "seed 42, refit
+  January-August"), so it was not picked for its score; its Sep–Oct PR-AUC (0.2958) is close to
+  the 5-seed mean. Seeds 43–46 are not retrained.
+- **Frozen calibration (fitted on September only, D-203; reproduced from D-311's code):**
+  calibrated logit = 0.601708 × logit(p) − 1.106954.
+- **Frozen threshold (chosen on October only, precision ≥ 0.60, D-015):** 0.394665 on calibrated
+  probability. On October: precision 0.604, recall 0.035, 288 flights flagged (in-sample).
+- **Test run rules (PR 2):**
+  - Build features and daily sequences over January–December with past-only history (as in
+    D-205), then score only November–December rows. Nothing is fitted or refitted.
+  - Before scoring, check that the September calibrator and October threshold rebuilt by the
+    script equal the values above.
+  - Run once; the script refuses to run if test results already exist. Report raw and
+    calibrated PR-AUC, ROC-AUC, Brier, ECE-10, and precision, recall and flights flagged at the
+    frozen threshold, next to LR's D-205 result (PR-AUC 0.3979).
+  - The result is reported as produced, whether it is better or worse than LR.
