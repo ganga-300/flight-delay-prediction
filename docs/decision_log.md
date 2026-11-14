@@ -929,3 +929,81 @@ reliability diagram, and at the threshold: precision, recall and flights flagged
      end-to-end neural classification or tree splits directly on original features.
 - Artifacts: Saved under `models/phase2/member4/`, `reports/results/phase2_member4/`, `reports/figures/phase2_member4/`,
   `notebooks/phase2_member4_ablation_hybrid.ipynb`, and `docs/phase2_member4_ablation_hybrid.md`.
+
+### D-311 · Member 5 evaluation: September–October calibration, thresholds and error analysis
+
+- Status: completed and evaluated. Date: 2026-11-14.
+- Scope: Common D-203 evaluation of the saved September–October probabilities of all Phase 2
+  models: Logistic Regression (Phase 1), Member 1 MLP, Member 2 GRU, Member 3 D-307 embedding MLP,
+  Member 4 plain XGBoost, hybrid DL + XGBoost and the four Member 4 ablations. Seeds 42–46 (LR is
+  one deterministic run). Nothing is retrained.
+- Input: `reports/results/phase2_member4/sep_oct_predictions.parquet` only (55,628 flights,
+  matched by flight id). Carrier, origin and departure hour come from the January–October
+  development file (`load_dev_raw`). November–December was not read; the loader rejects any row
+  outside September–October.
+- Protocol (D-203, each month has one job):
+  - September 2013 (27,010 flights): fit one sigmoid calibrator per run.
+  - October 2013 (28,618 flights): out-of-sample calibration check; operating threshold at
+    precision ≥ 0.60 (D-015), recorded as infeasible if no threshold reaches it (the target is
+    never lowered); reliability plots; error analysis.
+  - September–October 2013 (55,628 flights): PR-AUC, ROC-AUC and paired day-level bootstrap
+    differences (`day_bootstrap` from `scripts/train_gru.py`, 1,000 whole-day resamples, seed 42).
+- Model comparison (mean ± sd over seeds; PR-AUC and ROC-AUC on September–October, Brier and
+  ECE-10 on October after the September sigmoid):
+  - Logistic Regression (Phase 1): PR-AUC 0.2896 ± 0.0000, ROC-AUC 0.6800, Brier 0.1360, ECE-10 0.0274
+  - Member 1 MLP: PR-AUC 0.2839 ± 0.0043, ROC-AUC 0.6719, Brier 0.1359, ECE-10 0.0242
+  - Member 2 GRU: PR-AUC 0.2946 ± 0.0055, ROC-AUC 0.6743, Brier 0.1352, ECE-10 0.0144
+  - Member 3 D-307 embedding MLP: PR-AUC 0.2757 ± 0.0035, ROC-AUC 0.6748, Brier 0.1370, ECE-10 0.0301
+  - Plain XGBoost (Member 4): PR-AUC 0.2681 ± 0.0055, ROC-AUC 0.6719, Brier 0.1379, ECE-10 0.0304
+  - Hybrid DL + XGBoost (Member 4): PR-AUC 0.2643 ± 0.0101, ROC-AUC 0.6658, Brier 0.1380, ECE-10 0.0329
+  - The September sigmoid brings every model's October ECE-10 to 0.014–0.033 (raw: 0.039–0.227),
+    so calibration is compared only after the sigmoid. Raw LR is high (ECE-10 0.227) because of
+    `class_weight="balanced"`.
+- Paired PR-AUC differences vs Logistic Regression (September–October, 95% day-bootstrap interval):
+  - `mlp - lr`: -0.0057 [-0.0239, +0.0115] (excludes zero: no)
+  - `gru - lr`: +0.0050 [-0.0137, +0.0238] (excludes zero: no)
+  - `embedding - lr`: -0.0139 [-0.0218, -0.0034] (excludes zero: yes)
+  - `plain_xgboost - lr`: -0.0215 [-0.0385, -0.0038] (excludes zero: yes)
+  - `hybrid_dl_xgboost - lr`: -0.0253 [-0.0395, -0.0105] (excludes zero: yes)
+- No winner on PR-AUC is declared. No model's PR-AUC is higher than LR's beyond the bootstrap
+  interval, and the MLP and GRU differences are within noise. The three intervals that exclude
+  zero are not a clean test either: Phase 1 used September–October as LR's validation months
+  (D-203/D-204), so LR's numbers are optimistic. The fair baseline trained under the Phase 2
+  protocol is Member 4's plain XGBoost.
+- Ablations vs the D-307 embedding MLP (same protocol): only removing congestion features lowers
+  PR-AUC beyond the interval (-0.0161 [-0.0267, -0.0057]). No history -0.0181 [-0.0462, +0.0056],
+  one-hot -0.0004 [-0.0064, +0.0051] and no regularisation -0.0000 [-0.0028, +0.0028] are within
+  noise. This reproduces D-310's conclusions under the common evaluation.
+- October thresholds (precision ≥ 0.60):
+  - Infeasible: LR, and the D-307 embedding MLP in all 5 runs.
+  - Feasible: Member 1 MLP 5/5 runs (flags 1–320 flights, recall 0.014), Member 2 GRU 5/5
+    (160–358 flights, recall 0.033), plain XGBoost 4/5 (1–35 flights, recall 0.002), hybrid 3/5
+    (1–39 flights, recall 0.002).
+  - Ablations: no history 4/5, one-hot 4/5, no congestion 1/5, no regularisation 1/5.
+  - Degenerate thresholds: D-203 sets no minimum number of flagged flights, so a "feasible"
+    threshold can flag a single flight. Mean recall at the threshold is at most 3.3% for
+    every model.
+    Flight counts are reported with every threshold so this is visible; no minimum has been added
+    after seeing the results. These threshold numbers are also in-sample, because October both
+    chooses the threshold and scores it.
+- Error analysis (October, calibrated probabilities, groups with ≥ 200 flights, by carrier,
+  origin and departure hour):
+  - Groups are ranked by PR-AUC / delay rate, not by raw PR-AUC. A random ranking scores a
+    PR-AUC equal to the delay rate, so raw PR-AUC is lowest in groups with few delays even when
+    they are ranked well. Under raw PR-AUC the weakest groups were DL (11.4% delayed, PR-AUC
+    0.195) and 6 am (9.0%, 0.121); by the ratio, DL is 1.70× random and is not among the hardest.
+  - Hardest groups by PR-AUC / delay rate (mean over models): carrier FL (38.9% delayed,
+    PR-AUC 0.499, 1.28×), AA (1.41×), 9E (1.43×); origin JFK (1.53×), LGA (1.75×), EWR (1.86×);
+    departure hour 6 (1.35×), 19 (1.36×), 15 (1.48×). FL has only 234 October flights, so its
+    value is noisy.
+  - Largest calibration gaps are all under-predictions after the September sigmoid: FL -0.147,
+    EV -0.069, WN -0.067, and the late-afternoon and evening hours (15, 19: -0.065). This follows
+    from September being the calmest month (13.7% delayed vs 17.6% in October).
+  - Threshold-based rates (miss rate, false alarms) are not reported per group, because the
+    October thresholds are infeasible or flag very few flights.
+- Script: `scripts/member5_evaluate.py`; logic in `src/flight_delay/evaluation/evaluate.py`.
+  The script refuses to overwrite existing outputs.
+- Artifacts: tables under `reports/results/phase2_member5/` (ablations in `ablation/`); plots
+  under `reports/figures/phase2_member5/` (ablations in `ablation/`). Summaries:
+  `reports/results/phase2_member5/evaluation_summary.md` and
+  `reports/results/phase2_member5/ablation/evaluation_summary.md`.

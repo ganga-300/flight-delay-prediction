@@ -55,33 +55,33 @@ Differences whose interval excludes 0 (September-October): higher: none; lower: 
 
 Groups with at least 200 October flights. Values are means over each model's seeds; per-seed sd is in `error_analysis_groups.csv`. Threshold-based rates are not reported because the October thresholds are infeasible or flag very few flights (D-203).
 
-Lowest PR-AUC groups (October):
+Hardest groups (October), ranked by PR-AUC / delay rate. A random ranking scores a PR-AUC equal to the group's delay rate, so raw PR-AUC is lowest in groups with few delays even when the model ranks them well; dividing by the delay rate (1 = no better than random) compares groups on one scale. Per-model columns are PR-AUC / delay rate.
 
-| Meta column | Group | Flights (Oct) | Logistic Regression (Phase 1) | Member 1 MLP | Member 2 GRU | Member 3 embedding MLP (D-307) | Plain XGBoost (Member 4) | Hybrid DL + XGBoost (Member 4) | Mean over models |
-|---|---|---|---|---|---|---|---|---|---|
-| carrier | DL | 4090 | 0.191 | 0.201 | 0.200 | 0.194 | 0.190 | 0.193 | 0.195 |
-| carrier | US | 1814 | 0.205 | 0.237 | 0.233 | 0.175 | 0.204 | 0.183 | 0.206 |
-| carrier | AA | 2699 | 0.215 | 0.222 | 0.217 | 0.217 | 0.205 | 0.213 | 0.215 |
-| origin | JFK | 9096 | 0.227 | 0.222 | 0.213 | 0.221 | 0.203 | 0.209 | 0.216 |
-| origin | LGA | 9516 | 0.325 | 0.345 | 0.350 | 0.312 | 0.308 | 0.313 | 0.326 |
-| origin | EWR | 10006 | 0.383 | 0.388 | 0.391 | 0.361 | 0.332 | 0.349 | 0.367 |
-| dep_hour | 6 | 2107 | 0.132 | 0.117 | 0.111 | 0.119 | 0.129 | 0.116 | 0.121 |
-| dep_hour | 7 | 1947 | 0.154 | 0.149 | 0.148 | 0.146 | 0.130 | 0.127 | 0.142 |
-| dep_hour | 9 | 1617 | 0.160 | 0.178 | 0.173 | 0.168 | 0.150 | 0.150 | 0.163 |
+| Meta column | Group | Flights (Oct) | Delay rate (Oct) | Mean PR-AUC (Oct) | Logistic Regression (Phase 1) | Member 1 MLP | Member 2 GRU | Member 3 embedding MLP (D-307) | Plain XGBoost (Member 4) | Hybrid DL + XGBoost (Member 4) | Mean PR-AUC / delay rate |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| carrier | FL | 234 | 38.9% | 0.499 | 1.28 | 1.33 | 1.37 | 1.25 | 1.18 | 1.28 | 1.28 |
+| carrier | AA | 2699 | 15.3% | 0.215 | 1.41 | 1.45 | 1.42 | 1.42 | 1.35 | 1.40 | 1.41 |
+| carrier | 9E | 1635 | 19.0% | 0.272 | 1.46 | 1.52 | 1.48 | 1.41 | 1.34 | 1.38 | 1.43 |
+| origin | JFK | 9096 | 14.1% | 0.216 | 1.61 | 1.57 | 1.51 | 1.56 | 1.44 | 1.48 | 1.53 |
+| origin | LGA | 9516 | 18.6% | 0.326 | 1.75 | 1.86 | 1.88 | 1.68 | 1.66 | 1.68 | 1.75 |
+| origin | EWR | 10006 | 19.7% | 0.367 | 1.94 | 1.97 | 1.98 | 1.83 | 1.69 | 1.77 | 1.86 |
+| dep_hour | 6 | 2107 | 9.0% | 0.121 | 1.47 | 1.31 | 1.24 | 1.33 | 1.44 | 1.29 | 1.35 |
+| dep_hour | 19 | 1746 | 27.3% | 0.371 | 1.41 | 1.40 | 1.39 | 1.34 | 1.30 | 1.33 | 1.36 |
+| dep_hour | 15 | 1985 | 24.6% | 0.364 | 1.53 | 1.57 | 1.54 | 1.44 | 1.38 | 1.42 | 1.48 |
 
 Largest calibration gaps, mean calibrated probability minus observed rate (October):
 
-| Meta column | Group | Logistic Regression (Phase 1) | Member 1 MLP | Member 2 GRU | Member 3 embedding MLP (D-307) | Plain XGBoost (Member 4) | Hybrid DL + XGBoost (Member 4) | Mean over models |
-|---|---|---|---|---|---|---|---|---|
-| carrier | FL | -0.140 | -0.153 | -0.121 | -0.150 | -0.151 | -0.170 | -0.147 |
-| carrier | EV | -0.074 | -0.067 | -0.050 | -0.074 | -0.068 | -0.083 | -0.069 |
-| carrier | WN | -0.062 | -0.058 | -0.048 | -0.074 | -0.078 | -0.080 | -0.067 |
-| origin | EWR | -0.048 | -0.035 | -0.027 | -0.040 | -0.038 | -0.041 | -0.038 |
-| origin | LGA | -0.016 | -0.020 | +0.000 | -0.033 | -0.034 | -0.033 | -0.023 |
-| origin | JFK | -0.016 | -0.016 | -0.012 | -0.015 | -0.017 | -0.021 | -0.016 |
-| dep_hour | 19 | -0.061 | -0.067 | -0.052 | -0.066 | -0.068 | -0.078 | -0.065 |
-| dep_hour | 15 | -0.064 | -0.066 | -0.052 | -0.068 | -0.064 | -0.076 | -0.065 |
-| dep_hour | 17 | -0.049 | -0.051 | -0.037 | -0.049 | -0.043 | -0.056 | -0.047 |
+| Meta column | Group | Delay rate (Oct) | Logistic Regression (Phase 1) | Member 1 MLP | Member 2 GRU | Member 3 embedding MLP (D-307) | Plain XGBoost (Member 4) | Hybrid DL + XGBoost (Member 4) | Mean over models |
+|---|---|---|---|---|---|---|---|---|---|
+| carrier | FL | 38.9% | -0.140 | -0.153 | -0.121 | -0.150 | -0.151 | -0.170 | -0.147 |
+| carrier | EV | 26.3% | -0.074 | -0.067 | -0.050 | -0.074 | -0.068 | -0.083 | -0.069 |
+| carrier | WN | 23.8% | -0.062 | -0.058 | -0.048 | -0.074 | -0.078 | -0.080 | -0.067 |
+| origin | EWR | 19.7% | -0.048 | -0.035 | -0.027 | -0.040 | -0.038 | -0.041 | -0.038 |
+| origin | LGA | 18.6% | -0.016 | -0.020 | +0.000 | -0.033 | -0.034 | -0.033 | -0.023 |
+| origin | JFK | 14.1% | -0.016 | -0.016 | -0.012 | -0.015 | -0.017 | -0.021 | -0.016 |
+| dep_hour | 19 | 27.3% | -0.061 | -0.067 | -0.052 | -0.066 | -0.068 | -0.078 | -0.065 |
+| dep_hour | 15 | 24.6% | -0.064 | -0.066 | -0.052 | -0.068 | -0.064 | -0.076 | -0.065 |
+| dep_hour | 17 | 25.1% | -0.049 | -0.051 | -0.037 | -0.049 | -0.043 | -0.056 | -0.047 |
 
 ## Limitations
 

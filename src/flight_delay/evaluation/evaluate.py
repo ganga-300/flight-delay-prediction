@@ -67,8 +67,11 @@ BootstrapFn = Callable[..., pd.DataFrame]
 
 def load_sep_oct(path_or_frame: str | Path | pd.DataFrame) -> pd.DataFrame:
     """Load and validate saved September-October predictions."""
-    frame = (path_or_frame.copy() if isinstance(path_or_frame, pd.DataFrame)
-             else pd.read_parquet(path_or_frame))
+    frame = (
+        path_or_frame.copy()
+        if isinstance(path_or_frame, pd.DataFrame)
+        else pd.read_parquet(path_or_frame)
+    )
     for col in ("id", "date", "is_delayed"):
         if col not in frame.columns:
             raise ValueError(f"missing column {col!r}")
@@ -139,8 +142,12 @@ class FixedProbabilities(ClassifierMixin, BaseEstimator):
 
 def fit_sigmoid(p_september: np.ndarray, y_september: np.ndarray) -> Callable:
     """Fit a sigmoid calibrator on September; return a function mapping probabilities."""
-    calibrated = calibrate(FixedProbabilities().fit(), np.asarray(p_september).reshape(-1, 1),
-                           np.asarray(y_september), method="sigmoid")
+    calibrated = calibrate(
+        FixedProbabilities().fit(),
+        np.asarray(p_september).reshape(-1, 1),
+        np.asarray(y_september),
+        method="sigmoid",
+    )
     return lambda p: calibrated.predict_proba(np.asarray(p).reshape(-1, 1))[:, 1]
 
 
@@ -161,8 +168,9 @@ class RunResult:
     october_calibrated: np.ndarray
 
 
-def evaluate_run(model: str, run: str, frame: pd.DataFrame,
-                 min_precision: float = MIN_PRECISION) -> RunResult:
+def evaluate_run(
+    model: str, run: str, frame: pd.DataFrame, min_precision: float = MIN_PRECISION
+) -> RunResult:
     """All metrics for one probability column, each tagged with its month."""
     y = frame["is_delayed"].to_numpy(int)
     p = frame[run].to_numpy(float)
@@ -171,20 +179,35 @@ def evaluate_run(model: str, run: str, frame: pd.DataFrame,
     calibrator = fit_sigmoid(p[sep], y[sep])
     q_sep, q_oct = calibrator(p[sep]), calibrator(p[octo])
 
-    m = {"model": model, "run": run,
-         "sepoct_pr_auc": pr_auc(y, p), "sepoct_roc_auc": roc_auc(y, p)}
-    for prefix, yy, pp in [("sep_raw", y[sep], p[sep]), ("sep_sigmoid", y[sep], q_sep),
-                           ("oct_raw", y[octo], p[octo]), ("oct_sigmoid", y[octo], q_oct)]:
+    m = {"model": model, "run": run, "sepoct_pr_auc": pr_auc(y, p), "sepoct_roc_auc": roc_auc(y, p)}
+    for prefix, yy, pp in [
+        ("sep_raw", y[sep], p[sep]),
+        ("sep_sigmoid", y[sep], q_sep),
+        ("oct_raw", y[octo], p[octo]),
+        ("oct_sigmoid", y[octo], q_oct),
+    ]:
         m.update({f"{prefix}_{k}": v for k, v in probability_scores(yy, pp).items()})
     op = choose_threshold(y[octo], q_oct, min_precision=min_precision)
     m["oct_threshold_feasible"] = bool(op["feasible"])
     if op["feasible"]:
         flagged = q_oct >= op["threshold"]
-        m.update({"oct_threshold": op["threshold"], "oct_precision": op["precision"],
-                  "oct_recall": op["recall"], "oct_flagged": int(flagged.sum())})
+        m.update(
+            {
+                "oct_threshold": op["threshold"],
+                "oct_precision": op["precision"],
+                "oct_recall": op["recall"],
+                "oct_flagged": int(flagged.sum()),
+            }
+        )
     else:
-        m.update({"oct_threshold": np.nan, "oct_precision": np.nan, "oct_recall": np.nan,
-                  "oct_flagged": 0})
+        m.update(
+            {
+                "oct_threshold": np.nan,
+                "oct_precision": np.nan,
+                "oct_recall": np.nan,
+                "oct_flagged": 0,
+            }
+        )
     return RunResult(model, run, m, p[octo], q_oct)
 
 
@@ -193,10 +216,18 @@ def evaluate_run(model: str, run: str, frame: pd.DataFrame,
 # --------------------------------------------------------------------------------------------
 
 METRIC_COLUMNS = [
-    "sepoct_pr_auc", "sepoct_roc_auc",
-    "oct_raw_brier", "oct_sigmoid_brier", "oct_raw_ece_10", "oct_sigmoid_ece_10",
-    "oct_raw_mean_prob", "oct_sigmoid_mean_prob",
-    "sep_raw_brier", "sep_sigmoid_brier", "sep_raw_ece_10", "sep_sigmoid_ece_10",
+    "sepoct_pr_auc",
+    "sepoct_roc_auc",
+    "oct_raw_brier",
+    "oct_sigmoid_brier",
+    "oct_raw_ece_10",
+    "oct_sigmoid_ece_10",
+    "oct_raw_mean_prob",
+    "oct_sigmoid_mean_prob",
+    "sep_raw_brier",
+    "sep_sigmoid_brier",
+    "sep_raw_ece_10",
+    "sep_sigmoid_ece_10",
 ]
 
 
@@ -233,8 +264,10 @@ def threshold_text(g: pd.DataFrame) -> str:
     t = feasible["oct_threshold"]
     lo, hi = int(feasible["oct_flagged"].min()), int(feasible["oct_flagged"].max())
     flags = f"{lo}" if lo == hi else f"{lo}-{hi}"
-    return (f"{len(feasible)}/{n} feasible: t = {t.mean():.3f} ± {_sd(t):.3f}, "
-            f"flags {flags} flights, recall {feasible['oct_recall'].mean():.4f}")
+    return (
+        f"{len(feasible)}/{n} feasible: t = {t.mean():.3f} ± {_sd(t):.3f}, "
+        f"flags {flags} flights, recall {feasible['oct_recall'].mean():.4f}"
+    )
 
 
 # --------------------------------------------------------------------------------------------
@@ -242,29 +275,39 @@ def threshold_text(g: pd.DataFrame) -> str:
 # --------------------------------------------------------------------------------------------
 
 
-def group_table(frame: pd.DataFrame, prob: np.ndarray,
-                min_rows: int = MIN_GROUP_ROWS) -> pd.DataFrame:
-    """Per-group observed rate, mean probability, calibration gap and PR-AUC."""
+def group_table(
+    frame: pd.DataFrame, prob: np.ndarray, min_rows: int = MIN_GROUP_ROWS
+) -> pd.DataFrame:
+    """Per-group observed rate, mean probability, calibration gap, PR-AUC and PR-AUC lift.
+
+    PR-AUC of a random ranking equals the group's delay rate, so raw PR-AUC is low in groups with
+    few delays even when the model ranks them well. ``pr_auc_lift`` = PR-AUC / delay rate puts
+    groups with different delay rates on one scale (1 = no better than random).
+    """
     work = frame.assign(_p=prob)
     rows = []
     for col in META_COLUMNS:
         for group, g in work.groupby(col, sort=True):
             y, p = g["is_delayed"].to_numpy(int), g["_p"].to_numpy(float)
             ok = len(g) >= min_rows and 0 < y.sum() < len(y)
-            rows.append({
-                "meta_column": col,
-                "group": group,
-                "n": len(g),
-                "observed_rate": float(y.mean()),
-                "mean_predicted": float(p.mean()),
-                "calibration_gap": float(p.mean() - y.mean()),
-                "pr_auc": pr_auc(y, p) if ok else np.nan,
-            })
+            rows.append(
+                {
+                    "meta_column": col,
+                    "group": group,
+                    "n": len(g),
+                    "observed_rate": float(y.mean()),
+                    "mean_predicted": float(p.mean()),
+                    "calibration_gap": float(p.mean() - y.mean()),
+                    "pr_auc": pr_auc(y, p) if ok else np.nan,
+                    "pr_auc_lift": pr_auc(y, p) / float(y.mean()) if ok else np.nan,
+                }
+            )
     return pd.DataFrame(rows)
 
 
-def error_analysis(october: pd.DataFrame, results: list[RunResult],
-                   labels: dict[str, str]) -> pd.DataFrame:
+def error_analysis(
+    october: pd.DataFrame, results: list[RunResult], labels: dict[str, str]
+) -> pd.DataFrame:
     """Group metrics on calibrated October probabilities, mean and sd over each model's seeds."""
     per_run = []
     for r in results:
@@ -273,16 +316,25 @@ def error_analysis(october: pd.DataFrame, results: list[RunResult],
         per_run.append(t)
     long = pd.concat(per_run, ignore_index=True)
     keys = ["model", "meta_column", "group"]
-    agg = long.groupby(keys, sort=False).agg(
-        n=("n", "first"),
-        observed_rate=("observed_rate", "first"),
-        mean_predicted_mean=("mean_predicted", "mean"),
-        mean_predicted_sd=("mean_predicted", _sd),
-        calibration_gap_mean=("calibration_gap", "mean"),
-        calibration_gap_sd=("calibration_gap", _sd),
-        pr_auc_mean=("pr_auc", "mean"),
-        pr_auc_sd=("pr_auc", lambda s: _sd(s.dropna()) if s.notna().any() else np.nan),
-    ).reset_index()
+    agg = (
+        long.groupby(keys, sort=False)
+        .agg(
+            n=("n", "first"),
+            observed_rate=("observed_rate", "first"),
+            mean_predicted_mean=("mean_predicted", "mean"),
+            mean_predicted_sd=("mean_predicted", _sd),
+            calibration_gap_mean=("calibration_gap", "mean"),
+            calibration_gap_sd=("calibration_gap", _sd),
+            pr_auc_mean=("pr_auc", "mean"),
+            pr_auc_sd=("pr_auc", lambda s: _sd(s.dropna()) if s.notna().any() else np.nan),
+            pr_auc_lift_mean=("pr_auc_lift", "mean"),
+            pr_auc_lift_sd=(
+                "pr_auc_lift",
+                lambda s: _sd(s.dropna()) if s.notna().any() else np.nan,
+            ),
+        )
+        .reset_index()
+    )
     agg.insert(1, "label", agg["model"].map(lambda m: labels.get(m, m)))
     agg.insert(2, "month", "October")
     return agg
@@ -315,35 +367,52 @@ def _reliability(y: np.ndarray, p: np.ndarray, min_count: int = 20):
     return np.array(xs), np.array(ys)
 
 
-def plot_reliability(y_oct: np.ndarray, results: list[RunResult], labels: dict[str, str],
-                     path: Path) -> None:
+def plot_reliability(
+    y_oct: np.ndarray, results: list[RunResult], labels: dict[str, str], path: Path
+) -> None:
     models = list(dict.fromkeys(r.model for r in results))
     cols = min(3, len(models))
     rows = int(np.ceil(len(models) / cols))
-    fig, axes = plt.subplots(rows, cols, figsize=(4.2 * cols, 4 * rows), squeeze=False,
-                             facecolor=SURFACE)
+    fig, axes = plt.subplots(
+        rows, cols, figsize=(4.2 * cols, 4 * rows), squeeze=False, facecolor=SURFACE
+    )
     for ax, model in zip(axes.flat, models, strict=False):
         _style(ax)
         ax.plot([0, 1], [0, 1], color=INK_2, linestyle="--", linewidth=1, label="Perfect")
         runs = [r for r in results if r.model == model]
         for i, r in enumerate(runs):
-            for p, name, color in [(r.october_raw, "Raw", PALETTE[0]),
-                                   (r.october_calibrated, "Sigmoid (fit on September)",
-                                    PALETTE[1])]:
+            for p, name, color in [
+                (r.october_raw, "Raw", PALETTE[0]),
+                (r.october_calibrated, "Sigmoid (fit on September)", PALETTE[1]),
+            ]:
                 xs, ys = _reliability(y_oct, p)
-                ax.plot(xs, ys, color=color, linewidth=1.4, marker="o", markersize=3,
-                        alpha=0.85, label=name if i == 0 else None)
-        ax.set_title(f"{labels.get(model, model)} ({len(runs)} run{'s' * (len(runs) > 1)})",
-                     fontsize=9, color=INK)
+                ax.plot(
+                    xs,
+                    ys,
+                    color=color,
+                    linewidth=1.4,
+                    marker="o",
+                    markersize=3,
+                    alpha=0.85,
+                    label=name if i == 0 else None,
+                )
+        ax.set_title(
+            f"{labels.get(model, model)} ({len(runs)} run{'s' * (len(runs) > 1)})",
+            fontsize=9,
+            color=INK,
+        )
         ax.set_xlim(0, 1)
         ax.set_ylim(0, 1)
         ax.set_xlabel("Mean predicted probability", fontsize=8, color=INK_2)
         ax.set_ylabel("Observed delay rate", fontsize=8, color=INK_2)
         ax.legend(fontsize=7, frameon=False, loc="upper left")
-    for ax in list(axes.flat)[len(models):]:
+    for ax in list(axes.flat)[len(models) :]:
         ax.set_visible(False)
-    fig.suptitle("Reliability on October (one line per seed), before and after calibration",
-                 fontsize=11, color=INK)
+    fig.suptitle(
+        "Reliability on October (one line per seed), before and after calibration",
+        fontsize=11,
+        color=INK,
+    )
     fig.tight_layout()
     fig.savefig(path, dpi=150, facecolor=SURFACE)
     plt.close(fig)
@@ -374,12 +443,20 @@ def plot_bootstrap(boot: pd.DataFrame, path: Path) -> None:
     _style(ax)
     d = t["difference"].to_numpy()
     err = [d - t["ci_low"].to_numpy(), t["ci_high"].to_numpy() - d]
-    ax.errorbar(d, y, xerr=err, fmt="o", color=PALETTE[0], ecolor=PALETTE[0], elinewidth=2,
-                capsize=4, markersize=6)
+    ax.errorbar(
+        d,
+        y,
+        xerr=err,
+        fmt="o",
+        color=PALETTE[0],
+        ecolor=PALETTE[0],
+        elinewidth=2,
+        capsize=4,
+        markersize=6,
+    )
     ax.axvline(0, color=INK_2, linestyle="--", linewidth=1)
     ax.set_yticks(y, t["comparison"], fontsize=8, color=INK)
-    ax.set_xlabel("PR-AUC difference, September-October (95% day-bootstrap interval)",
-                  color=INK_2)
+    ax.set_xlabel("PR-AUC difference, September-October (95% day-bootstrap interval)", color=INK_2)
     fig.tight_layout()
     fig.savefig(path, dpi=150, facecolor=SURFACE)
     plt.close(fig)
@@ -393,8 +470,10 @@ def plot_bootstrap(boot: pd.DataFrame, path: Path) -> None:
 def markdown_table(frame: pd.DataFrame) -> str:
     head = "| " + " | ".join(map(str, frame.columns)) + " |"
     sep = "|" + "|".join("---" for _ in frame.columns) + "|"
-    body = ["| " + " | ".join("" if v is None else str(v) for v in row) + " |"
-            for row in frame.itertuples(index=False)]
+    body = [
+        "| " + " | ".join("" if v is None else str(v) for v in row) + " |"
+        for row in frame.itertuples(index=False)
+    ]
     return "\n".join([head, sep, *body])
 
 
@@ -405,69 +484,96 @@ def pm(mean: float, sd: float, digits: int = 4) -> str:
 def comparison_markdown(summary: pd.DataFrame) -> str:
     rows = []
     for r in summary.itertuples(index=False):
-        rows.append({
-            "Model": r.label,
-            "Runs": r.n_runs,
-            "PR-AUC (Sep-Oct)": pm(r.sepoct_pr_auc_mean, r.sepoct_pr_auc_sd),
-            "ROC-AUC (Sep-Oct)": pm(r.sepoct_roc_auc_mean, r.sepoct_roc_auc_sd),
-            "Brier raw (Oct)": pm(r.oct_raw_brier_mean, r.oct_raw_brier_sd),
-            "Brier calibrated (Oct)": pm(r.oct_sigmoid_brier_mean, r.oct_sigmoid_brier_sd),
-            "ECE raw (Oct)": pm(r.oct_raw_ece_10_mean, r.oct_raw_ece_10_sd),
-            "ECE calibrated (Oct)": pm(r.oct_sigmoid_ece_10_mean, r.oct_sigmoid_ece_10_sd),
-            "Threshold, precision ≥ 0.60 (Oct)": r.oct_threshold,
-        })
+        rows.append(
+            {
+                "Model": r.label,
+                "Runs": r.n_runs,
+                "PR-AUC (Sep-Oct)": pm(r.sepoct_pr_auc_mean, r.sepoct_pr_auc_sd),
+                "ROC-AUC (Sep-Oct)": pm(r.sepoct_roc_auc_mean, r.sepoct_roc_auc_sd),
+                "Brier raw (Oct)": pm(r.oct_raw_brier_mean, r.oct_raw_brier_sd),
+                "Brier calibrated (Oct)": pm(r.oct_sigmoid_brier_mean, r.oct_sigmoid_brier_sd),
+                "ECE raw (Oct)": pm(r.oct_raw_ece_10_mean, r.oct_raw_ece_10_sd),
+                "ECE calibrated (Oct)": pm(r.oct_sigmoid_ece_10_mean, r.oct_sigmoid_ece_10_sd),
+                "Threshold, precision ≥ 0.60 (Oct)": r.oct_threshold,
+            }
+        )
     return markdown_table(pd.DataFrame(rows))
 
 
 def september_markdown(summary: pd.DataFrame) -> str:
-    rows = [{
-        "Model": r.label,
-        "Brier raw (Sep)": pm(r.sep_raw_brier_mean, r.sep_raw_brier_sd),
-        "Brier calibrated (Sep, in-sample)": pm(r.sep_sigmoid_brier_mean, r.sep_sigmoid_brier_sd),
-        "ECE raw (Sep)": pm(r.sep_raw_ece_10_mean, r.sep_raw_ece_10_sd),
-        "ECE calibrated (Sep, in-sample)": pm(r.sep_sigmoid_ece_10_mean,
-                                              r.sep_sigmoid_ece_10_sd),
-    } for r in summary.itertuples(index=False)]
+    rows = [
+        {
+            "Model": r.label,
+            "Brier raw (Sep)": pm(r.sep_raw_brier_mean, r.sep_raw_brier_sd),
+            "Brier calibrated (Sep, in-sample)": pm(
+                r.sep_sigmoid_brier_mean, r.sep_sigmoid_brier_sd
+            ),
+            "ECE raw (Sep)": pm(r.sep_raw_ece_10_mean, r.sep_raw_ece_10_sd),
+            "ECE calibrated (Sep, in-sample)": pm(
+                r.sep_sigmoid_ece_10_mean, r.sep_sigmoid_ece_10_sd
+            ),
+        }
+        for r in summary.itertuples(index=False)
+    ]
     return markdown_table(pd.DataFrame(rows))
 
 
 def bootstrap_markdown(boot: pd.DataFrame) -> str:
-    rows = [{
-        "Comparison": r.comparison,
-        "PR-AUC difference (Sep-Oct)": f"{r.difference:+.4f}",
-        "95% interval (Sep-Oct)": f"[{r.ci_low:+.4f}, {r.ci_high:+.4f}]",
-        "Interval excludes 0": "yes" if r.excludes_zero else "no",
-    } for r in boot.itertuples(index=False)]
+    rows = [
+        {
+            "Comparison": r.comparison,
+            "PR-AUC difference (Sep-Oct)": f"{r.difference:+.4f}",
+            "95% interval (Sep-Oct)": f"[{r.ci_low:+.4f}, {r.ci_high:+.4f}]",
+            "Interval excludes 0": "yes" if r.excludes_zero else "no",
+        }
+        for r in boot.itertuples(index=False)
+    ]
     return markdown_table(pd.DataFrame(rows))
 
 
 def weakest_groups_markdown(groups: pd.DataFrame, k: int = 3) -> str:
-    """Per meta column, the k groups with lowest October PR-AUC averaged over models."""
-    rated = groups.dropna(subset=["pr_auc_mean"])
-    pivot = rated.pivot_table(index=["meta_column", "group"], columns="label",
-                              values="pr_auc_mean", sort=False)
-    pivot["Mean over models"] = pivot.mean(axis=1)
-    n = rated.groupby(["meta_column", "group"])["n"].first()
+    """Per meta column, the k groups with the lowest October PR-AUC / delay rate.
+
+    Ranking by raw PR-AUC would mostly pick groups with few delays (a random ranking scores the
+    delay rate), so groups are ranked by PR-AUC lift averaged over models. Each row shows the
+    group's delay rate, its mean PR-AUC and each model's lift.
+    """
+    rated = groups.dropna(subset=["pr_auc_lift_mean"])
+    keys = ["meta_column", "group"]
+    pivot = rated.pivot_table(index=keys, columns="label", values="pr_auc_lift_mean", sort=False)
+    pivot["Mean PR-AUC / delay rate"] = pivot.mean(axis=1)
+    first = rated.groupby(keys)[["n", "observed_rate"]].first()
+    mean_pr_auc = rated.groupby(keys)["pr_auc_mean"].mean()
     parts = []
     for col in META_COLUMNS:
         if col in pivot.index.get_level_values(0):
-            parts.append(pivot.loc[[col]].nsmallest(k, "Mean over models"))
+            parts.append(pivot.loc[[col]].nsmallest(k, "Mean PR-AUC / delay rate"))
     if not parts:
         return "No group has enough flights."
     table = pd.concat(parts)
-    table.insert(0, "Flights (Oct)", n.loc[table.index].to_numpy())
+    lift_cols = list(table.columns)
+    table.insert(0, "Flights (Oct)", first.loc[table.index, "n"].to_numpy())
+    table.insert(
+        1,
+        "Delay rate (Oct)",
+        first.loc[table.index, "observed_rate"].map(lambda v: f"{v:.1%}").to_numpy(),
+    )
+    table.insert(
+        2, "Mean PR-AUC (Oct)", mean_pr_auc.loc[table.index].map(lambda v: f"{v:.3f}").to_numpy()
+    )
+    for c in lift_cols:
+        table[c] = table[c].map(lambda v: f"{v:.2f}")
     table = table.reset_index().rename(columns={"meta_column": "Meta column", "group": "Group"})
-    for c in table.columns[3:]:
-        table[c] = table[c].map(lambda v: f"{v:.3f}")
     return markdown_table(table)
 
 
 def largest_gap_markdown(groups: pd.DataFrame, k: int = 3) -> str:
     """Per meta column, the k groups with the largest mean |calibration gap| over models."""
     big = groups[groups["n"] >= MIN_GROUP_ROWS]
-    pivot = big.pivot_table(index=["meta_column", "group"], columns="label",
-                            values="calibration_gap_mean", sort=False)
+    keys = ["meta_column", "group"]
+    pivot = big.pivot_table(index=keys, columns="label", values="calibration_gap_mean", sort=False)
     pivot["Mean over models"] = pivot.mean(axis=1)
+    rate = big.groupby(keys)["observed_rate"].first()
     parts = []
     for col in META_COLUMNS:
         if col in pivot.index.get_level_values(0):
@@ -475,10 +581,12 @@ def largest_gap_markdown(groups: pd.DataFrame, k: int = 3) -> str:
             parts.append(sub.loc[sub["Mean over models"].abs().nlargest(k).index])
     if not parts:
         return "No group has enough flights."
-    table = pd.concat(parts).reset_index().rename(
-        columns={"meta_column": "Meta column", "group": "Group"})
-    for c in table.columns[2:]:
+    table = pd.concat(parts)
+    gap_cols = list(table.columns)
+    table.insert(0, "Delay rate (Oct)", rate.loc[table.index].map(lambda v: f"{v:.1%}").to_numpy())
+    for c in gap_cols:
         table[c] = table[c].map(lambda v: f"{v:+.3f}")
+    table = table.reset_index().rename(columns={"meta_column": "Meta column", "group": "Group"})
     return markdown_table(table)
 
 
@@ -496,10 +604,12 @@ class EvaluationResult:
     results: list[RunResult] = field(default_factory=list)
 
 
-def evaluate_models(frame: pd.DataFrame, models: dict[str, str],
-                    min_precision: float = MIN_PRECISION) -> tuple[pd.DataFrame, list[RunResult]]:
-    results = [evaluate_run(m, run, frame, min_precision)
-               for m in models for run in run_columns(frame, m)]
+def evaluate_models(
+    frame: pd.DataFrame, models: dict[str, str], min_precision: float = MIN_PRECISION
+) -> tuple[pd.DataFrame, list[RunResult]]:
+    results = [
+        evaluate_run(m, run, frame, min_precision) for m in models for run in run_columns(frame, m)
+    ]
     return pd.DataFrame([r.metrics for r in results]), results
 
 
@@ -509,6 +619,7 @@ def run_evaluation(
     output_dir: str | Path,
     *,
     reference: str,
+    figures_dir: str | Path | None = None,
     bootstrap_fn: BootstrapFn | None = None,
     error_analysis_models: list[str] | None = None,
     title: str = "Evaluation summary",
@@ -518,17 +629,23 @@ def run_evaluation(
 ) -> EvaluationResult:
     """Evaluate ``models`` (key -> label) and write tables, plots and ``evaluation_summary.md``.
 
+    Tables (csv, md) go to ``output_dir``; plots (png) go to ``figures_dir`` (default
+    ``output_dir``).
+
     ``bootstrap_fn(dates, y, probs, pairs, seed=42)`` must return columns ``comparison``,
-    ``difference``, ``ci_low``, ``ci_high``, ``excludes_zero`` (``scripts/train_gru.day_bootstrap``).
+    ``difference``, ``ci_low``, ``ci_high``, ``excludes_zero``
+    (``scripts/train_gru.day_bootstrap``).
     Each model is compared with ``reference``. Error analysis needs the meta columns.
     """
     out = Path(output_dir)
+    fig = Path(figures_dir) if figures_dir is not None else out
     out.mkdir(parents=True, exist_ok=True)
+    fig.mkdir(parents=True, exist_ok=True)
     per_run, results = evaluate_models(frame, models, min_precision)
     summary = summarise_runs(per_run, models)
     per_run.to_csv(out / "per_run_metrics.csv", index=False)
     summary.to_csv(out / "comparison_table.csv", index=False)
-    plot_pr_auc(summary, out / "pr_auc_bar.png")
+    plot_pr_auc(summary, fig / "pr_auc_bar.png")
 
     boot = None
     if bootstrap_fn is not None:
@@ -538,7 +655,7 @@ def run_evaluation(
         boot = bootstrap_fn(dates, frame["is_delayed"].to_numpy(int), probs, pairs, seed=42)
         boot.insert(0, "period", "September-October")
         boot.to_csv(out / "bootstrap_differences.csv", index=False)
-        plot_bootstrap(boot, out / "bootstrap_differences.png")
+        plot_bootstrap(boot, fig / "bootstrap_differences.png")
 
     groups = None
     if error_analysis_models:
@@ -546,58 +663,93 @@ def run_evaluation(
         chosen = [r for r in results if r.model in error_analysis_models]
         groups = error_analysis(october, chosen, models)
         groups.to_csv(out / "error_analysis_groups.csv", index=False)
-        plot_reliability(october["is_delayed"].to_numpy(int), chosen, models,
-                         out / "reliability_october.png")
+        plot_reliability(
+            october["is_delayed"].to_numpy(int), chosen, models, fig / "reliability_october.png"
+        )
 
-    write_summary(out / "evaluation_summary.md", title, intro, notes, summary, boot, groups,
-                  reference, models)
+    write_summary(
+        out / "evaluation_summary.md", title, intro, notes, summary, boot, groups, reference, models
+    )
     return EvaluationResult(per_run, summary, boot, groups, results)
 
 
-def write_summary(path: Path, title: str, intro: str, notes: str, summary: pd.DataFrame,
-                  boot: pd.DataFrame | None, groups: pd.DataFrame | None, reference: str,
-                  labels: dict[str, str]) -> None:
+def write_summary(
+    path: Path,
+    title: str,
+    intro: str,
+    notes: str,
+    summary: pd.DataFrame,
+    boot: pd.DataFrame | None,
+    groups: pd.DataFrame | None,
+    reference: str,
+    labels: dict[str, str],
+) -> None:
     lines = [f"# {title}", ""]
     if intro:
         lines += [intro.strip(), ""]
     lines += [
-        "## Model comparison", "",
+        "## Model comparison",
+        "",
         "Mean ± sd over each model's runs (seeds). Month of each number in the column name. "
         "PR-AUC and ROC-AUC are computed on raw probabilities; the September sigmoid does not "
-        "change the ranking. Calibrated = sigmoid fitted on September, scored on October.", "",
-        comparison_markdown(summary), "",
-        "September reference (the calibrator's own fitting month, in-sample):", "",
-        september_markdown(summary), "",
+        "change the ranking. Calibrated = sigmoid fitted on September, scored on October.",
+        "",
+        comparison_markdown(summary),
+        "",
+        "September reference (the calibrator's own fitting month, in-sample):",
+        "",
+        september_markdown(summary),
+        "",
     ]
     if boot is not None:
         lines += [
-            f"## PR-AUC differences vs {labels.get(reference, reference)}", "",
+            f"## PR-AUC differences vs {labels.get(reference, reference)}",
+            "",
             "Paired day-level bootstrap (1,000 resamples of whole days, seed 42) on "
             "September-October; each model's PR-AUC is the mean over its seeds. A difference "
-            "counts only if its 95% interval excludes 0.", "",
-            bootstrap_markdown(boot), "",
+            "counts only if its 95% interval excludes 0.",
+            "",
+            bootstrap_markdown(boot),
+            "",
         ]
         real = boot[boot["excludes_zero"]]
         if real.empty:
-            lines += [f"No model's PR-AUC differs from {labels.get(reference, reference)} "
-                      "beyond the bootstrap interval on September-October, so no winner on "
-                      "PR-AUC is declared.", ""]
+            lines += [
+                f"No model's PR-AUC differs from {labels.get(reference, reference)} "
+                "beyond the bootstrap interval on September-October, so no winner on "
+                "PR-AUC is declared.",
+                "",
+            ]
         else:
-            better = real[real["difference"] > 0]["comparison"].tolist()
-            worse = real[real["difference"] < 0]["comparison"].tolist()
-            lines += ["Differences whose interval excludes 0 (September-October): "
-                      f"higher: {', '.join(better) or 'none'}; lower: {', '.join(worse) or 'none'}. "
-                      "All other differences are within bootstrap noise.", ""]
+            better = ", ".join(real[real["difference"] > 0]["comparison"]) or "none"
+            worse = ", ".join(real[real["difference"] < 0]["comparison"]) or "none"
+            lines += [
+                "Differences whose interval excludes 0 (September-October): "
+                f"higher: {better}; lower: {worse}. "
+                "All other differences are within bootstrap noise.",
+                "",
+            ]
     if groups is not None:
         lines += [
-            "## Error analysis (October, calibrated probabilities)", "",
+            "## Error analysis (October, calibrated probabilities)",
+            "",
             f"Groups with at least {MIN_GROUP_ROWS} October flights. Values are means over each "
             "model's seeds; per-seed sd is in `error_analysis_groups.csv`. Threshold-based rates "
             "are not reported because the October thresholds are infeasible or flag very few "
-            "flights (D-203).", "",
-            "Lowest PR-AUC groups (October):", "", weakest_groups_markdown(groups), "",
-            "Largest calibration gaps, mean calibrated probability minus observed rate "
-            "(October):", "", largest_gap_markdown(groups), "",
+            "flights (D-203).",
+            "",
+            "Hardest groups (October), ranked by PR-AUC / delay rate. A random ranking scores "
+            "a PR-AUC equal to the group's delay rate, so raw PR-AUC is lowest in groups with "
+            "few delays even when the model ranks them well; dividing by the delay rate (1 = no "
+            "better than random) compares groups on one scale. Per-model columns are PR-AUC / "
+            "delay rate.",
+            "",
+            weakest_groups_markdown(groups),
+            "",
+            "Largest calibration gaps, mean calibrated probability minus observed rate (October):",
+            "",
+            largest_gap_markdown(groups),
+            "",
         ]
     if notes:
         lines += [notes.strip(), ""]

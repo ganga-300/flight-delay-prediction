@@ -55,7 +55,7 @@ Differences whose interval excludes 0 (September-October): higher: none; lower: 
 
 - **Differences are relative to one reference.** Each ablation is compared with the D-307
   embedding MLP it was designed around (D-309/D-310), not with Logistic Regression or other
-  models; see `outputs/evaluation_summary.md` for the main comparison.
+  models; see `reports/results/phase2_member5/evaluation_summary.md` for the main comparison.
 - **October threshold metrics are in-sample.** October chooses the threshold, so the precision,
   recall and flight counts at that threshold are optimistic (D-203).
 - **Degenerate feasible thresholds.** D-203 sets no minimum number of flagged flights, so a
@@ -64,4 +64,4 @@ Differences whose interval excludes 0 (September-October): higher: none; lower: 
 - **Calibration month differs from the threshold month.** September is the calmest month (13.7%
   delayed vs 17.6% in October), so September-fitted probabilities run low on October.
 - **No error analysis here.** Reliability plots and group error analysis are produced for the
-  main models only (`outputs/`).
+  main models only (`reports/results/phase2_member5/`).

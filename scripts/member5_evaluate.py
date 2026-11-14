@@ -13,8 +13,15 @@ hybrid; seeds 42-46; 55,628 flights matched by id). Nothing is retrained.
 November-December is not read. Carrier, origin and departure hour come from the January-October
 development file (``load_dev_raw``), matched on flight id.
 
-Outputs: ``outputs/`` (main models, differences vs Logistic Regression) and ``outputs/ablation/``
-(ablations, differences vs the D-307 embedding MLP).
+Outputs, laid out like Members 1-4:
+
+* tables (csv, md): ``reports/results/phase2_member5/`` (main models, differences vs Logistic
+  Regression) and ``reports/results/phase2_member5/ablation/`` (ablations, differences vs the
+  D-307 embedding MLP);
+* plots (png): ``reports/figures/phase2_member5/`` and ``reports/figures/phase2_member5/ablation/``.
+
+Refuses to overwrite existing outputs (D-311), like the other members' scripts; pass empty
+``--results`` / ``--figures`` folders to run again elsewhere.
 """
 
 from __future__ import annotations
@@ -41,6 +48,8 @@ from flight_delay.evaluation.evaluate import (  # noqa: E402
 )
 
 PREDICTIONS = ROOT / "reports/results/phase2_member4/sep_oct_predictions.parquet"
+RESULTS = ROOT / "reports/results/phase2_member5"
+FIGURES = ROOT / "reports/figures/phase2_member5"
 EXPECTED = {"all": 55_628, "september": 27_010, "october": 28_618}
 
 MAIN_MODELS = {
@@ -59,15 +68,20 @@ ABLATION_MODELS = {
     "ablation_no_regularization": "Ablation: no dropout or weight decay",
 }
 
+OCTOBER_USE = (
+    f"Out-of-sample calibration check; threshold at precision ≥ {MIN_PRECISION:.2f}; "
+    "reliability plots; error analysis"
+)
+
 PROTOCOL = f"""\
 Source: `reports/results/phase2_member4/sep_oct_predictions.parquet` (saved probabilities of
 models trained on January-August 2013; nothing retrained). Months, each with one job (D-203):
 
 | Period | Flights | Use |
 |---|---|---|
-| September 2013 | {EXPECTED['september']:,} | Fit one sigmoid calibrator per run |
-| October 2013 | {EXPECTED['october']:,} | Out-of-sample calibration check; threshold at precision ≥ {MIN_PRECISION:.2f}; reliability plots; error analysis |
-| September-October 2013 | {EXPECTED['all']:,} | PR-AUC, ROC-AUC, bootstrap differences |
+| September 2013 | {EXPECTED["september"]:,} | Fit one sigmoid calibrator per run |
+| October 2013 | {EXPECTED["october"]:,} | {OCTOBER_USE} |
+| September-October 2013 | {EXPECTED["all"]:,} | PR-AUC, ROC-AUC, bootstrap differences |
 | November-December 2013 | not read | Sealed (D-002) |
 
 Each model is reported as mean ± sd over seeds 42-46 (Logistic Regression is one deterministic
@@ -98,7 +112,7 @@ ABLATION_LIMITATIONS = """\
 
 - **Differences are relative to one reference.** Each ablation is compared with the D-307
   embedding MLP it was designed around (D-309/D-310), not with Logistic Regression or other
-  models; see `outputs/evaluation_summary.md` for the main comparison.
+  models; see `reports/results/phase2_member5/evaluation_summary.md` for the main comparison.
 - **October threshold metrics are in-sample.** October chooses the threshold, so the precision,
   recall and flight counts at that threshold are optimistic (D-203).
 - **Degenerate feasible thresholds.** D-203 sets no minimum number of flagged flights, so a
@@ -107,7 +121,7 @@ ABLATION_LIMITATIONS = """\
 - **Calibration month differs from the threshold month.** September is the calmest month (13.7%
   delayed vs 17.6% in October), so September-fitted probabilities run low on October.
 - **No error analysis here.** Reliability plots and group error analysis are produced for the
-  main models only (`outputs/`).
+  main models only (`reports/results/phase2_member5/`).
 """
 
 ABLATION_INTRO = """\
@@ -131,34 +145,82 @@ def load_inputs():
     return attach_meta(frame, meta)
 
 
+def planned_outputs(results: Path, figures: Path, only: str) -> list[Path]:
+    """Files this run would write; any that exists stops the run before data is loaded."""
+    paths = []
+    if only in ("all", "main"):
+        paths += [
+            results / "evaluation_summary.md",
+            results / "comparison_table.csv",
+            results / "error_analysis_groups.csv",
+            figures / "pr_auc_bar.png",
+            figures / "reliability_october.png",
+        ]
+    if only in ("all", "ablation"):
+        paths += [
+            results / "ablation" / "evaluation_summary.md",
+            results / "ablation" / "comparison_table.csv",
+            figures / "ablation" / "pr_auc_bar.png",
+        ]
+    return paths
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__,
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--outputs", default=str(ROOT / "outputs"))
-    parser.add_argument("--only", choices=["all", "main", "ablation"], default="all",
-                        help="run only one of the two evaluations")
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument("--results", default=str(RESULTS), help="tables (csv, md)")
+    parser.add_argument("--figures", default=str(FIGURES), help="plots (png)")
+    parser.add_argument(
+        "--only",
+        choices=["all", "main", "ablation"],
+        default="all",
+        help="run only one of the two evaluations",
+    )
     args = parser.parse_args()
-    out = Path(args.outputs)
+    out, fig = Path(args.results), Path(args.figures)
+    if any(p.exists() for p in planned_outputs(out, fig, args.only)):
+        raise SystemExit("D-311 outputs already exist; refusing to overwrite")
     frame = load_inputs()
 
     if args.only in ("all", "main"):
         main_result = run_evaluation(
-            frame, MAIN_MODELS, out, reference="lr", bootstrap_fn=day_bootstrap,
+            frame,
+            MAIN_MODELS,
+            out,
+            reference="lr",
+            figures_dir=fig,
+            bootstrap_fn=day_bootstrap,
             error_analysis_models=list(MAIN_MODELS),
             title="Member 5 evaluation: September-October 2013 (D-203)",
-            intro=PROTOCOL, notes=LIMITATIONS,
+            intro=PROTOCOL,
+            notes=LIMITATIONS,
         )
-        print(main_result.summary[["label", "sepoct_pr_auc_mean", "sepoct_pr_auc_sd",
-                                   "oct_sigmoid_brier_mean", "oct_sigmoid_ece_10_mean",
-                                   "oct_threshold"]].to_string(index=False))
+        print(
+            main_result.summary[
+                [
+                    "label",
+                    "sepoct_pr_auc_mean",
+                    "sepoct_pr_auc_sd",
+                    "oct_sigmoid_brier_mean",
+                    "oct_sigmoid_ece_10_mean",
+                    "oct_threshold",
+                ]
+            ].to_string(index=False)
+        )
         print(main_result.bootstrap.to_string(index=False))
 
     if args.only in ("all", "ablation"):
         ablation_result = run_evaluation(
-            frame, ABLATION_MODELS, out / "ablation", reference="embedding",
+            frame,
+            ABLATION_MODELS,
+            out / "ablation",
+            reference="embedding",
+            figures_dir=fig / "ablation",
             bootstrap_fn=day_bootstrap,
             title="Member 5 ablation evaluation: September-October 2013 (D-203)",
-            intro=ABLATION_INTRO + "\n" + PROTOCOL, notes=ABLATION_LIMITATIONS,
+            intro=ABLATION_INTRO + "\n" + PROTOCOL,
+            notes=ABLATION_LIMITATIONS,
         )
         print(ablation_result.bootstrap.to_string(index=False))
 

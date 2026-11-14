@@ -1,5 +1,9 @@
 """Member 5: D-203 evaluation of saved September-October predictions."""
 
+import subprocess
+import sys
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -14,6 +18,7 @@ from flight_delay.evaluation.evaluate import (
     run_evaluation,
     summarise_runs,
     threshold_text,
+    weakest_groups_markdown,
 )
 from flight_delay.models.calibration import calibrate
 
@@ -37,18 +42,28 @@ def _frame(n_per_day=60, seed=0, models=("lr", "nn"), seeds=(42, 43), shift=1.5)
         else:
             for s in seeds:
                 out[f"{m}_seed{s}"] = probs(1.2, s)
-    meta = pd.DataFrame({
-        "id": np.arange(n),
-        "carrier": rng.choice(["UA", "AA", "DL"], n),
-        "origin": rng.choice(["EWR", "JFK", "LGA"], n),
-        "dep_hour": rng.integers(5, 23, n),
-    })
+    meta = pd.DataFrame(
+        {
+            "id": np.arange(n),
+            "carrier": rng.choice(["UA", "AA", "DL"], n),
+            "origin": rng.choice(["EWR", "JFK", "LGA"], n),
+            "dep_hour": rng.integers(5, 23, n),
+        }
+    )
     return out, meta
 
 
 def _fake_bootstrap(dates, y, probs, pairs, seed=42):
-    rows = [{"comparison": f"{a} - {b}", "difference": 0.01, "ci_low": -0.01, "ci_high": 0.03,
-             "excludes_zero": False} for a, b in pairs]
+    rows = [
+        {
+            "comparison": f"{a} - {b}",
+            "difference": 0.01,
+            "ci_low": -0.01,
+            "ci_high": 0.03,
+            "excludes_zero": False,
+        }
+        for a, b in pairs
+    ]
     return pd.DataFrame(rows)
 
 
@@ -152,19 +167,33 @@ def test_feasible_threshold_reports_precision_and_flags():
 
 
 def test_seed_summary_mean_sd_and_single_run_sd_zero():
-    per_run = pd.DataFrame({
-        "model": ["a", "a", "a", "lr"],
-        **{c: [0.1, 0.2, 0.3, 0.5] for c in [
-            "sepoct_pr_auc", "sepoct_roc_auc", "oct_raw_brier", "oct_sigmoid_brier",
-            "oct_raw_ece_10", "oct_sigmoid_ece_10", "oct_raw_mean_prob",
-            "oct_sigmoid_mean_prob", "sep_raw_brier", "sep_sigmoid_brier", "sep_raw_ece_10",
-            "sep_sigmoid_ece_10"]},
-        "oct_threshold_feasible": [True, False, True, False],
-        "oct_threshold": [0.4, np.nan, 0.5, np.nan],
-        "oct_precision": [0.6, np.nan, 0.7, np.nan],
-        "oct_recall": [0.01, np.nan, 0.02, np.nan],
-        "oct_flagged": [10, 0, 30, 0],
-    })
+    per_run = pd.DataFrame(
+        {
+            "model": ["a", "a", "a", "lr"],
+            **{
+                c: [0.1, 0.2, 0.3, 0.5]
+                for c in [
+                    "sepoct_pr_auc",
+                    "sepoct_roc_auc",
+                    "oct_raw_brier",
+                    "oct_sigmoid_brier",
+                    "oct_raw_ece_10",
+                    "oct_sigmoid_ece_10",
+                    "oct_raw_mean_prob",
+                    "oct_sigmoid_mean_prob",
+                    "sep_raw_brier",
+                    "sep_sigmoid_brier",
+                    "sep_raw_ece_10",
+                    "sep_sigmoid_ece_10",
+                ]
+            },
+            "oct_threshold_feasible": [True, False, True, False],
+            "oct_threshold": [0.4, np.nan, 0.5, np.nan],
+            "oct_precision": [0.6, np.nan, 0.7, np.nan],
+            "oct_recall": [0.01, np.nan, 0.02, np.nan],
+            "oct_flagged": [10, 0, 30, 0],
+        }
+    )
     s = summarise_runs(per_run, {"a": "A"}).set_index("model")
     assert s.loc["a", "sepoct_pr_auc_mean"] == pytest.approx(0.2)
     assert s.loc["a", "sepoct_pr_auc_sd"] == pytest.approx(0.1)
@@ -175,8 +204,14 @@ def test_seed_summary_mean_sd_and_single_run_sd_zero():
 
 
 def test_threshold_text_all_runs_infeasible():
-    g = pd.DataFrame({"oct_threshold_feasible": [False] * 5, "oct_threshold": [np.nan] * 5,
-                      "oct_flagged": [0] * 5, "oct_recall": [np.nan] * 5})
+    g = pd.DataFrame(
+        {
+            "oct_threshold_feasible": [False] * 5,
+            "oct_threshold": [np.nan] * 5,
+            "oct_flagged": [0] * 5,
+            "oct_recall": [np.nan] * 5,
+        }
+    )
     assert threshold_text(g) == "infeasible (5/5 runs)"
 
 
@@ -184,12 +219,14 @@ def test_threshold_text_all_runs_infeasible():
 
 
 def test_group_table_is_threshold_free_with_minimum_rows():
-    test = pd.DataFrame({
-        "is_delayed": [1, 1, 0, 0] * 60 + [1, 0],
-        "carrier": ["UA"] * 240 + ["AA"] * 2,
-        "origin": ["EWR"] * 242,
-        "dep_hour": [6] * 242,
-    })
+    test = pd.DataFrame(
+        {
+            "is_delayed": [1, 1, 0, 0] * 60 + [1, 0],
+            "carrier": ["UA"] * 240 + ["AA"] * 2,
+            "origin": ["EWR"] * 242,
+            "dep_hour": [6] * 242,
+        }
+    )
     prob = np.array([0.9, 0.2, 0.8, 0.1] * 60 + [0.9, 0.1])
     g = group_table(test, prob, min_rows=200).set_index(["meta_column", "group"])
     assert {"miss_rate", "false_alarm_rate"}.isdisjoint(g.columns)
@@ -197,7 +234,45 @@ def test_group_table_is_threshold_free_with_minimum_rows():
     assert ua["observed_rate"] == pytest.approx(0.5)
     assert ua["calibration_gap"] == pytest.approx(0.0)
     assert np.isfinite(ua["pr_auc"])
+    assert ua["pr_auc_lift"] == pytest.approx(ua["pr_auc"] / 0.5)
     assert np.isnan(g.loc[("carrier", "AA"), "pr_auc"])
+    assert np.isnan(g.loc[("carrier", "AA"), "pr_auc_lift"])
+
+
+def _groups(rows):
+    """Aggregated error-analysis rows: (group, n, delay rate, PR-AUC) for two models."""
+    out = []
+    for label in ("A", "B"):
+        for group, n, rate, pr in rows:
+            out.append(
+                {
+                    "model": label.lower(),
+                    "label": label,
+                    "month": "October",
+                    "meta_column": "carrier",
+                    "group": group,
+                    "n": n,
+                    "observed_rate": rate,
+                    "pr_auc_mean": pr,
+                    "pr_auc_lift_mean": pr / rate,
+                }
+            )
+    return pd.DataFrame(out)
+
+
+def test_weakest_groups_ranked_by_pr_auc_over_delay_rate_not_raw_pr_auc():
+    # DL: few delays, low raw PR-AUC but 1.8x random. FL: many delays, higher raw PR-AUC but
+    # only 1.2x random. FL is the harder group and must rank first.
+    groups = _groups([("DL", 4000, 0.11, 0.20), ("FL", 300, 0.39, 0.47), ("UA", 5000, 0.20, 0.50)])
+    text = weakest_groups_markdown(groups, k=2)
+    body = [line for line in text.splitlines()[2:]]
+    assert body[0].startswith("| carrier | FL |")
+    assert body[1].startswith("| carrier | DL |")
+    assert "UA" not in text
+    header = text.splitlines()[0]
+    for col in ["Delay rate (Oct)", "Mean PR-AUC (Oct)", "Mean PR-AUC / delay rate"]:
+        assert col in header, col
+    assert "39.0%" in body[0] and "0.470" in body[0] and "1.21" in body[0]
 
 
 # ---------------------------------------------------------------- pipeline
@@ -212,20 +287,46 @@ def test_pipeline_writes_outputs_with_months(tmp_path):
         calls.update(n=len(y), pairs=pairs, seed=seed, runs={k: len(v) for k, v in probs.items()})
         return _fake_bootstrap(dates, y, probs, pairs, seed)
 
-    result = run_evaluation(frame, {"lr": "LR", "nn": "NN"}, tmp_path, reference="lr",
-                            bootstrap_fn=spy, error_analysis_models=["lr", "nn"],
-                            notes="## Limitations\n- note")
-    for name in ["comparison_table.csv", "per_run_metrics.csv", "bootstrap_differences.csv",
-                 "error_analysis_groups.csv", "reliability_october.png", "pr_auc_bar.png",
-                 "bootstrap_differences.png", "evaluation_summary.md"]:
-        assert (tmp_path / name).exists(), name
-    assert calls == {"n": len(frame), "pairs": [("nn", "lr")], "seed": 42,
-                     "runs": {"lr": 1, "nn": 2}}
+    results, figures = tmp_path / "results", tmp_path / "figures"
+    result = run_evaluation(
+        frame,
+        {"lr": "LR", "nn": "NN"},
+        results,
+        reference="lr",
+        figures_dir=figures,
+        bootstrap_fn=spy,
+        error_analysis_models=["lr", "nn"],
+        notes="## Limitations\n- note",
+    )
+    tables = [
+        "comparison_table.csv",
+        "per_run_metrics.csv",
+        "bootstrap_differences.csv",
+        "error_analysis_groups.csv",
+        "evaluation_summary.md",
+    ]
+    plots = ["reliability_october.png", "pr_auc_bar.png", "bootstrap_differences.png"]
+    assert sorted(p.name for p in results.iterdir()) == sorted(tables)
+    assert sorted(p.name for p in figures.iterdir()) == sorted(plots)
+    assert calls == {
+        "n": len(frame),
+        "pairs": [("nn", "lr")],
+        "seed": 42,
+        "runs": {"lr": 1, "nn": 2},
+    }
     assert set(result.groups["month"]) == {"October"}
-    text = (tmp_path / "evaluation_summary.md").read_text()
-    for header in ["PR-AUC (Sep-Oct)", "Brier calibrated (Oct)", "ECE raw (Oct)",
-                   "Threshold, precision ≥ 0.60 (Oct)", "(Sep, in-sample)",
-                   "95% interval (Sep-Oct)"]:
+    assert {"pr_auc_lift_mean", "pr_auc_lift_sd"} <= set(result.groups.columns)
+    text = (results / "evaluation_summary.md").read_text()
+    assert "ranked by PR-AUC / delay rate" in text
+    assert "Lowest PR-AUC groups" not in text
+    for header in [
+        "PR-AUC (Sep-Oct)",
+        "Brier calibrated (Oct)",
+        "ECE raw (Oct)",
+        "Threshold, precision ≥ 0.60 (Oct)",
+        "(Sep, in-sample)",
+        "95% interval (Sep-Oct)",
+    ]:
         assert header in text, header
     assert "no winner on PR-AUC is declared" in text
     assert "isotonic" not in text.lower()
@@ -237,10 +338,52 @@ def test_pipeline_names_only_differences_that_exclude_zero(tmp_path):
     frame = load_sep_oct(frame)
 
     def real_gap(dates, y, probs, pairs, seed=42):
-        return pd.DataFrame([{"comparison": "nn - lr", "difference": -0.03, "ci_low": -0.05,
-                              "ci_high": -0.01, "excludes_zero": True}])
+        return pd.DataFrame(
+            [
+                {
+                    "comparison": "nn - lr",
+                    "difference": -0.03,
+                    "ci_low": -0.05,
+                    "ci_high": -0.01,
+                    "excludes_zero": True,
+                }
+            ]
+        )
 
-    run_evaluation(frame, {"lr": "LR", "nn": "NN"}, tmp_path, reference="lr",
-                   bootstrap_fn=real_gap)
+    run_evaluation(frame, {"lr": "LR", "nn": "NN"}, tmp_path, reference="lr", bootstrap_fn=real_gap)
     text = (tmp_path / "evaluation_summary.md").read_text()
     assert "lower: nn - lr" in text and "no winner" not in text
+
+
+# ---------------------------------------------------------------- script
+
+
+SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "member5_evaluate.py"
+
+
+@pytest.mark.parametrize(
+    "existing", ["results/evaluation_summary.md", "figures/ablation/pr_auc_bar.png"]
+)
+def test_script_refuses_to_overwrite_existing_outputs(tmp_path, existing):
+    target = tmp_path / existing
+    target.parent.mkdir(parents=True)
+    target.write_text("earlier result")
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPT),
+            "--results",
+            str(tmp_path / "results"),
+            "--figures",
+            str(tmp_path / "figures"),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+    assert result.returncode != 0
+    assert "refusing to overwrite" in result.stderr
+    assert target.read_text() == "earlier result"
+    assert sorted(
+        p.relative_to(tmp_path).as_posix() for p in tmp_path.rglob("*") if p.is_file()
+    ) == [existing]
