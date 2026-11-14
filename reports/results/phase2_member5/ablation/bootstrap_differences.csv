@@ -1,0 +1,5 @@
+period,comparison,difference,ci_low,ci_high,excludes_zero
+September-October,ablation_no_history - embedding,-0.018074466347928697,-0.04621107767975278,0.005626921797446628,False
+September-October,ablation_no_congestion - embedding,-0.016104239755859062,-0.026735121547589585,-0.005692112066337378,True
+September-October,ablation_one_hot - embedding,-0.00041182092056679664,-0.006406657692834161,0.005133475369912549,False
+September-October,ablation_no_regularization - embedding,-3.110577516157731e-05,-0.0027703211924608078,0.002788723168615671,False
