@@ -139,14 +139,15 @@ def check_frozen_files(root: Path, tag: str, files: list[str]) -> str:
     try:
         commit = subprocess.run(
             ["git", "rev-parse", "--verify", f"{tag}^{{commit}}"],
-            cwd=root, capture_output=True, text=True, check=True,
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=True,
         ).stdout.strip()
     except subprocess.CalledProcessError:
         raise SystemExit(f"Tag {tag!r} not found") from None
     for rel in files:
-        shown = subprocess.run(
-            ["git", "show", f"{tag}:{rel}"], cwd=root, capture_output=True
-        )
+        shown = subprocess.run(["git", "show", f"{tag}:{rel}"], cwd=root, capture_output=True)
         if shown.returncode != 0:
             raise SystemExit(f"{rel} is not in the {tag} commit")
         path = root / rel
@@ -299,14 +300,18 @@ def verify_sep_oct(table, tables, model, prep, scaler, length, cfg_frame_label: 
     p = score(sep_oct, tables, model, prep, scaler, length)
     saved = pd.read_parquet(SAVED_PREDICTIONS, columns=["id", SAVED_COLUMN])
     check_reproduces(sep_oct["id"].to_numpy(), p, saved, SAVED_COLUMN)
-    print(f"[ok] {cfg_frame_label}: {len(p):,} September-October probabilities equal the saved "
-          f"{SAVED_COLUMN} exactly")
+    print(
+        f"[ok] {cfg_frame_label}: {len(p):,} September-October probabilities equal the saved "
+        f"{SAVED_COLUMN} exactly"
+    )
     calibrator, params = frozen_operating_point(p, sep_oct)
     check_frozen_operating_point(params)
-    print(f"[ok] {cfg_frame_label}: September sigmoid slope {params['slope']:.6f}, intercept "
-          f"{params['intercept']:.6f}; October threshold {params['threshold']:.6f} "
-          f"(precision {params['october']['precision']:.4f}, recall "
-          f"{params['october']['recall']:.4f}, {params['october']['flagged']} flagged) = D-312")
+    print(
+        f"[ok] {cfg_frame_label}: September sigmoid slope {params['slope']:.6f}, intercept "
+        f"{params['intercept']:.6f}; October threshold {params['threshold']:.6f} "
+        f"(precision {params['october']['precision']:.4f}, recall "
+        f"{params['october']['recall']:.4f}, {params['october']['flagged']} flagged) = D-312"
+    )
     return calibrator, params
 
 
@@ -317,10 +322,14 @@ def verify_sep_oct(table, tables, model, prep, scaler, length, cfg_frame_label: 
 
 def stage1() -> None:
     commit = check_frozen_state()
-    print(f"[ok] tag {FROZEN_TAG} -> {commit[:7]}; {len(FROZEN_FILES)} checkpoint files "
-          "byte-identical to the tagged versions")
-    print(f"[ok] no test outputs at {RESULTS_DIR.relative_to(ROOT)} or "
-          f"{FIGURES_DIR.relative_to(ROOT)}")
+    print(
+        f"[ok] tag {FROZEN_TAG} -> {commit[:7]}; {len(FROZEN_FILES)} checkpoint files "
+        "byte-identical to the tagged versions"
+    )
+    print(
+        f"[ok] no test outputs at {RESULTS_DIR.relative_to(ROOT)} or "
+        f"{FIGURES_DIR.relative_to(ROOT)}"
+    )
     cfg = load_config()
     model, prep, scaler, mcfg = load_frozen_model()
     print(f"torch {torch.__version__} (checkpoint trained with {mcfg['torch_version']})")
@@ -344,9 +353,12 @@ def stage2() -> None:
     # From here on the run counts as done, even if it crashes.
     RESULTS_DIR.mkdir(parents=True, exist_ok=False)
     started = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    (RESULTS_DIR / MARKER).write_text(json.dumps(
-        {"started_utc": started, "frozen_commit": commit, "torch": torch.__version__}, indent=2
-    ) + "\n")
+    (RESULTS_DIR / MARKER).write_text(
+        json.dumps(
+            {"started_utc": started, "frozen_commit": commit, "torch": torch.__version__}, indent=2
+        )
+        + "\n"
+    )
 
     model, prep, scaler, mcfg = load_frozen_model()
     length = mcfg["selected_length"]
@@ -363,13 +375,30 @@ def stage2() -> None:
 
     metrics = [
         {"model": "gru_seed42", "probabilities": "raw", **probability_metrics(y, p)},
-        {"model": "gru_seed42", "probabilities": "sigmoid (frozen, D-312)",
-         **probability_metrics(y, q)},
+        {
+            "model": "gru_seed42",
+            "probabilities": "sigmoid (frozen, D-312)",
+            **probability_metrics(y, q),
+        },
     ]
     at_threshold = threshold_metrics(y, q, params["threshold"])
     lr_compare = [
-        {"model": "lr_d205", "probabilities": name, **{k: lr_rows[name][k] for k in
-         ["flights", "delay_rate", "mean_probability", "pr_auc", "roc_auc", "brier", "ece_10"]}}
+        {
+            "model": "lr_d205",
+            "probabilities": name,
+            **{
+                k: lr_rows[name][k]
+                for k in [
+                    "flights",
+                    "delay_rate",
+                    "mean_probability",
+                    "pr_auc",
+                    "roc_auc",
+                    "brier",
+                    "ece_10",
+                ]
+            },
+        }
         for name in ("raw", "sigmoid (frozen)")
     ]
     result = {
@@ -390,10 +419,15 @@ def stage2() -> None:
     }
     (RESULTS_DIR / "test_metrics.json").write_text(json.dumps(result, indent=2) + "\n")
     pd.DataFrame(metrics + lr_compare).to_csv(RESULTS_DIR / "test_metrics.csv", index=False)
-    pd.DataFrame({
-        "id": test["id"], "date": test["date"], TARGET_COLUMN: y,
-        "gru_seed42_raw": p, "gru_seed42_calibrated": q.astype(np.float32),
-    }).to_parquet(RESULTS_DIR / "test_predictions.parquet", index=False)
+    pd.DataFrame(
+        {
+            "id": test["id"],
+            "date": test["date"],
+            TARGET_COLUMN: y,
+            "gru_seed42_raw": p,
+            "gru_seed42_calibrated": q.astype(np.float32),
+        }
+    ).to_parquet(RESULTS_DIR / "test_predictions.parquet", index=False)
 
     FIGURES_DIR.mkdir(parents=True, exist_ok=False)
     fig, ax = plt.subplots(figsize=(6, 6))

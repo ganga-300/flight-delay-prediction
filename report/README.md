@@ -14,5 +14,6 @@ the twelve `eda_*.png` charts (exported from `notebooks/01_data_quality.ipynb` a
 `notebooks/02_eda.ipynb`; January–October for data quality, January–August for EDA),
 `d201_pr_comparison.png` (from `scripts/report_d201.py`), `test_reliability.png` (from
 `scripts/evaluate.py`) and `phase2_gru_test_reliability.png` (from
-`scripts/member5_test_evaluate.py`, D-313). All numbers in the report come from `docs/decision_log.md`,
+`scripts/member5_test_evaluate.py`, D-313) and `phase2_bootstrap_vs_lr.png` (from
+`scripts/member5_evaluate.py`, D-311). All numbers in the report come from `docs/decision_log.md`,
 `reports/results/` and the notebook outputs.

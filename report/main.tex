@@ -8,7 +8,7 @@
 
 \begin{document}
 
-\title{Flight Delay Prediction via Gradient Boosting\\ and Temporal Deep Learning: Phase~1}
+\title{Flight Delay Prediction via Gradient Boosting\\ and Temporal Deep Learning}
 
 \author{}
 
@@ -28,13 +28,18 @@ Regression is selected. On the test set it achieves a PR-AUC of 0.398 against a 
 0.258 and a ROC-AUC of 0.664, consistent with validation. Sigmoid calibration reduces the expected
 calibration error from 0.204 to 0.077. No threshold reaches the 60\% precision target, which
 reflects the limited information available a day ahead, notably the absence of weather data.
-Calibration fitted on a calm validation month also under-predicts in the busier test period. We
-report these limitations transparently and outline extensions with weather data and rolling
-recalibration.
+Calibration fitted on a calm validation month also under-predicts in the busier test period. In a
+second phase, a simple MLP, a GRU over daily delay sequences, an MLP with learned embeddings and a
+hybrid of neural representations with XGBoost were trained under the same protocol. None ranks
+flights better than Logistic Regression beyond day-level bootstrap noise, although the GRU clearly
+beats a control without recurrence and scheduled congestion is the one feature group whose removal
+reliably hurts. The GRU, frozen before the test and scored once, matches Logistic Regression
+(PR-AUC 0.399). We report these limitations transparently and outline extensions with weather data
+and rolling recalibration.
 \end{abstract}
 
 \begin{IEEEkeywords}
-flight delay prediction, gradient boosting, logistic regression, calibration, temporal leakage
+flight delay prediction, gradient boosting, logistic regression, recurrent neural networks, calibration, temporal leakage
 \end{IEEEkeywords}
 
 \input{sections/01_introduction}
@@ -44,7 +49,8 @@ flight delay prediction, gradient boosting, logistic regression, calibration, te
 \input{sections/05_methodology}
 \input{sections/06_experiments}
 \input{sections/07_results}
-\input{sections/08_conclusion}
+\input{sections/08_phase2}
+\input{sections/09_conclusion}
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
