@@ -7,6 +7,10 @@ past-only outcomes, Logistic Regression and XGBoost, and a strictly chronologica
 which each period is used for one decision. The test period was sealed before any analysis and
 evaluated once. On it, the selected L2 Logistic Regression achieves PR-AUC 0.398 (delay rate 0.258)
 and ROC-AUC 0.664. Sigmoid calibration reduces the expected calibration error from 0.204 to 0.077.
+The Phase~2 GRU over 14-day delay sequences, frozen before the test and scored once on the
+same flights, reached PR-AUC 0.399 and ROC-AUC 0.664. It matched the Logistic Regression but did
+not improve on it. Its September calibration under-predicted on the test period (ECE 0.094), and
+its October threshold reached only 57.4\% precision there, against the 60\% target.
 
 \textbf{Limitations.}
 \begin{itemize}

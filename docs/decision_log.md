@@ -1040,3 +1040,69 @@ reliability diagram, and at the threshold: precision, recall and flights flagged
     calibrated PR-AUC, ROC-AUC, Brier, ECE-10, and precision, recall and flights flagged at the
     frozen threshold, next to LR's D-205 result (PR-AUC 0.3979).
   - The result is reported as produced, whether it is better or worse than LR.
+
+### D-313 · Phase 2 single test evaluation (November–December): GRU seed 42
+
+- **Status:** Completed once, 2026-11-15 (run started 18:08:35 UTC). Final; nothing is changed or
+  re-run after this result.
+- **Owner:** Member 5 (PR 2), under D-312.
+- **Run:** `python scripts/member5_test_evaluate.py --run-test --confirm-single-test-run`, against
+  the frozen state tagged `phase2-model-frozen` (commit `669a245`). Before parsing the full-year
+  file the script checked that `gru_final.pth`, `static_preprocessor.joblib`,
+  `sequence_scaler.npz` and `model_config.json` were byte-identical to the tagged versions, that
+  no test outputs existed, and that `data/raw/flights.csv` matched its D-002 SHA-256. It then
+  wrote a run-started marker, so the run cannot be repeated even after a crash.
+- **Checks before scoring November–December (all passed):**
+  - Stage 1 (`--check`, January–October development file only) and again inside the run on the
+    January–December build: the pipeline reproduced the saved September–October `gru_seed42`
+    probabilities (55,628 flights) **bit-exactly**.
+  - The September sigmoid and October threshold rebuilt from those probabilities equal D-312:
+    slope 0.601708, intercept −1.106954, threshold 0.394665 (exact value 0.3946650399; October
+    precision 0.6042, recall 0.0346, 288 flagged).
+  - 53,991 test flights, the same count as D-205.
+- **Software versions:** the checkpoint was trained with torch 2.15.0 and the static
+  preprocessor was pickled with scikit-learn 1.9.1. The test ran with torch 2.11.0 and
+  scikit-learn 1.8.0 (scikit-learn warns `InconsistentVersionWarning` when loading the
+  preprocessor). Because September–October reproduced bit-exactly on both the January–October and
+  the January–December builds, the version difference did not change any prediction checked.
+- **Data:** 53,991 labelled flights, 2013-11-01 to 2013-12-31. Features and daily sequences were
+  built over January–December (past-only history), then only `split == "test"` rows were scored.
+  Nothing was fitted on November–December.
+- **Outputs:** `reports/results/phase2_member5/test_nov_dec/` (`test_metrics.json`,
+  `test_metrics.csv`, `test_predictions.parquet`, `RUN_STARTED.json`) and
+  `reports/figures/phase2_member5/test_nov_dec/test_reliability.png`.
+- **Tests:** `tests/test_member5_test_evaluate.py` (synthetic data: hash, tag/file, refuse-to-rerun,
+  crash marker, reproduction and D-312 checks, past-only history). `scripts/member5_test_evaluate.py`
+  was added to `SEALED_READERS` in `tests/test_holdout_seal.py`.
+
+**Results (exactly as produced; delay rate 0.2583)**
+
+| Model | Probabilities | Mean probability | PR-AUC | ROC-AUC | Brier | ECE (10 bins) |
+|---|---|---|---|---|---|---|
+| GRU seed 42 (D-312) | raw | 0.2916 | 0.3986 | 0.6638 | 0.1869 | 0.0592 |
+| GRU seed 42 (D-312) | sigmoid (frozen, D-312) | 0.1642 | 0.3986 | 0.6638 | 0.1890 | 0.0941 |
+| Logistic Regression (D-205) | raw | 0.4614 | 0.3979 | 0.6640 | 0.2264 | 0.2039 |
+| Logistic Regression (D-205) | sigmoid (frozen) | 0.1817 | 0.3979 | 0.6640 | 0.1852 | 0.0768 |
+
+**At the frozen threshold (0.394665, calibrated probability)**
+
+| Model | Flights flagged | Share flagged | Precision | Recall |
+|---|---|---|---|---|
+| GRU seed 42 | 1,102 | 2.04% | 0.5735 | 0.0453 |
+| Logistic Regression (D-205) | not available: no feasible threshold on October (D-204) | | | |
+
+**Reading of the results**
+- **Ranking:** GRU PR-AUC 0.3986 vs LR 0.3979 (+0.0007); ROC-AUC 0.6638 vs 0.6640 (−0.0003). The
+  two models rank test flights almost identically. No interval was pre-registered for the test
+  comparison and none is computed here, so this is not a claim that either model ranks better.
+- **Calibration:** the frozen September sigmoid made the GRU's test calibration worse, not
+  better: ECE-10 0.0592 → 0.0941 and Brier 0.1869 → 0.1890. Calibrated probabilities are too low
+  on average (0.164 vs a 0.258 delay rate), for the same reason as LR in D-205: September is the
+  calmest month (13.7% delayed). After calibration LR is slightly better calibrated on the test
+  period (Brier 0.1852, ECE-10 0.0768).
+- **Operating point:** at the frozen October threshold the GRU flags 1,102 test flights (2.0%)
+  with precision 0.574, below the 0.60 target of D-015, and recall 0.045. The target held on
+  October (in-sample, 0.604) but did not transfer to November–December.
+- **Overall:** the GRU chosen in D-312 matches, but does not beat, the Phase 1 Logistic
+  Regression on the sealed test period. The September–October advantages that motivated D-312
+  (calibration, a feasible threshold) did not carry over to the test period.

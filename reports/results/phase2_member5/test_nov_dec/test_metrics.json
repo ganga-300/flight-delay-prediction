@@ -1,0 +1,75 @@
+{
+  "protocol": "D-312 (D-203 test procedure)",
+  "frozen_tag": "phase2-model-frozen",
+  "frozen_commit": "669a2453175e16c6808bb92c3e60585bd689ed7d",
+  "run_started_utc": "2026-11-15T18:08:35+00:00",
+  "torch": "2.11.0",
+  "test_period": [
+    "2013-11-01",
+    "2013-12-31"
+  ],
+  "frozen_operating_point": {
+    "slope": 0.6017075271684859,
+    "intercept": -1.106953578796636,
+    "threshold": 0.3946650399454431
+  },
+  "metrics": [
+    {
+      "model": "gru_seed42",
+      "probabilities": "raw",
+      "flights": 53991,
+      "delay_rate": 0.2583023096442,
+      "mean_probability": 0.29160192608833313,
+      "pr_auc": 0.3986470888869389,
+      "roc_auc": 0.6637591910663675,
+      "brier": 0.1869104504585266,
+      "ece_10": 0.059220871339822914
+    },
+    {
+      "model": "gru_seed42",
+      "probabilities": "sigmoid (frozen, D-312)",
+      "flights": 53991,
+      "delay_rate": 0.2583023096442,
+      "mean_probability": 0.16419411598872416,
+      "pr_auc": 0.3986470888869389,
+      "roc_auc": 0.6637591910663675,
+      "brier": 0.18895793974719421,
+      "ece_10": 0.09410978350744506
+    }
+  ],
+  "at_threshold": {
+    "threshold": 0.3946650399454431,
+    "flagged": 1102,
+    "flagged_share": 0.02041080920894223,
+    "precision": 0.573502722323049,
+    "recall": 0.04531765380754338
+  },
+  "logistic_regression_d205": {
+    "metrics": [
+      {
+        "model": "lr_d205",
+        "probabilities": "raw",
+        "flights": 53991,
+        "delay_rate": 0.2583023096442,
+        "mean_probability": 0.4613905088845015,
+        "pr_auc": 0.3978953360248507,
+        "roc_auc": 0.6640456257827111,
+        "brier": 0.22638203888977085,
+        "ece_10": 0.20394145802076216
+      },
+      {
+        "model": "lr_d205",
+        "probabilities": "sigmoid (frozen)",
+        "flights": 53991,
+        "delay_rate": 0.2583023096442,
+        "mean_probability": 0.18167196619703171,
+        "pr_auc": 0.3978953360248507,
+        "roc_auc": 0.6640456257827111,
+        "brier": 0.18523544788786234,
+        "ece_10": 0.07679385062870565
+      }
+    ],
+    "at_threshold": "not available: no feasible threshold at 0.60 precision (D-204)",
+    "source": "reports/results/test_metrics.json"
+  }
+}
