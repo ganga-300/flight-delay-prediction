@@ -71,8 +71,8 @@ LR (Phase~1) & 0.2896 & 0.680 & 0.027 & --- \\
 GRU ($L{=}14$) & \textbf{0.2946} $\pm$ 0.0055 & 0.674 & \textbf{0.014} & $+0.005$ [$-0.014$, $+0.024$] \\
 Simple MLP & 0.2839 $\pm$ 0.0043 & 0.672 & 0.024 & $-0.006$ [$-0.024$, $+0.012$] \\
 Embedding MLP & 0.2757 $\pm$ 0.0035 & 0.675 & 0.030 & $-0.014$ [$-0.022$, $-0.003$]* \\
-Plain XGBoost & 0.2681 $\pm$ 0.0055 & 0.672 & 0.030 & $-0.022$ [$-0.039$, $-0.004$]* \\
-Hybrid DL + XGBoost & 0.2643 $\pm$ 0.0101 & 0.666 & 0.033 & $-0.025$ [$-0.040$, $-0.011$]* \\
+Plain XGBoost & 0.2681 $\pm$ 0.0055 & 0.672 & 0.030 & $-0.022$ [$-0.038$, $-0.004$]* \\
+Hybrid DL + XGBoost & 0.2643 $\pm$ 0.0101 & 0.666 & 0.033 & $-0.025$ [$-0.039$, $-0.010$]* \\
 \bottomrule
 \multicolumn{5}{l}{* Interval excludes zero.}
 \end{tabular}}
@@ -129,9 +129,8 @@ few as one flight, so their thresholds are not usable.
 For the error analysis, groups are compared by PR-AUC divided by their delay rate, because a random
 ranking scores the delay rate and raw PR-AUC would simply favour busy groups. On October the hardest
 carriers are FL (1.28 times random, but only 234 flights), AA and 9E; JFK is the hardest airport
-(1.53, against 1.86 for EWR); and the hardest departure hours are 6~a.m.\ and the evening. After the
-September calibration, every model under-predicts late-afternoon and evening flights, the busiest
-period of the day.
+(1.53, against 1.86 for EWR); and the hardest departure hours are 6~a.m.\ and 7~p.m. After the September calibration, every
+model under-predicts flights leaving between 3~p.m.\ and 9~p.m., the busiest period of the day.
 
 \subsection{Final model and single test}
 The GRU was chosen as the single Phase~2 model for the test because it had the highest PR-AUC, the
