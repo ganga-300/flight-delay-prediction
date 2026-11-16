@@ -44,15 +44,15 @@ Each team member built one part:
 \end{itemize}
 
 \textbf{How we measure.} Our main measure is the \emph{ranking score} (average precision, often
-called PR-AUC~\cite{saito2015precision}). It asks: if we sort flights from most to least risky, how
+called PR-AUC). It asks: if we sort flights from most to least risky, how
 well do the truly delayed flights rise to the top? Higher is better, and random guessing scores
 the share of delayed flights. We also measure the \emph{calibration gap} (expected calibration
-error~\cite{guo2017calibration}): when a model says ``30\% chance of delay'', how far is that from
+error): when a model says ``30\% chance of delay'', how far is that from
 what really happens? Lower is better.
 
 \section{The Rules: A Fair Test}
 \label{sec:rules}
-We use the same 2013 New York flights dataset as Phase~1~\cite{sajadi2023flights}. Every model used
+We use the same 2013 New York flights dataset as Phase~1. Every model used
 the same 59 pieces of information as Phase~1: the flight's schedule, airline,
 airports, how busy the timetable is, and how delayed recent flights were. Nothing that happens on
 the day of travel is used. The year was split by month, and each part had one job
@@ -79,15 +79,15 @@ model was locked.}
 \textbf{Is a difference real?} Neural networks give slightly different results each time they are
 trained, so every model was trained five times and we report the average. Two models can also
 differ by luck. To check, we re-drew the 61 comparison days at random 1{,}000 times and recomputed
-the difference each time~\cite{efron1993bootstrap}. This gives a range the difference could
+the difference each time. This gives a range the difference could
 plausibly take. If the range does not include zero, we call the difference \emph{real}. Each
 member wrote their plan down before training, so results could not change the plan.
 
 \section{The Four Models}
 
-\textbf{Plain network (Member~1).} A standard neural network with two hidden layers. Each airline,
+\textbf{Plain network (Member~1).} A standard neural network~\cite{lecun2015deep} with two hidden layers. Each airline,
 airport and route is turned into its own on/off column, giving 1{,}015 inputs. It was trained with
-the Adam method~\cite{kingma2015adam} and dropout~\cite{srivastava2014dropout}, which switches
+the Adam method and dropout, which switches
 off random parts of the network to stop it memorising.
 
 \textbf{GRU over daily delays (Member~2).} For a flight on a given day, this model looks at the
@@ -278,7 +278,7 @@ September, the calmest month. The same happened to LR in Phase~1.
 \section{Conclusion}
 Five model types, from simple LR to a GRU and a network--tree mix, reached almost the same ranking
 score on the same information. This matches what other studies have found for table-like
-data~\cite{gorishniy2021revisiting}. The limit is what can be known the evening before, not the
+data. The limit is what can be known the evening before, not the
 model. Phase~2 still taught us two useful things: the \emph{order} of recent daily delays carries
 real information, and \emph{timetable busyness} is the one input group whose removal clearly hurts.
 
