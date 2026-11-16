@@ -12,17 +12,14 @@ Suggested flow (~10 min):
 5. Results: PR AUC, ROC AUC, recall@precision, calibration
 6. Limitations & Phase 2 plan
 
-## Final comparison slide: GRU vs LR on November–December (D-313)
+## Phase 2 deck
 
-Not yet in the slides. `FlightDelayPrediction.pptx (1).pdf` is an export and the editable deck is
-on Google Drive, so this slide still has to be added there.
-
-**Title:** Sealed test (Nov–Dec 2013, 53,991 flights, 25.8% delayed): Phase 2 GRU vs Phase 1 LR
-
-Comparison table (raw and calibrated metrics), bullets and speaker notes: see
-`presentation/final_comparison_slide.md`.
-
-Figure: `report/figures/phase2_gru_test_reliability.png`.
+`Phase2_FlightDelayPrediction.pptx`: 14 slides in the Phase 1 deck's style (no blue), with speaker
+notes on every slide. Flow: title, Phase 2 protocol, two slides per member (M1 simple MLP, M2 GRU,
+M3 embedding MLP, M4 ablations and hybrid, M5 common evaluation and the single Nov–Dec test),
+conclusions, references. Every number comes from `docs/decision_log.md` (D-301 to D-313) and
+`reports/results/phase2_*`. It includes the GRU-vs-LR test comparison (D-313), which replaces
+`final_comparison_slide.md` / `final_comparison_slide.pptx`.
 
 ## Viva prep
 - [ ] Why PR AUC over accuracy?
