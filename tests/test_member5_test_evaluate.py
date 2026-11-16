@@ -30,10 +30,14 @@ def sandbox(tmp_path, monkeypatch):
     """Point every output and input path of the script into tmp_path."""
     results, figures = tmp_path / "results" / "test_nov_dec", tmp_path / "figures" / "test_nov_dec"
     lr = tmp_path / "test_metrics.json"
-    lr.write_text(json.dumps({
-        "metrics": [{"probabilities": "raw", "pr_auc": 0.39791}],
-        "at_threshold": "not available",
-    }))
+    lr.write_text(
+        json.dumps(
+            {
+                "metrics": [{"probabilities": "raw", "pr_auc": 0.39791}],
+                "at_threshold": "not available",
+            }
+        )
+    )
     monkeypatch.setattr(m5, "RESULTS_DIR", results)
     monkeypatch.setattr(m5, "FIGURES_DIR", figures)
     monkeypatch.setattr(m5, "LR_TEST_RESULTS", lr)
@@ -187,7 +191,9 @@ def test_a_mode_is_required():
 
 def _saved(n=50, seed=0):
     rng = np.random.default_rng(seed)
-    return pd.DataFrame({"id": np.arange(100, 100 + n), "gru_seed42": rng.random(n).astype(np.float32)})
+    return pd.DataFrame(
+        {"id": np.arange(100, 100 + n), "gru_seed42": rng.random(n).astype(np.float32)}
+    )
 
 
 def test_reproduction_check_accepts_identical_probabilities():
@@ -275,9 +281,12 @@ def test_later_days_do_not_change_earlier_predictions(synthetic_config):
     table_l, tables_l = m5.build_inputs(raw, synthetic_config)
 
     train = table_s[table_s["split"] == "train"].reset_index(drop=True)
-    numeric = [c for c in train.columns if c not in {"id", "date", "split", "is_delayed",
-                                                     "origin", "dest", "carrier"}
-               and pd.api.types.is_numeric_dtype(train[c])]
+    numeric = [
+        c
+        for c in train.columns
+        if c not in {"id", "date", "split", "is_delayed", "origin", "dest", "carrier"}
+        and pd.api.types.is_numeric_dtype(train[c])
+    ]
     prep = MLPPreprocessor(numeric, ["origin", "dest", "carrier"], min_count=1).fit(train)
     scaler = SequenceScaler.fit(tables_s, tables_s.flight_indices(train), 7)
     set_torch_seed(0)

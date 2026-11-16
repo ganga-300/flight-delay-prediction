@@ -103,56 +103,6 @@ month.}
 \label{fig:reliability}
 \end{figure}
 
-\subsection{Phase~2 final test: GRU vs Logistic Regression (November--December)}
-In Phase~2 the team chose one deep model before looking at the test set: the Member~2 GRU (seed 42,
-14-day sequences, hidden size 16). Its September sigmoid and its October threshold of 0.395 (the
-60\% precision target) were frozen in advance (D-312). The GRU was then scored once on the same
-53{,}991 sealed test flights (D-313). Features and daily sequences were built over the whole year
-using only past outcomes, and nothing was fitted on the test period. Before scoring, the pipeline
-reproduced the GRU's saved September--October probabilities bit-for-bit.
-Table~\ref{tab:phase2test} compares the GRU with the Logistic Regression from
-Table~\ref{tab:test}.
-
-\begin{table}[htbp]
-\centering
-\caption{Final comparison on the sealed test period, November--December (53{,}991 flights, delay
-rate 0.258)}
-\label{tab:phase2test}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{llcccc}
-\toprule
-Model & Probabilities & PR-AUC & ROC-AUC & Brier & ECE \\
-\midrule
-GRU (Phase 2) & raw & 0.399 & 0.664 & 0.187 & 0.059 \\
-GRU (Phase 2) & calibrated & 0.399 & 0.664 & 0.189 & 0.094 \\
-LR (Phase 1) & raw & 0.398 & 0.664 & 0.226 & 0.204 \\
-LR (Phase 1) & calibrated & 0.398 & 0.664 & 0.185 & 0.077 \\
-\midrule
-\multicolumn{6}{l}{At the frozen threshold, GRU: 1{,}102 flights flagged (2.0\%), precision 0.574,
-recall 0.045.} \\
-\multicolumn{6}{l}{LR: no threshold reached 60\% precision on October, so none was set.} \\
-\bottomrule
-\end{tabular}}
-\end{table}
-
-The GRU and the Logistic Regression rank test flights almost identically (PR-AUC 0.3986 vs 0.3979,
-ROC-AUC 0.6638 vs 0.6640). No confidence interval was pre-registered for this comparison, so
-neither model is claimed to be better. The frozen September calibration made the GRU worse
-calibrated on the test period: ECE rose from 0.059 to 0.094, and the mean calibrated probability
-was 0.164 against an observed delay rate of 0.258 (Fig.~\ref{fig:grureliability}). The cause is the
-same calm-September effect seen for the Logistic Regression. The GRU's October threshold flags
-2.0\% of test flights at 57.4\% precision, so the 60\% target, reached on October (in-sample), did
-not carry over to the test period. In short, the Phase~2 deep model matches but does not improve on
-the Phase~1 baseline.
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\columnwidth]{phase2_gru_test_reliability.png}
-\caption{Reliability diagram of the Phase~2 GRU on the test period, raw and with the frozen
-September sigmoid. The dotted line marks the frozen October threshold.}
-\label{fig:grureliability}
-\end{figure}
-
 \subsection{Discussion}
 At the end of the previous day, the dataset offers only the schedule and past outcomes. The largest
 drivers of delay, such as weather and same-day propagation, are unavailable. The model therefore

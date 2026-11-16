@@ -27,6 +27,9 @@ performance.
   results each decision governs, and by a test set sealed before any analysis and evaluated once.
   \item A comparison of L2 Logistic Regression and XGBoost with probability calibration, reported
   with ranking (PR-AUC, ROC-AUC) and calibration (Brier, ECE) metrics.
+  \item A second phase comparing a simple MLP, a GRU over daily delay sequences, an embedding MLP
+  and a neural--XGBoost hybrid under the same protocol, with ablations, five seeds per model and
+  day-level bootstrap intervals, followed by one frozen deep model evaluated once on the test set.
   \item A transparent account of what a day-ahead, schedule-only model can and cannot achieve:
   consistent ranking and good calibration, but no 60\%-precision operating point without weather
   information.
@@ -34,5 +37,5 @@ performance.
 
 Section~\ref{sec:related} reviews related work, Sections~\ref{sec:data} and~\ref{sec:features}
 describe the data and features, Sections~\ref{sec:method} and~\ref{sec:experiments} the
-methodology and protocol, Section~\ref{sec:results} the results, and Section~\ref{sec:conclusion}
-concludes.
+methodology and protocol, Section~\ref{sec:results} the Phase~1 results, Section~\ref{sec:phase2} the Phase~2 deep learning
+models, and Section~\ref{sec:conclusion} concludes.

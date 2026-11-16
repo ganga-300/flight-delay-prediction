@@ -7,10 +7,14 @@ past-only outcomes, Logistic Regression and XGBoost, and a strictly chronologica
 which each period is used for one decision. The test period was sealed before any analysis and
 evaluated once. On it, the selected L2 Logistic Regression achieves PR-AUC 0.398 (delay rate 0.258)
 and ROC-AUC 0.664. Sigmoid calibration reduces the expected calibration error from 0.204 to 0.077.
-The Phase~2 GRU over 14-day delay sequences, frozen before the test and scored once on the
-same flights, reached PR-AUC 0.399 and ROC-AUC 0.664. It matched the Logistic Regression but did
-not improve on it. Its September calibration under-predicted on the test period (ECE 0.094), and
-its October threshold reached only 57.4\% precision there, against the 60\% target.
+In Phase~2, a simple MLP, a GRU over daily delay sequences, an embedding MLP and a neural--XGBoost
+hybrid, trained under the same protocol with five seeds each, did not rank flights better than
+Logistic Regression beyond bootstrap noise. The GRU beat a control without recurrence, showing that
+the order of recent daily delays carries signal, and scheduled congestion was the only feature group
+whose removal reliably hurt. The GRU, frozen before the test and scored once, reached PR-AUC 0.399
+and ROC-AUC 0.664, matching but not improving on Logistic Regression. Its September calibration
+under-predicted on the test period (ECE 0.094), and its October threshold reached 57.4\% precision
+there, against the 60\% target.
 
 \textbf{Limitations.}
 \begin{itemize}
@@ -28,5 +32,6 @@ its October threshold reached only 57.4\% precision there, against the 60\% targ
 \textbf{Future work.} Adding weather forecasts available at $D{-}1$ is the most promising
 extension. Recalibrating on recent data, such as a rolling recalibration window, would address the
 seasonal shift in delay rates. With real cost estimates for false alarms and missed delays, the
-operating point and the offline rescheduling rule could be set by expected cost. Phase~2 will
-explore a compact neural model with learned embeddings for airline, origin and destination.
+operating point and the offline rescheduling rule could be set by expected cost. Since deeper models
+did not add ranking quality on the same inputs, new information, not new architectures, is the
+priority.
